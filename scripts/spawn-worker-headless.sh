@@ -1,15 +1,18 @@
 #!/bin/bash
 # spawn-worker-headless.sh - Spawn a worker in headless mode
-# Usage: ./scripts/spawn-worker-headless.sh <issue-number>
+# Usage: ./scripts/spawn-worker-headless.sh <issue-number> [model]
+# Model defaults to opus (latest Claude Opus 4.5)
 
 set -e
 
 if [ -z "$1" ]; then
-    echo "Usage: ./scripts/spawn-worker-headless.sh <issue-number>"
+    echo "Usage: ./scripts/spawn-worker-headless.sh <issue-number> [model]"
+    echo "  model: opus (default), sonnet, haiku"
     exit 1
 fi
 
 ISSUE=$1
+MODEL="${2:-opus}"
 WORKER_DIR="../ghost-note-worker-$ISSUE"
 
 # First ensure worktree exists
@@ -52,9 +55,9 @@ $ISSUE_BODY
 Begin now."
 
 # Run Claude headless
-echo "🤖 Spawning Claude worker..."
+echo "🤖 Spawning Claude worker with model: $MODEL..."
 cd "$WORKER_DIR"
-claude -p "$PROMPT" --dangerously-skip-permissions
+claude -p "$PROMPT" --model "$MODEL" --dangerously-skip-permissions
 
 echo ""
 echo "✅ Worker session completed"
