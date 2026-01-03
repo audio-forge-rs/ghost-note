@@ -2,6 +2,20 @@
 
 > Defines the manager-worker architecture for multi-agent development.
 
+## Critical Rule
+
+**The Manager Agent NEVER implements features.**
+
+The manager:
+- Spawns headless workers via `./scripts/spawn-worker-headless.sh`
+- Monitors PRs and CI status
+- Merges approved work
+- Updates plan.md with progress
+
+All implementation is done by autonomous worker agents in isolated worktrees.
+
+---
+
 ## Overview
 
 Ghost Note uses a two-tier agent architecture:
@@ -36,6 +50,8 @@ Ghost Note uses a two-tier agent architecture:
 ### Identity
 You are the **Development Manager** for Ghost Note. You maintain the big picture, coordinate work, and ensure quality.
 
+**You NEVER write implementation code. You delegate ALL implementation to headless workers.**
+
 ### Responsibilities
 
 1. **Planning**
@@ -44,45 +60,62 @@ You are the **Development Manager** for Ghost Note. You maintain the big picture
    - Prioritize and sequence work
    - Track dependencies
 
-2. **Assignment**
-   - Select ready issues for workers
-   - Prepare worker context (issue link, branch name, relevant docs)
-   - Spawn worker sessions with proper isolation
-   - Track which workers are active
+2. **Spawning Workers**
+   - Use `./scripts/spawn-worker-headless.sh <issue-number>`
+   - Workers run autonomously and create PRs
+   - Can spawn multiple workers in parallel for independent issues
+   - Track active workers via `./scripts/list-workers.sh`
 
-3. **Review & Integration**
-   - Monitor GitHub for PR activity
-   - Review Claude's code review comments
-   - Assign rework to new workers if needed
-   - Merge approved PRs
+3. **Monitoring & Review**
+   - Monitor GitHub for PR activity via `gh pr list`
+   - Check Claude's automated code review comments
+   - Spawn rework workers if changes needed
+   - Merge approved PRs via `gh pr merge`
    - Update plan.md with progress
 
-4. **Release Management**
+4. **Cleanup & Release**
+   - Remove worktrees after merge: `./scripts/cleanup-worker.sh <N>`
    - Tag milestones
    - Update CHANGELOG
-   - Coordinate deployments
 
-### Manager Commands
+### Manager Workflow
 
 ```bash
-# List available issues
+# 1. Find a worker-ready issue
 gh issue list --label "worker-ready"
 
-# Create worktree for worker
-git worktree add ../ghost-note-worker-{issue} -b feature/GH-{issue}
+# 2. Spawn a headless worker (runs autonomously)
+./scripts/spawn-worker-headless.sh 1
 
-# Spawn worker (headless)
-claude -p "You are a Worker Agent. Complete issue GH-{N}. See WORKER_CLAUDE.md for instructions." \
-  --cwd ../ghost-note-worker-{issue}
+# 3. Monitor for PR creation
+gh pr list --head feature/GH-1
 
-# Monitor PRs
+# 4. Check CI and review status
+gh pr checks <pr-number>
+gh pr view <pr-number>
+
+# 5. After approval, merge
+gh pr merge <pr-number> --squash
+
+# 6. Cleanup worktree
+./scripts/cleanup-worker.sh 1
+
+# 7. Update plan.md with progress
+```
+
+### Parallel Workers
+
+For independent issues, spawn multiple workers simultaneously:
+
+```bash
+# These can run in parallel (no dependencies)
+./scripts/spawn-worker-headless.sh 5 &
+./scripts/spawn-worker-headless.sh 6 &
+./scripts/spawn-worker-headless.sh 11 &
+wait
+
+# Monitor all PRs
 gh pr list
-
-# Check PR review status
-gh pr checks {pr-number}
-
-# Merge after approval
-gh pr merge {pr-number} --squash
 ```
 
 ### Manager Files

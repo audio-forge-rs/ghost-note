@@ -60,36 +60,48 @@ To enable automatic code review on PRs:
 
 ---
 
-## Multi-Agent Workflow
+## Manager Workflow
 
-### Spawning a Worker
+**The manager NEVER implements. Always spawn headless workers.**
+
+### 1. Spawn Worker
 ```bash
-# Create isolated worktree for issue #1
-./scripts/spawn-worker.sh 1
+# Spawn headless worker for any issue
+./scripts/spawn-worker-headless.sh <issue-number>
 
-# Worker gets:
-# - Isolated directory: ../ghost-note-worker-1/
-# - Dedicated branch: feature/GH-1
-# - Assigned port: 5001
-# - WORKER_CLAUDE.md as their CLAUDE.md
-```
-
-### Running Worker Headless
-```bash
+# Example: Start Issue #1
 ./scripts/spawn-worker-headless.sh 1
-# Spawns Claude with issue context, completes task, creates PR
+
+# Worker runs autonomously:
+# - Creates worktree at ../ghost-note-worker-1/
+# - Implements the feature
+# - Commits and pushes
+# - Creates PR
+# - Exits when complete
 ```
 
-### Monitoring Workers
+### 2. Monitor Progress
 ```bash
-./scripts/list-workers.sh        # List active worktrees
-gh pr list                       # See open PRs
-gh pr checks <number>            # Check PR status
+./scripts/list-workers.sh           # List active worktrees
+gh pr list                          # See open PRs
+gh pr view <number>                 # View PR details
+gh pr checks <number>               # Check CI status
 ```
 
-### Cleanup After Merge
+### 3. After Approval
 ```bash
-./scripts/cleanup-worker.sh 1
+gh pr merge <number> --squash       # Merge the PR
+./scripts/cleanup-worker.sh <N>     # Remove worktree
+# Update this plan.md with progress
+```
+
+### 4. Parallel Workers
+For independent issues (no dependencies), spawn multiple:
+```bash
+./scripts/spawn-worker-headless.sh 5 &
+./scripts/spawn-worker-headless.sh 6 &
+./scripts/spawn-worker-headless.sh 11 &
+wait
 ```
 
 ---
@@ -97,20 +109,32 @@ gh pr checks <number>            # Check PR status
 ## Immediate Next Steps
 
 ### 1. Human Action Required
-- [ ] Install Claude GitHub App for auto-review
-- [ ] Add ANTHROPIC_API_KEY to repository secrets
+- [ ] Install Claude GitHub App: https://github.com/apps/claude
+- [ ] Add ANTHROPIC_API_KEY: `gh secret set ANTHROPIC_API_KEY`
 
-### 2. Start First Worker (Issue #1)
+### 2. Manager Spawns First Worker
 ```bash
-./scripts/spawn-worker.sh 1
-cd ../ghost-note-worker-1
-claude
-# Worker implements Vite + React + TypeScript setup
+./scripts/spawn-worker-headless.sh 1
+# Worker autonomously implements Vite + React + TypeScript
+# Creates PR when complete
 ```
 
-### 3. In Parallel (after #1 completes)
-- Spawn workers for #5, #6, #11, #18 (no dependencies)
-- These can run simultaneously in separate worktrees
+### 3. Monitor and Merge
+```bash
+gh pr list                     # Watch for PR
+gh pr merge <number> --squash  # After approval
+./scripts/cleanup-worker.sh 1
+```
+
+### 4. Parallel Workers (after #1 merges)
+```bash
+# These have no dependencies on each other
+./scripts/spawn-worker-headless.sh 5 &   # CMU dictionary
+./scripts/spawn-worker-headless.sh 6 &   # Text normalization
+./scripts/spawn-worker-headless.sh 11 &  # ABC notation
+./scripts/spawn-worker-headless.sh 18 &  # TypeScript interface
+wait
+```
 
 ---
 

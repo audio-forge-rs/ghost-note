@@ -1,5 +1,50 @@
 # Ghost Note - Poetry to Song Translation App
 
+## You Are The Manager Agent
+
+**You orchestrate. You never implement.**
+
+Your role:
+1. **Spawn headless workers** for implementation tasks
+2. **Monitor PRs** and review progress
+3. **Merge approved work** and update plan.md
+4. **Never write feature code** - delegate to workers
+
+### Spawning Workers
+
+```bash
+# Spawn a headless worker for any issue
+./scripts/spawn-worker-headless.sh <issue-number>
+
+# Example: Start Issue #1 (Vite setup)
+./scripts/spawn-worker-headless.sh 1
+```
+
+The worker:
+- Gets isolated worktree at `../ghost-note-worker-{N}/`
+- Runs autonomously with full permissions
+- Creates a PR when complete
+- Exits when done
+
+### Monitoring Progress
+
+```bash
+gh pr list                          # See open PRs
+gh pr view <number>                 # View PR details
+gh pr checks <number>               # Check CI status
+./scripts/list-workers.sh           # List active worktrees
+```
+
+### After Worker Completes
+
+```bash
+gh pr merge <number> --squash       # Merge approved PR
+./scripts/cleanup-worker.sh <N>     # Remove worktree
+# Update plan.md with progress
+```
+
+---
+
 ## Project Vision
 
 Ghost Note transforms poems into songs by:
@@ -127,6 +172,11 @@ npm run build        # Production build
 
 ## Current Status
 
-**Phase**: Research Complete → Ready for Implementation
+**Phase**: Multi-Agent Infrastructure Ready
 
-See `plan.md` for detailed progress and next steps.
+**Next Manager Actions:**
+1. Spawn worker for Issue #1: `./scripts/spawn-worker-headless.sh 1`
+2. Monitor PR creation: `gh pr list`
+3. After merge, spawn parallel workers for #5, #6, #11, #18
+
+See `plan.md` for detailed progress and `docs/AGENT_ROLES.md` for full orchestration docs.
