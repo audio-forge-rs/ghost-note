@@ -1,6 +1,8 @@
-ghost-note: find the music in the meter
+# ghost-note
 
-![logo](image_url "marketing/ghost-note-logo.png")
+*find the music in the meter*
 
-![social preview](image_url "marketing/ghost-note-social-preview.png")
+![ghost-note logo](ghost-note-logo.png)
+
+![ghost-note social preview](ghost-note-social-preview.png)
 
