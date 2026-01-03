@@ -3,162 +3,156 @@
 > This file serves as persistent working memory across Claude sessions.
 > Update after completing tasks or making architectural decisions.
 
-## Current Phase: Research Complete → Ready for Implementation
+## Current Phase: Multi-Agent Infrastructure Ready → Issue #1 (Vite Setup) First
 
-### Completed Research
-- [x] Claude Code best practices (2025) - context engineering, CLAUDE.md, slash commands
-- [x] Context engineering strategies - compaction survival, plan.md workflow
-- [x] Open source music libraries - abcjs, ABC notation
-- [x] Poem-to-song translation theory - stress alignment, singability, lyric setting
-- [x] Syllable/stress analysis tools - CMU dictionary, pronouncing, prosodic
-- [x] Meter detection techniques - foot types, scansion algorithms
-- [x] Rhyme scheme analysis - phonetic matching, slant rhyme detection
-- [x] Emotion-to-music mapping - valence/arousal to key/tempo
-- [x] Melody generation theory - contour, phrase shape, cadences
-- [x] First principles problem definition
+### Manager-Worker Architecture Status
+- [x] Research multi-agent patterns (git worktrees, headless Claude)
+- [x] Create BACKLOG.md with complete product vision (~200 items)
+- [x] Create 66 GitHub issues covering full product scope
+- [x] Set up GitHub labels and milestones
+- [x] Create worker orchestration scripts (scripts/)
+- [x] Document manager/worker roles (docs/AGENT_ROLES.md)
+- [x] Create WORKER_CLAUDE.md for worker context
+- [x] Create GitHub Actions workflows (CI, Claude review)
+- [ ] **ACTION NEEDED**: Install Claude GitHub App (see below)
 
-### Completed Setup
-- [x] Create CLAUDE.md with project vision
-- [x] Create plan.md for persistent state
-- [x] Create docs/ with comprehensive documentation:
-  - ARCHITECTURE.md - System design
-  - TECH_STACK.md - Technology choices
-  - WORKFLOWS.md - User and developer workflows
-  - CONTEXT_ENGINEERING.md - Session management
-  - PROBLEM_DEFINITION.md - First principles analysis
-  - ANALYSIS_PIPELINE.md - Technical analysis pipeline
-  - PACKAGES.md - Specific libraries and their usage
-  - MELODY_GENERATION.md - Music theory for melody creation
-- [x] Create .claude/commands/ for slash commands
+### Claude GitHub Integration (Manual Step Required)
+To enable automatic code review on PRs:
+1. Visit: https://github.com/apps/claude
+2. Install on `audio-forge-rs/ghost-note`
+3. Add `ANTHROPIC_API_KEY` secret to repository settings
+4. See `docs/GITHUB_SETUP.md` for details
 
-### Next: Implementation Phase
-- [ ] Initialize React + TypeScript + Vite project in web/
-- [ ] Install npm packages (always use `npm install` for latest):
-  - compromise, compromise-speech (syllables)
-  - cmu-pronouncing-dictionary (phonetics, stress)
-  - abcjs (notation, playback)
-  - diff-match-patch (versioning)
-  - sentiment (emotion detection)
-  - zustand (state management)
-- [ ] Build poem analysis module (using analysis pipeline)
-- [ ] Build melody generation module
-- [ ] Create UI components
+---
+
+## GitHub Issues Summary (66 issues created)
+
+### By Priority
+| Priority | Count | Description |
+|----------|-------|-------------|
+| P0 | 12 | Critical path - blocks other work |
+| P1 | 28 | High priority - core functionality |
+| P2 | 20 | Medium priority - important features |
+| P3 | 6 | Lower priority - enhancements |
+
+### By Epic
+| Epic | Issues | Milestone |
+|------|--------|-----------|
+| Infrastructure | #1-4, #30, #37, #51-53 | Infrastructure |
+| Poem Analysis | #5-10, #17-19, #34, #54-57, #64 | Analysis MVP |
+| Melody Generation | #11-13, #20-22, #35, #62 | Melody MVP |
+| Web UI | #14-16, #23-25, #38-50, #58-61, #63, #65-66 | UI MVP |
+| Recording | #26-29, #43 | Recording |
+
+### Worker-Ready Issues (can start immediately)
+- **#1**: Initialize React + TypeScript + Vite project
+- **#5**: Integrate CMU pronouncing dictionary
+- **#6**: Create text normalization module
+- **#11**: Build ABC notation generator
+- **#16**: Integrate abcjs for music notation
+- **#17**: Implement emotion analysis module
+- **#18**: Design PoemAnalysis TypeScript interface
+- **#26**: Implement microphone access and level meter
+- **#30**: Design Zustand store architecture
+- **#32**: Create Claude integration layer
+- **#49**: Add sample poems and preset library
+- **#61**: Create empty state components
+
+---
+
+## Multi-Agent Workflow
+
+### Spawning a Worker
+```bash
+# Create isolated worktree for issue #1
+./scripts/spawn-worker.sh 1
+
+# Worker gets:
+# - Isolated directory: ../ghost-note-worker-1/
+# - Dedicated branch: feature/GH-1
+# - Assigned port: 5001
+# - WORKER_CLAUDE.md as their CLAUDE.md
+```
+
+### Running Worker Headless
+```bash
+./scripts/spawn-worker-headless.sh 1
+# Spawns Claude with issue context, completes task, creates PR
+```
+
+### Monitoring Workers
+```bash
+./scripts/list-workers.sh        # List active worktrees
+gh pr list                       # See open PRs
+gh pr checks <number>            # Check PR status
+```
+
+### Cleanup After Merge
+```bash
+./scripts/cleanup-worker.sh 1
+```
+
+---
+
+## Immediate Next Steps
+
+### 1. Human Action Required
+- [ ] Install Claude GitHub App for auto-review
+- [ ] Add ANTHROPIC_API_KEY to repository secrets
+
+### 2. Start First Worker (Issue #1)
+```bash
+./scripts/spawn-worker.sh 1
+cd ../ghost-note-worker-1
+claude
+# Worker implements Vite + React + TypeScript setup
+```
+
+### 3. In Parallel (after #1 completes)
+- Spawn workers for #5, #6, #11, #18 (no dependencies)
+- These can run simultaneously in separate worktrees
+
+---
+
+## Completed Research
+- [x] Claude Code best practices (2025)
+- [x] Context engineering strategies
+- [x] Open source music libraries (abcjs, ABC notation)
+- [x] Poem-to-song translation theory
+- [x] Syllable/stress analysis tools
+- [x] Meter detection techniques
+- [x] Rhyme scheme analysis
+- [x] Emotion-to-music mapping
+- [x] Melody generation theory
+- [x] Multi-agent orchestration (git worktrees)
+- [x] Claude GitHub Actions integration
 
 ---
 
 ## Architecture Decisions Log
 
-### 2026-01-03: Project Structure
-**Decision**: Monorepo with web/ folder for frontend, lib/ for shared code
-**Rationale**: Keeps things simple, easy to navigate, supports future API if needed
-
-### 2026-01-03: Music Notation Format
-**Decision**: ABC notation as primary format
+### 2026-01-03: Multi-Agent Development
+**Decision**: Manager-worker architecture with git worktrees
 **Rationale**:
-- Text-based (easy to version, diff, generate)
-- abcjs provides browser rendering + MIDI playback
-- Human-readable for debugging
-- Claude can read/write it natively
-- Can convert to MIDI/MusicXML if needed
+- Workers get isolated context (cleaner)
+- Parallel development possible
+- Clear separation of concerns
+- GitHub PR flow for quality control
+- Claude reviews all worker PRs
 
-### 2026-01-03: No Backend Initially
-**Decision**: Client-side only for MVP
+### 2026-01-03: Issue-Based Work Units
+**Decision**: One GitHub issue = One worker session
 **Rationale**:
-- Simpler deployment (static hosting)
-- Privacy (poems stay local)
-- Faster iteration
-- JavaScript packages sufficient for basic analysis
-- Claude compensates for simpler analysis tools
+- Clear scope for each worker
+- Trackable progress
+- Easy to reassign if blocked
+- Fits PR review workflow
 
-### 2026-01-03: Two-System Architecture
-**Decision**: Software (quantitative) + Claude (qualitative)
-**Rationale**:
-- Software excels at: counting, pattern matching, consistency
-- Claude excels at: meaning preservation, style matching, creative alternatives
-- See PROBLEM_DEFINITION.md for full analysis
-
-### 2026-01-03: Hybrid Analysis Approach
-**Decision**: Browser-only analysis with Claude enhancement
-**Rationale**:
-- compromise + CMU dict handle basic syllable/stress
-- Claude interprets results and makes qualitative judgments
-- No server needed for MVP
-- Can add Python backend (prosodic) later for advanced analysis
-
----
-
-## Feature Specifications (Refined)
-
-### Poem Input & Analysis
-**Quantitative (Software)**:
-- Syllable counting via compromise-speech
-- Stress patterns via CMU dictionary lookup
-- Rhyme detection via phoneme comparison
-- Meter classification via pattern matching
-- Singability scoring via phonetic analysis
-
-**Qualitative (Claude)**:
-- Emotional tone interpretation
-- Meaning preservation assessment
-- Style analysis
-- Problem spot suggestions
-
-### Lyric Adjustment
-- Show analysis results to user
-- Claude suggests word substitutions for problem spots
-- Interactive diff view (original ↔ adapted)
-- Version history with rollback
-- User can accept/reject/modify suggestions
-
-### Melody Generation
-- Map stress pattern to rhythm (stressed → longer notes)
-- Generate melodic contour (arch shape per phrase)
-- Apply emotional mapping (mode, tempo, register)
-- Output ABC notation
-- Render with abcjs
-- User can adjust (tempo, key, manual note changes)
-
-### Recording
-- MediaRecorder API for capture
-- Web Audio API for visualization
-- Play melody + record simultaneously
-- Download as WebM/MP3
-
----
-
-## Answers to Open Questions
-
-### 1. How to handle poems with irregular meter?
-**Answer**: Multiple strategies (see MELODY_GENERATION.md):
-- Rhythmic adjustment (rests, triplets, pickup notes)
-- Phrase grouping (combine short lines, split long)
-- Meter changes (4/4 → 3/4 where needed)
-- Claude can suggest best approach per poem
-
-### 2. What emotion detection approach works without external APIs?
-**Answer**: Sentiment lexicons + Claude interpretation:
-- Use `sentiment` npm package (AFINN-165 based)
-- Extract valence/arousal scores
-- Map to musical parameters (key, tempo)
-- Claude adds nuanced emotional understanding
-- See MELODY_GENERATION.md for emotion-music mapping table
-
-### 3. How much melody theory to encode vs let user adjust?
-**Answer**: Generate reasonable defaults, allow full override:
-- Algorithm generates basic stress-aligned melody
-- User can adjust: tempo, key, mode, individual notes
-- Export ABC for external editing
-- "Regenerate" button with different seeds
-
----
-
-## Key Documentation References
-
-For context during implementation, read these:
-1. **PROBLEM_DEFINITION.md** - Why this is hard, what we're solving
-2. **ANALYSIS_PIPELINE.md** - How to analyze poems technically
-3. **MELODY_GENERATION.md** - How to create melodies from analysis
-4. **PACKAGES.md** - Which libraries to use and how
+### Previous Decisions
+- Music notation: ABC format (text-based, Claude-readable)
+- Frontend: React + TypeScript + Vite
+- Analysis: Browser-only with CMU dict + Claude enhancement
+- State: Zustand with localStorage persistence
 
 ---
 
@@ -171,37 +165,44 @@ For context during implementation, read these:
 
 ### Session 2 (2026-01-03) - Afternoon
 - Deep research on poem-to-song translation
-- Music theory for lyric setting (stress alignment critical)
-- Identified key packages:
-  - Python: pronouncing, prosodic, poetry-tools
-  - JavaScript: compromise, cmu-pronouncing-dictionary, abcjs
-- Created comprehensive documentation:
-  - First principles problem definition
-  - Analysis pipeline specification
-  - Melody generation theory
-  - Package reference guide
-- Key insight: Two-system approach (software quantitative + Claude qualitative)
-- Ready for implementation phase
-- **Next session**: Initialize web app, install packages, start building
+- Music theory documentation
+- Package research and documentation
+
+### Session 3 (2026-01-03) - Evening
+- Multi-agent orchestration research
+- Created 66 GitHub issues
+- Set up worker infrastructure
+- Created orchestration scripts
+- Documented manager/worker roles
+- GitHub Actions for CI and Claude review
+- **Ready to spawn workers**
 
 ---
 
-## Quick Reference: Package Install Commands
+## Key Files Quick Reference
 
-```bash
-# Initialize (run once)
-cd web
-npm create vite@latest . -- --template react-ts
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Manager agent context (this repo) |
+| `WORKER_CLAUDE.md` | Worker agent context (copied to worktrees) |
+| `plan.md` | Working memory (you are here) |
+| `BACKLOG.md` | Full product backlog |
+| `docs/AGENT_ROLES.md` | Manager/worker documentation |
+| `docs/GITHUB_SETUP.md` | GitHub integration guide |
+| `scripts/spawn-worker.sh` | Create worker worktree |
+| `scripts/cleanup-worker.sh` | Remove worker worktree |
 
-# Install core packages (always get latest)
-npm install compromise @types/compromise
-npm install cmu-pronouncing-dictionary
-npm install abcjs
-npm install diff-match-patch @types/diff-match-patch
-npm install sentiment @types/sentiment
-npm install zustand
+---
 
-# Dev dependencies
-npm install -D tailwindcss postcss autoprefixer
-npm install -D @types/node
-```
+## Milestones & Tags
+
+| Tag | Milestone | Status |
+|-----|-----------|--------|
+| `milestone-infrastructure-setup` | Multi-agent ready | ✅ Created |
+| `milestone-infrastructure` | Vite + CI complete | Pending |
+| `milestone-analysis-mvp` | Basic analysis | Pending |
+| `milestone-melody-mvp` | Basic melody | Pending |
+| `milestone-ui-mvp` | Usable interface | Pending |
+| `milestone-recording` | Recording works | Pending |
+| `milestone-beta` | Feature complete | Pending |
+| `milestone-v1` | Production | Pending |
