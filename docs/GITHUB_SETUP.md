@@ -6,34 +6,24 @@
 
 The Claude GitHub App enables automatic code review on PRs.
 
-### Installation Steps
+### Installation (One Command)
 
-1. **Install the Claude GitHub App**
-   - Visit: https://github.com/apps/claude
-   - Click "Install"
-   - Select the `audio-forge-rs/ghost-note` repository
-   - Grant requested permissions
-
-2. **Add API Key Secret**
-   - Go to: https://github.com/audio-forge-rs/ghost-note/settings/secrets/actions
-   - Click "New repository secret"
-   - Name: `ANTHROPIC_API_KEY`
-   - Value: Your Anthropic API key
-   - Click "Add secret"
-
-3. **Verify Installation**
-   - Create a test PR
-   - Claude should automatically comment with a review
-   - You can also mention `@claude` in PR comments
-
-### Alternative: Manual Setup via CLI
-
-If you have Claude Code running:
-```bash
+In Claude Code CLI, run:
+```
 /install-github-app
 ```
 
-This will guide you through the setup interactively.
+This automatically:
+- Creates the GitHub Actions workflow
+- Saves `CLAUDE_CODE_OAUTH_TOKEN` as a repository secret
+- Opens a PR for you to merge
+
+### Verify Installation
+
+After merging the PR:
+- Create a test PR
+- Claude should automatically comment with a review
+- You can also mention `@claude` in PR comments
 
 ## 2. Branch Protection Rules
 

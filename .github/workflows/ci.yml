@@ -1,5 +1,6 @@
 # CI Workflow - Runs on all PRs
 # Linting, testing, and build verification
+# Skips if web/ directory doesn't exist yet (Issue #1 creates it)
 
 name: CI
 
@@ -13,9 +14,30 @@ permissions:
   contents: read
 
 jobs:
+  check-web:
+    name: Check if web/ exists
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for web directory
+        id: check
+        run: |
+          if [ -d "web" ] && [ -f "web/package.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ web/ directory not found - CI will skip (Issue #1 creates it)"
+          fi
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: check-web
+    if: needs.check-web.outputs.exists == 'true'
 
     steps:
       - name: Checkout
@@ -43,6 +65,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    needs: check-web
+    if: needs.check-web.outputs.exists == 'true'
 
     steps:
       - name: Checkout
@@ -72,7 +96,8 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [check-web, lint, test]
+    if: needs.check-web.outputs.exists == 'true'
 
     steps:
       - name: Checkout

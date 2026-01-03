@@ -14,14 +14,13 @@
 - [x] Document manager/worker roles (docs/AGENT_ROLES.md)
 - [x] Create WORKER_CLAUDE.md for worker context
 - [x] Create GitHub Actions workflows (CI, Claude review)
-- [ ] **ACTION NEEDED**: Install Claude GitHub App (see below)
+- [x] Claude GitHub App installed via `/install-github-app`
 
-### Claude GitHub Integration (Manual Step Required)
-To enable automatic code review on PRs:
-1. Visit: https://github.com/apps/claude
-2. Install on `audio-forge-rs/ghost-note`
-3. Add `ANTHROPIC_API_KEY` secret to repository settings
-4. See `docs/GITHUB_SETUP.md` for details
+### Claude GitHub Integration
+✅ Set up via `/install-github-app` command
+- Workflow created automatically
+- `CLAUDE_CODE_OAUTH_TOKEN` secret saved
+- Claude will review all PRs
 
 ---
 
@@ -108,25 +107,21 @@ wait
 
 ## Immediate Next Steps
 
-### 1. Human Action Required
-- [ ] Install Claude GitHub App: https://github.com/apps/claude
-- [ ] Add ANTHROPIC_API_KEY: `gh secret set ANTHROPIC_API_KEY`
-
-### 2. Manager Spawns First Worker
+### 1. Manager Spawns First Worker
 ```bash
 ./scripts/spawn-worker-headless.sh 1
 # Worker autonomously implements Vite + React + TypeScript
 # Creates PR when complete
 ```
 
-### 3. Monitor and Merge
+### 2. Monitor and Merge
 ```bash
 gh pr list                     # Watch for PR
 gh pr merge <number> --squash  # After approval
 ./scripts/cleanup-worker.sh 1
 ```
 
-### 4. Parallel Workers (after #1 merges)
+### 3. Parallel Workers (after #1 merges)
 ```bash
 # These have no dependencies on each other
 ./scripts/spawn-worker-headless.sh 5 &   # CMU dictionary
