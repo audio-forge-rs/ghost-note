@@ -3,7 +3,7 @@
 > This file serves as persistent working memory across Claude sessions.
 > Update after completing tasks or making architectural decisions.
 
-## Current Phase: Multi-Agent Infrastructure Ready → Issue #1 (Vite Setup) First
+## Current Phase: Issue #1 Complete → Ready for Parallel Workers
 
 ### Manager-Worker Architecture Status
 - [x] Research multi-agent patterns (git worktrees, headless Claude)
@@ -43,8 +43,10 @@
 | Web UI | #14-16, #23-25, #38-50, #58-61, #63, #65-66 | UI MVP |
 | Recording | #26-29, #43 | Recording |
 
+### Completed Issues
+- **#1**: ✅ Initialize React + TypeScript + Vite project (PR #68)
+
 ### Worker-Ready Issues (can start immediately)
-- **#1**: Initialize React + TypeScript + Vite project
 - **#5**: Integrate CMU pronouncing dictionary
 - **#6**: Create text normalization module
 - **#11**: Build ABC notation generator
