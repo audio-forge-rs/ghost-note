@@ -8,7 +8,7 @@
  */
 
 import abcjs from 'abcjs';
-import type { TuneObject, MidiBuffer, SynthObjectController, AbcVisualParams, ClickListener } from 'abcjs';
+import type { TuneObject, MidiBuffer, AbcVisualParams, ClickListener } from 'abcjs';
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
@@ -92,7 +92,6 @@ export interface SynthConfig {
  */
 export class AbcSynth {
   private synth: MidiBuffer | null = null;
-  private synthControl: SynthObjectController | null = null;
   private timingCallbacks: abcjs.TimingCallbacks | null = null;
   private currentTune: TuneObject | null = null;
   private state: SynthState = 'uninitialized';
@@ -368,7 +367,6 @@ export class AbcSynth {
     log('Disposing synth...');
     this.stop();
     this.synth = null;
-    this.synthControl = null;
     this.currentTune = null;
 
     // Clean up timing callbacks
