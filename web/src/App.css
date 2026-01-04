@@ -1,15 +1,13 @@
-.app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/**
+ * App Component Styles
+ *
+ * Global app-level styles and overrides.
+ * Most styling is now handled by the Layout components.
+ */
 
-.app h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-.app p {
-  color: #888;
+/* Ensure the app takes full viewport height */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
