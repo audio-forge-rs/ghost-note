@@ -418,6 +418,100 @@ You are a Worker Agent for Ghost Note.
 
 ---
 
+## Worker Debugging
+
+### Understanding Worker Timing
+
+Workers take **10-15 minutes** for complex implementations. This is normal - they:
+1. Read docs and understand requirements (2-3 min)
+2. Plan implementation approach (1-2 min)
+3. Write implementation code (5-8 min)
+4. Write tests (3-5 min)
+5. Run lint/tests and fix issues (2-3 min)
+6. Commit, push, create PR (1 min)
+
+Low CPU usage during this time is expected - workers spend most time waiting on API responses.
+
+### STATUS.md for Progress Visibility
+
+Use `spawn-worker-debug.sh` to get visibility into worker progress. Workers write `STATUS.md` with:
+
+```markdown
+# Worker Status: GH-{N}
+
+## Current Phase
+[planning/reading/implementing/testing/committing]
+
+## Progress
+- [x] Read CLAUDE.md
+- [x] Understood requirements
+- [ ] Created implementation files
+...
+
+## Current Activity
+[What worker is doing now]
+
+## Files Created/Modified
+[List of files]
+
+## Errors Encountered
+[Any errors]
+```
+
+### Debug Scripts
+
+```bash
+# Full debug mode - worker writes STATUS.md
+./scripts/spawn-worker-debug.sh <issue-number> [model]
+
+# Minimal test - verify Claude CLI works (30 seconds)
+./scripts/spawn-worker-minimal.sh <issue-number> [model]
+```
+
+### Monitoring Workers
+
+```bash
+# Check if workers are running
+ps aux | grep "claude -p.*GH-" | grep -v grep
+
+# Check CPU time (should increase over time)
+ps aux | grep "claude -p.*GH-" | grep -v grep | awk '{print $2, $10}'
+
+# Check STATUS.md for progress
+cat /path/to/ghost-note-worker-N/STATUS.md
+
+# Check git status for file creation
+git -C /path/to/ghost-note-worker-N status --short
+```
+
+### When Workers Seem Stuck
+
+1. **Check CPU time** - If increasing slowly, worker is working (API-bound)
+2. **Check STATUS.md** - Shows current phase and activity
+3. **Check git status** - Shows files being created
+4. **Wait longer** - Complex issues take 10-15+ minutes
+5. **If truly stuck** (no CPU for 30+ min):
+   ```bash
+   pkill -f "claude -p.*GH-{N}"
+   ./scripts/cleanup-worker.sh {N}
+   ./scripts/spawn-worker-debug.sh {N}  # Respawn with debug
+   ```
+
+### Worktree Conflicts After Merge
+
+If PRs have conflicts after another PR merges:
+
+```bash
+cd /path/to/ghost-note-worker-N
+rm -f STATUS.md worker-config.json  # Remove untracked files
+git fetch origin main
+git rebase origin/main
+# Resolve conflicts if any
+git push --force-with-lease
+```
+
+---
+
 ## Best Practices
 
 ### For Manager
