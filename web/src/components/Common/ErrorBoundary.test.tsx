@@ -4,10 +4,11 @@
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
 // Component that throws an error
-function ThrowError({ shouldThrow }: { shouldThrow: boolean }): JSX.Element {
+function ThrowError({ shouldThrow }: { shouldThrow: boolean }): ReactElement {
   if (shouldThrow) {
     throw new Error('Test error message');
   }
