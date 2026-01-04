@@ -1,0 +1,195 @@
+/**
+ * ProgressBar Component Styles
+ *
+ * Provides styling for determinate and indeterminate progress bars.
+ */
+
+/* Base progress bar container */
+.progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Track (background) */
+.progress-bar__track {
+  flex: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* Fill (progress indicator) */
+.progress-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease-out;
+}
+
+/* Non-animated fill */
+.progress-bar:not(.progress-bar--animated) .progress-bar__fill {
+  transition: none;
+}
+
+/* Label */
+.progress-bar__label {
+  flex-shrink: 0;
+  min-width: 3em;
+  font-weight: 500;
+  text-align: right;
+  color: #9ca3af;
+}
+
+/* =============================================================================
+   Size: Small
+   ============================================================================= */
+
+.progress-bar--small .progress-bar__track {
+  height: 4px;
+}
+
+.progress-bar--small .progress-bar__label {
+  font-size: 0.75rem;
+}
+
+/* =============================================================================
+   Size: Medium
+   ============================================================================= */
+
+.progress-bar--medium .progress-bar__track {
+  height: 8px;
+}
+
+.progress-bar--medium .progress-bar__label {
+  font-size: 0.875rem;
+}
+
+/* =============================================================================
+   Size: Large
+   ============================================================================= */
+
+.progress-bar--large .progress-bar__track {
+  height: 12px;
+}
+
+.progress-bar--large .progress-bar__label {
+  font-size: 1rem;
+}
+
+/* =============================================================================
+   Variant: Primary
+   ============================================================================= */
+
+.progress-bar--primary .progress-bar__fill {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+/* =============================================================================
+   Variant: Success
+   ============================================================================= */
+
+.progress-bar--success .progress-bar__fill {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.progress-bar--success .progress-bar__label {
+  color: #34d399;
+}
+
+/* =============================================================================
+   Variant: Warning
+   ============================================================================= */
+
+.progress-bar--warning .progress-bar__fill {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.progress-bar--warning .progress-bar__label {
+  color: #fbbf24;
+}
+
+/* =============================================================================
+   Variant: Error
+   ============================================================================= */
+
+.progress-bar--error .progress-bar__fill {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.progress-bar--error .progress-bar__label {
+  color: #f87171;
+}
+
+/* =============================================================================
+   Indeterminate Animation
+   ============================================================================= */
+
+.progress-bar--indeterminate .progress-bar__fill {
+  width: 30% !important;
+  animation: progress-bar-indeterminate 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-bar-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(200%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+@media (prefers-color-scheme: light) {
+  .progress-bar__track {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .progress-bar__label {
+    color: #6b7280;
+  }
+
+  .progress-bar--success .progress-bar__label {
+    color: #059669;
+  }
+
+  .progress-bar--warning .progress-bar__label {
+    color: #d97706;
+  }
+
+  .progress-bar--error .progress-bar__label {
+    color: #dc2626;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar__fill {
+    transition: none;
+  }
+
+  .progress-bar--indeterminate .progress-bar__fill {
+    animation: progress-bar-indeterminate-reduced 2s linear infinite;
+  }
+
+  @keyframes progress-bar-indeterminate-reduced {
+    0% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.5;
+    }
+  }
+}
