@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { Header } from './Header';
 import { useUIStore } from '@/stores/useUIStore';
+import type { Theme } from '@/stores/types';
 
 // Mock the stores
 vi.mock('@/stores/useUIStore', () => ({
@@ -17,14 +18,23 @@ vi.mock('@/utils', () => ({
   APP_NAME: 'Ghost Note',
 }));
 
+interface MockUIState {
+  theme: Theme;
+  resolvedTheme: 'light' | 'dark';
+  sidebarCollapsed: boolean;
+  setTheme: ReturnType<typeof vi.fn>;
+  toggleSidebar: ReturnType<typeof vi.fn>;
+  openModalDialog: ReturnType<typeof vi.fn>;
+}
+
 describe('Header', () => {
   const mockSetTheme = vi.fn();
   const mockToggleSidebar = vi.fn();
   const mockOpenModalDialog = vi.fn();
 
-  const defaultUIState = {
-    theme: 'dark' as const,
-    resolvedTheme: 'dark' as const,
+  const defaultUIState: MockUIState = {
+    theme: 'dark',
+    resolvedTheme: 'dark',
     sidebarCollapsed: true,
     setTheme: mockSetTheme,
     toggleSidebar: mockToggleSidebar,
@@ -33,7 +43,7 @@ describe('Header', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
+    (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: MockUIState) => unknown) => {
       return selector(defaultUIState);
     });
   });

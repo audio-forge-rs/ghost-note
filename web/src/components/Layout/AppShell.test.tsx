@@ -31,19 +31,25 @@ vi.mock('./MainContent', () => ({
   ),
 }));
 
+interface MockUIState {
+  resolvedTheme: 'light' | 'dark';
+  sidebarCollapsed: boolean;
+  toggleSidebar: ReturnType<typeof vi.fn>;
+}
+
 describe('AppShell', () => {
   const mockToggleSidebar = vi.fn();
   const mockOnNavigate = vi.fn();
 
-  const defaultUIState = {
-    resolvedTheme: 'dark' as const,
+  const defaultUIState: MockUIState = {
+    resolvedTheme: 'dark',
     sidebarCollapsed: true,
     toggleSidebar: mockToggleSidebar,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
+    (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: MockUIState) => unknown) => {
       return selector(defaultUIState);
     });
   });
