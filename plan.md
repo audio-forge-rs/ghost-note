@@ -43,12 +43,14 @@
 | Web UI | #14-16, #23-25, #38-50, #58-61, #63, #65-66 | UI MVP |
 | Recording | #26-29, #43 | Recording |
 
-### Completed Issues (16 total)
+### Completed Issues (20 total)
 - **#1**: ✅ Initialize React + TypeScript + Vite project (PR #68)
 - **#5**: ✅ Integrate CMU pronouncing dictionary (PR #69)
 - **#6**: ✅ Create text normalization module (PR #72)
 - **#7**: ✅ Build stress pattern analysis module (PR #82)
 - **#8**: ✅ Implement meter detection algorithm (PR #83)
+- **#9**: ✅ Build rhyme detection system (PR #84)
+- **#10**: ✅ Create singability scoring system (PR #85)
 - **#11**: ✅ Build ABC notation generator (PR #71)
 - **#14**: ✅ Build responsive app shell with navigation (PR #80)
 - **#16**: ✅ Integrate abcjs for music notation (PR #75)
@@ -57,8 +59,10 @@
 - **#26**: ✅ Implement microphone access and level meter (PR #78)
 - **#30**: ✅ Design Zustand store architecture (PR #74)
 - **#32**: ✅ Create Claude integration layer (PR #79)
+- **#34**: ✅ Write unit tests for poem analysis modules (PR #86)
 - **#49**: ✅ Add sample poems and preset library (PR #76)
 - **#50**: ✅ Create loading and error states (PR #81)
+- **#54**: ✅ Implement unknown word stress estimation (PR #87)
 - **#61**: ✅ Create empty state components (PR #77)
 
 ### Next Issues to Unblock
