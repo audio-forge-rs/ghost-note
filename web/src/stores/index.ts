@@ -115,6 +115,25 @@ export {
   selectVisiblePanels,
 } from './useUIStore';
 
+// Theme Store
+export { useThemeStore } from './useThemeStore';
+export type {
+  Theme as ThemePreference,
+  ResolvedTheme,
+  ThemeState,
+  ThemeActions,
+  ThemeStore,
+} from './useThemeStore';
+export {
+  selectIsDarkMode as selectThemeIsDarkMode,
+  selectIsLightMode,
+  selectIsSystemTheme as selectThemeIsSystemTheme,
+  selectThemePreference,
+  selectResolvedTheme,
+  selectTransitionsEnabled,
+  selectThemeLabel,
+} from './useThemeStore';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -125,6 +144,7 @@ import { useAnalysisStore as analysisStore } from './useAnalysisStore';
 import { useMelodyStore as melodyStore } from './useMelodyStore';
 import { useRecordingStore as recordingStore } from './useRecordingStore';
 import { useUIStore as uiStore } from './useUIStore';
+import { useThemeStore as themeStore } from './useThemeStore';
 
 /**
  * Reset all stores to their initial state
@@ -136,6 +156,7 @@ export function resetAllStores(): void {
   melodyStore.getState().reset();
   recordingStore.getState().reset();
   uiStore.getState().reset();
+  themeStore.getState().reset();
 
   console.log('[Stores] All stores reset');
 }
@@ -149,6 +170,7 @@ export function clearPersistedData(): void {
     localStorage.removeItem('ghost-note-melody-store');
     localStorage.removeItem('ghost-note-recording-store');
     localStorage.removeItem('ghost-note-ui-store');
+    localStorage.removeItem('ghost-note-theme-store');
     console.log('[Stores] All persisted data cleared');
   }
 }

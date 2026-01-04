@@ -6,10 +6,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { AppShell, type NavigationView } from './AppShell';
 import { useUIStore } from '@/stores/useUIStore';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 // Mock the stores
 vi.mock('@/stores/useUIStore', () => ({
   useUIStore: vi.fn(),
+}));
+
+vi.mock('@/stores/useThemeStore', () => ({
+  useThemeStore: vi.fn(),
 }));
 
 // Mock child components
@@ -32,9 +37,12 @@ vi.mock('./MainContent', () => ({
 }));
 
 interface MockUIState {
-  resolvedTheme: 'light' | 'dark';
   sidebarCollapsed: boolean;
   toggleSidebar: ReturnType<typeof vi.fn>;
+}
+
+interface MockThemeState {
+  resolvedTheme: 'light' | 'dark';
 }
 
 describe('AppShell', () => {
@@ -42,15 +50,21 @@ describe('AppShell', () => {
   const mockOnNavigate = vi.fn();
 
   const defaultUIState: MockUIState = {
-    resolvedTheme: 'dark',
     sidebarCollapsed: true,
     toggleSidebar: mockToggleSidebar,
+  };
+
+  const defaultThemeState: MockThemeState = {
+    resolvedTheme: 'dark',
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: MockUIState) => unknown) => {
       return selector(defaultUIState);
+    });
+    (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: MockThemeState) => unknown) => {
+      return selector(defaultThemeState);
     });
   });
 
@@ -123,8 +137,8 @@ describe('AppShell', () => {
     });
 
     it('applies light theme class when resolvedTheme is light', () => {
-      (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
-        return selector({ ...defaultUIState, resolvedTheme: 'light' as const });
+      (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: MockThemeState) => unknown) => {
+        return selector({ resolvedTheme: 'light' as const });
       });
 
       render(

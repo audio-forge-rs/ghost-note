@@ -6,11 +6,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { Header } from './Header';
 import { useUIStore } from '@/stores/useUIStore';
+import { useThemeStore, selectThemeLabel } from '@/stores/useThemeStore';
 import type { Theme } from '@/stores/types';
 
 // Mock the stores
 vi.mock('@/stores/useUIStore', () => ({
   useUIStore: vi.fn(),
+}));
+
+vi.mock('@/stores/useThemeStore', () => ({
+  useThemeStore: vi.fn(),
+  selectThemeLabel: vi.fn(),
 }));
 
 // Mock the utils
@@ -19,32 +25,46 @@ vi.mock('@/utils', () => ({
 }));
 
 interface MockUIState {
-  theme: Theme;
-  resolvedTheme: 'light' | 'dark';
   sidebarCollapsed: boolean;
-  setTheme: ReturnType<typeof vi.fn>;
   toggleSidebar: ReturnType<typeof vi.fn>;
   openModalDialog: ReturnType<typeof vi.fn>;
 }
 
+interface MockThemeState {
+  theme: Theme;
+  resolvedTheme: 'light' | 'dark';
+  cycleTheme: ReturnType<typeof vi.fn>;
+}
+
 describe('Header', () => {
-  const mockSetTheme = vi.fn();
+  const mockCycleTheme = vi.fn();
   const mockToggleSidebar = vi.fn();
   const mockOpenModalDialog = vi.fn();
 
   const defaultUIState: MockUIState = {
-    theme: 'dark',
-    resolvedTheme: 'dark',
     sidebarCollapsed: true,
-    setTheme: mockSetTheme,
     toggleSidebar: mockToggleSidebar,
     openModalDialog: mockOpenModalDialog,
+  };
+
+  const defaultThemeState: MockThemeState = {
+    theme: 'dark',
+    resolvedTheme: 'dark',
+    cycleTheme: mockCycleTheme,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: MockUIState) => unknown) => {
       return selector(defaultUIState);
+    });
+    (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: unknown) => {
+      // Handle selectThemeLabel selector
+      if (selector === selectThemeLabel) {
+        return 'Dark';
+      }
+      // Handle direct state selectors
+      return (selector as (state: MockThemeState) => unknown)(defaultThemeState);
     });
   });
 
@@ -114,67 +134,64 @@ describe('Header', () => {
   });
 
   describe('theme toggle', () => {
-    it('cycles from dark to system theme', () => {
+    it('calls cycleTheme when clicked', () => {
       render(<Header />);
 
       fireEvent.click(screen.getByTestId('theme-toggle'));
-      expect(mockSetTheme).toHaveBeenCalledWith('system');
+      expect(mockCycleTheme).toHaveBeenCalledTimes(1);
     });
 
-    it('cycles from light to dark theme', () => {
-      (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
-        return selector({ ...defaultUIState, theme: 'light' as const, resolvedTheme: 'light' as const });
-      });
-
-      render(<Header />);
-
-      fireEvent.click(screen.getByTestId('theme-toggle'));
-      expect(mockSetTheme).toHaveBeenCalledWith('dark');
-    });
-
-    it('cycles from system to light theme', () => {
-      (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
-        return selector({ ...defaultUIState, theme: 'system' as const });
-      });
-
-      render(<Header />);
-
-      fireEvent.click(screen.getByTestId('theme-toggle'));
-      expect(mockSetTheme).toHaveBeenCalledWith('light');
-    });
-
-    it('shows dark mode label when in dark mode', () => {
+    it('shows correct label from themeLabel selector', () => {
       render(<Header />);
 
       const themeButton = screen.getByTestId('theme-toggle');
-      expect(themeButton).toHaveAttribute('aria-label', 'Dark mode');
+      expect(themeButton).toHaveAttribute('aria-label', 'Dark');
     });
 
-    it('shows light mode label when in light mode', () => {
-      (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
-        return selector({ ...defaultUIState, theme: 'light' as const, resolvedTheme: 'light' as const });
+    it('shows light label when in light mode', () => {
+      (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: unknown) => {
+        if (selector === selectThemeLabel) {
+          return 'Light';
+        }
+        return (selector as (state: MockThemeState) => unknown)({
+          ...defaultThemeState,
+          theme: 'light' as const,
+          resolvedTheme: 'light' as const
+        });
       });
 
       render(<Header />);
 
       const themeButton = screen.getByTestId('theme-toggle');
-      expect(themeButton).toHaveAttribute('aria-label', 'Light mode');
+      expect(themeButton).toHaveAttribute('aria-label', 'Light');
     });
 
-    it('shows system theme label when in system mode', () => {
-      (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
-        return selector({ ...defaultUIState, theme: 'system' as const });
+    it('shows system label when in system mode', () => {
+      (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: unknown) => {
+        if (selector === selectThemeLabel) {
+          return 'System (Dark)';
+        }
+        return (selector as (state: MockThemeState) => unknown)({
+          ...defaultThemeState,
+          theme: 'system' as const
+        });
       });
 
       render(<Header />);
 
       const themeButton = screen.getByTestId('theme-toggle');
-      expect(themeButton).toHaveAttribute('aria-label', 'System theme');
+      expect(themeButton).toHaveAttribute('aria-label', 'System (Dark)');
     });
 
     it('shows auto indicator when in system mode', () => {
-      (useUIStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof defaultUIState) => unknown) => {
-        return selector({ ...defaultUIState, theme: 'system' as const });
+      (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: unknown) => {
+        if (selector === selectThemeLabel) {
+          return 'System (Dark)';
+        }
+        return (selector as (state: MockThemeState) => unknown)({
+          ...defaultThemeState,
+          theme: 'system' as const
+        });
       });
 
       render(<Header />);

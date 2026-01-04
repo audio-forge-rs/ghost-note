@@ -3,11 +3,19 @@
 /**
  * Global Styles for Ghost Note
  *
- * Base styles, CSS reset overrides, and theme setup.
+ * Base styles, CSS reset overrides, and comprehensive theme system.
  */
 
 /* =============================================================================
-   Root Variables
+   Theme Transition Configuration
+   ============================================================================= */
+
+:root {
+  --theme-transition-duration: 200ms;
+}
+
+/* =============================================================================
+   Root Variables & Typography
    ============================================================================= */
 
 :root {
@@ -16,12 +24,204 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================================================
+   Dark Theme (Default)
+   ============================================================================= */
+
+:root,
+html.dark {
+  color-scheme: dark;
+
+  /* Background Colors */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.1);
+
+  /* Text Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* Border Colors */
+  --border-color: #334155;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Accent Colors */
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-text: #ffffff;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+  /* Status Colors */
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --error-border: rgba(239, 68, 68, 0.3);
+  --error-text: #fca5a5;
+  --error-icon: #f87171;
+  --error-title: #fecaca;
+
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-border: rgba(245, 158, 11, 0.3);
+  --warning-text: #fcd34d;
+  --warning-icon: #fbbf24;
+  --warning-title: #fef3c7;
+
+  --info-bg: rgba(59, 130, 246, 0.15);
+  --info-border: rgba(59, 130, 246, 0.3);
+  --info-text: #93c5fd;
+  --info-icon: #60a5fa;
+  --info-title: #bfdbfe;
+
+  --success-bg: rgba(34, 197, 94, 0.15);
+  --success-border: rgba(34, 197, 94, 0.3);
+  --success-text: #86efac;
+  --success-icon: #4ade80;
+  --success-title: #bbf7d0;
+
+  /* ABC Notation / Syntax Highlighting Colors */
+  --syntax-note: #f8fafc;
+  --syntax-note-playing: #1e90ff;
+  --syntax-note-hover: #4299e1;
+  --syntax-note-selected: #2563eb;
+  --syntax-lyric: #d1d5db;
+  --syntax-title: #f3f4f6;
+  --syntax-tempo: #9ca3af;
+  --syntax-beat-marker: #f59e0b;
+  --syntax-cursor: #1e90ff;
+
+  /* Form & Input Colors */
+  --input-bg: #1f2937;
+  --input-border: #374151;
+  --input-border-hover: #4b5563;
+  --input-border-focus: #3b82f6;
+  --input-text: #e5e7eb;
+  --input-placeholder: #9ca3af;
+
+  /* Root colors */
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+/* =============================================================================
+   Light Theme
+   ============================================================================= */
+
+html.light {
+  color-scheme: light;
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-hover: rgba(0, 0, 0, 0.03);
+  --bg-active: rgba(0, 0, 0, 0.06);
+
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Border Colors */
+  --border-color: #e2e8f0;
+  --border-subtle: rgba(0, 0, 0, 0.1);
+
+  /* Accent Colors */
+  --accent-primary: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-text: #ffffff;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+
+  /* Status Colors */
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --error-border: rgba(239, 68, 68, 0.25);
+  --error-text: #dc2626;
+  --error-icon: #dc2626;
+  --error-title: #b91c1c;
+
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --warning-border: rgba(245, 158, 11, 0.25);
+  --warning-text: #b45309;
+  --warning-icon: #d97706;
+  --warning-title: #92400e;
+
+  --info-bg: rgba(59, 130, 246, 0.1);
+  --info-border: rgba(59, 130, 246, 0.25);
+  --info-text: #2563eb;
+  --info-icon: #2563eb;
+  --info-title: #1d4ed8;
+
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --success-border: rgba(34, 197, 94, 0.25);
+  --success-text: #16a34a;
+  --success-icon: #16a34a;
+  --success-title: #15803d;
+
+  /* ABC Notation / Syntax Highlighting Colors */
+  --syntax-note: #1f2937;
+  --syntax-note-playing: #1e90ff;
+  --syntax-note-hover: #4299e1;
+  --syntax-note-selected: #2563eb;
+  --syntax-lyric: #374151;
+  --syntax-title: #1f2937;
+  --syntax-tempo: #6b7280;
+  --syntax-beat-marker: #f59e0b;
+  --syntax-cursor: #1e90ff;
+
+  /* Form & Input Colors */
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-border-hover: #9ca3af;
+  --input-border-focus: #3b82f6;
+  --input-text: #1f2937;
+  --input-placeholder: #9ca3af;
+
+  /* Root colors */
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+/* =============================================================================
+   Smooth Theme Transitions
+   ============================================================================= */
+
+html,
+html *,
+html *::before,
+html *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: ease;
+}
+
+/* Opt-out of transitions for specific elements */
+html .no-theme-transition,
+html .no-theme-transition *,
+html .no-theme-transition *::before,
+html .no-theme-transition *::after {
+  transition-property: none !important;
+}
+
+/* Disable transitions on initial load (controlled by JS) */
+html.no-transitions,
+html.no-transitions *,
+html.no-transitions *::before,
+html.no-transitions *::after {
+  transition-property: none !important;
 }
 
 /* =============================================================================
@@ -56,6 +256,9 @@ body {
   /* Ensure proper width calculation */
   width: 100%;
   max-width: 100vw;
+  /* Theme colors */
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 img, picture, video, canvas, svg {
@@ -77,57 +280,50 @@ p, h1, h2, h3, h4, h5, h6 {
 
 a {
   font-weight: 500;
-  color: #3b82f6;
+  color: var(--accent-primary);
   text-decoration: none;
-  transition: color 0.15s ease;
 }
 
 a:hover {
-  color: #2563eb;
+  color: var(--accent-hover);
 }
 
 /* =============================================================================
-   Default Dark Theme
+   Focus Styles
    ============================================================================= */
 
-:root {
-  color: #f8fafc;
-  background-color: #0f172a;
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 /* =============================================================================
-   Light Theme via Class
+   Selection
    ============================================================================= */
 
-html.light {
-  color: #0f172a;
-  background-color: #ffffff;
-}
-
-html.light a {
-  color: #3b82f6;
-}
-
-html.light a:hover {
-  color: #2563eb;
+::selection {
+  background-color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 /* =============================================================================
-   Dark Theme via Class (explicit)
+   Scrollbar Styling (for Webkit browsers)
    ============================================================================= */
 
-html.dark {
-  color: #f8fafc;
-  background-color: #0f172a;
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* =============================================================================
-   System Preference Fallback (when no class is applied)
-   ============================================================================= */
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
 
-@media (prefers-color-scheme: light) {
-  :root:not(.dark) {
-    color: #0f172a;
-    background-color: #ffffff;
-  }
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
