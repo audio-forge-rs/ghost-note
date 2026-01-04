@@ -365,7 +365,7 @@ export function getLastWord(line: string): string {
  * @param line - A line of text
  * @returns Array of { word, position } objects
  */
-export function tokenizeLine(line: string): { word: string; position: number }[] {
+export function tokenizeLineWithPositions(line: string): { word: string; position: number }[] {
   if (!line || line.trim() === '') {
     return [];
   }
@@ -483,7 +483,7 @@ export function findInternalRhymes(
 ): ExtendedInternalRhyme[] {
   log('findInternalRhymes input:', { line, lineNumber });
 
-  const tokens = tokenizeLine(line);
+  const tokens = tokenizeLineWithPositions(line);
 
   if (tokens.length < 2) {
     return [];
@@ -593,7 +593,7 @@ export function analyzeRhymes(lines: string[]): RhymeAnalysis {
       const type = classifyRhyme(words[0], words[1]);
       if (type === 'none') {
         groupRhymeType = 'slant'; // Default if classification fails
-      } else if (type !== 'none') {
+      } else {
         groupRhymeType = type as RhymeType;
       }
     }
@@ -709,7 +709,7 @@ export function findRhymingWords(
  * @returns Rhyme density score (0.0 to 1.0)
  */
 export function calculateRhymeDensity(line: string): number {
-  const tokens = tokenizeLine(line);
+  const tokens = tokenizeLineWithPositions(line);
 
   if (tokens.length < 2) {
     return 0;

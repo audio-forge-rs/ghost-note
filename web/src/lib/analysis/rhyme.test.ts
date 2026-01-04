@@ -26,7 +26,7 @@ import {
   getRhymeQualityScore,
   identifyRhymeForm,
   getLastWord,
-  tokenizeLine,
+  tokenizeLineWithPositions,
   // Types
   type ExtendedRhymeType,
 } from './rhyme';
@@ -344,12 +344,12 @@ describe('getLastWord', () => {
 });
 
 // =============================================================================
-// tokenizeLine Tests
+// tokenizeLineWithPositions Tests
 // =============================================================================
 
-describe('tokenizeLine', () => {
+describe('tokenizeLineWithPositions', () => {
   it('should tokenize simple sentence', () => {
-    const tokens = tokenizeLine('The cat sat');
+    const tokens = tokenizeLineWithPositions('The cat sat');
     expect(tokens).toHaveLength(3);
     expect(tokens[0].word).toBe('the');
     expect(tokens[1].word).toBe('cat');
@@ -357,25 +357,25 @@ describe('tokenizeLine', () => {
   });
 
   it('should preserve positions', () => {
-    const tokens = tokenizeLine('The cat');
+    const tokens = tokenizeLineWithPositions('The cat');
     expect(tokens[0].position).toBe(0);
     expect(tokens[1].position).toBe(4);
   });
 
   it('should handle punctuation', () => {
-    const tokens = tokenizeLine('Hello, world!');
+    const tokens = tokenizeLineWithPositions('Hello, world!');
     expect(tokens).toHaveLength(2);
     expect(tokens[0].word).toBe('hello');
     expect(tokens[1].word).toBe('world');
   });
 
   it('should return empty for empty input', () => {
-    expect(tokenizeLine('')).toEqual([]);
-    expect(tokenizeLine('   ')).toEqual([]);
+    expect(tokenizeLineWithPositions('')).toEqual([]);
+    expect(tokenizeLineWithPositions('   ')).toEqual([]);
   });
 
   it('should handle contractions', () => {
-    const tokens = tokenizeLine("Don't stop");
+    const tokens = tokenizeLineWithPositions("Don't stop");
     expect(tokens.some(t => t.word === "don't")).toBe(true);
   });
 });
@@ -826,7 +826,7 @@ describe('Edge Cases', () => {
   });
 
   it('should handle apostrophes in words', () => {
-    const tokens = tokenizeLine("Don't you forget");
+    const tokens = tokenizeLineWithPositions("Don't you forget");
     expect(tokens.some(t => t.word === "don't")).toBe(true);
   });
 
