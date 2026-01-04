@@ -9,3 +9,4 @@ export * from './abcGenerator';
 export * from './rhythm';
 export * from './cadence';
 export * from './contour';
+export * from './orchestrator';
