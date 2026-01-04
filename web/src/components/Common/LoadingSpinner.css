@@ -1,0 +1,159 @@
+/**
+ * LoadingSpinner Component Styles
+ *
+ * Provides animated spinner styling with support for
+ * light/dark modes and multiple sizes.
+ */
+
+/* Base spinner container */
+.loading-spinner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* SVG spinner */
+.loading-spinner__svg {
+  animation: loading-spinner-rotate 1.2s linear infinite;
+}
+
+/* Track circle (background) */
+.loading-spinner__track {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+/* Animated arc */
+.loading-spinner__arc {
+  stroke: #3b82f6;
+  stroke-dasharray: 40 60;
+  animation: loading-spinner-dash 1.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Label styling */
+.loading-spinner__label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* Screen reader only text (visually hidden) */
+.loading-spinner__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================================================
+   Size: Small (16px)
+   ============================================================================= */
+
+.loading-spinner--small .loading-spinner__svg {
+  width: 16px;
+  height: 16px;
+}
+
+.loading-spinner--small .loading-spinner__label {
+  font-size: 0.75rem;
+}
+
+.loading-spinner--small .loading-spinner__track,
+.loading-spinner--small .loading-spinner__arc {
+  stroke-width: 2.5;
+}
+
+/* =============================================================================
+   Size: Medium (24px)
+   ============================================================================= */
+
+.loading-spinner--medium .loading-spinner__svg {
+  width: 24px;
+  height: 24px;
+}
+
+.loading-spinner--medium .loading-spinner__label {
+  font-size: 0.875rem;
+}
+
+/* =============================================================================
+   Size: Large (40px)
+   ============================================================================= */
+
+.loading-spinner--large .loading-spinner__svg {
+  width: 40px;
+  height: 40px;
+}
+
+.loading-spinner--large .loading-spinner__label {
+  font-size: 1rem;
+}
+
+.loading-spinner--large .loading-spinner__track,
+.loading-spinner--large .loading-spinner__arc {
+  stroke-width: 3.5;
+}
+
+/* =============================================================================
+   Keyframe Animations
+   ============================================================================= */
+
+@keyframes loading-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-spinner-dash {
+  0% {
+    stroke-dasharray: 1 100;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 45 100;
+    stroke-dashoffset: -15;
+  }
+  100% {
+    stroke-dasharray: 45 100;
+    stroke-dashoffset: -60;
+  }
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+@media (prefers-color-scheme: light) {
+  .loading-spinner__track {
+    stroke: rgba(0, 0, 0, 0.1);
+  }
+
+  .loading-spinner__label {
+    color: #6b7280;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner__svg {
+    animation: loading-spinner-rotate 3s linear infinite;
+  }
+
+  .loading-spinner__arc {
+    animation: none;
+    stroke-dasharray: 45 100;
+  }
+}
