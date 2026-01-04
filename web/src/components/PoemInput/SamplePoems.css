@@ -1,0 +1,394 @@
+/**
+ * SamplePoems Component Styles
+ *
+ * CSS for the sample poem selection modal.
+ */
+
+/* Overlay */
+.sample-poems-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+/* Modal container */
+.sample-poems-modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: 80vh;
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sample-poems-modal:focus {
+  outline: none;
+}
+
+/* Header */
+.sample-poems-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sample-poems-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sample-poems-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sample-poems-close:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.sample-poems-close:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.sample-poems-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Content area */
+.sample-poems-content {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Poem list */
+.sample-poems-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  overflow-y: auto;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sample-poems-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sample-poems-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.sample-poems-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+/* Poem item */
+.sample-poems-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sample-poems-item:hover {
+  background-color: #f3f4f6;
+}
+
+.sample-poems-item.selected {
+  background-color: #eff6ff;
+}
+
+.sample-poems-item-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.sample-poems-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.sample-poems-item-author {
+  color: #6b7280;
+}
+
+.sample-poems-item-form {
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.5rem;
+  background-color: #e5e7eb;
+  border-radius: 1rem;
+  color: #4b5563;
+}
+
+/* Preview panel */
+.sample-poems-preview {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.sample-poems-preview-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sample-poems-preview-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sample-poems-preview-author {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Preview text */
+.sample-poems-preview-text {
+  flex: 1;
+  margin: 0 0 1rem 0;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #374151;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+/* Preview footer */
+.sample-poems-preview-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sample-poems-preview-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  font-style: italic;
+}
+
+.sample-poems-preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.sample-poems-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 1rem;
+}
+
+/* Select button */
+.sample-poems-select-button {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: white;
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sample-poems-select-button:hover {
+  background-color: #2563eb;
+}
+
+.sample-poems-select-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Footer */
+.sample-poems-footer {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.sample-poems-count {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sample-poems-content {
+    grid-template-columns: 1fr;
+  }
+
+  .sample-poems-list {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    max-height: 200px;
+  }
+
+  .sample-poems-preview {
+    max-height: 300px;
+  }
+
+  .sample-poems-preview-text {
+    max-height: 150px;
+  }
+}
+
+/* Dark mode support */
+.dark .sample-poems-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.dark .sample-poems-modal {
+  background-color: #1f2937;
+}
+
+.dark .sample-poems-header {
+  border-color: #374151;
+}
+
+.dark .sample-poems-title {
+  color: #f3f4f6;
+}
+
+.dark .sample-poems-close {
+  color: #9ca3af;
+}
+
+.dark .sample-poems-close:hover {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+.dark .sample-poems-list {
+  border-color: #374151;
+}
+
+.dark .sample-poems-item:hover {
+  background-color: #374151;
+}
+
+.dark .sample-poems-item.selected {
+  background-color: #1e3a5f;
+}
+
+.dark .sample-poems-item-title {
+  color: #f3f4f6;
+}
+
+.dark .sample-poems-item-author {
+  color: #9ca3af;
+}
+
+.dark .sample-poems-item-form {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.dark .sample-poems-preview {
+  background-color: #111827;
+}
+
+.dark .sample-poems-preview-header {
+  border-color: #374151;
+}
+
+.dark .sample-poems-preview-title {
+  color: #f3f4f6;
+}
+
+.dark .sample-poems-preview-author {
+  color: #9ca3af;
+}
+
+.dark .sample-poems-preview-text {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark .sample-poems-preview-description {
+  color: #d1d5db;
+}
+
+.dark .sample-poems-tag {
+  background-color: #1e3a5f;
+  color: #93c5fd;
+}
+
+.dark .sample-poems-select-button {
+  background-color: #2563eb;
+}
+
+.dark .sample-poems-select-button:hover {
+  background-color: #1d4ed8;
+}
+
+.dark .sample-poems-footer {
+  border-color: #374151;
+  background-color: #111827;
+}
+
+.dark .sample-poems-count {
+  color: #9ca3af;
+}
+
+.dark .sample-poems-list::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark .sample-poems-list::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}

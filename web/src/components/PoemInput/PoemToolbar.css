@@ -1,0 +1,198 @@
+/**
+ * PoemToolbar Component Styles
+ *
+ * CSS for the poem input toolbar.
+ */
+
+/* Toolbar container */
+.poem-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  flex-wrap: wrap;
+}
+
+/* Left side buttons group */
+.poem-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Right side buttons group */
+.poem-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Base button styles */
+.poem-toolbar__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.poem-toolbar__button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.poem-toolbar__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button text (hidden on small screens) */
+.poem-toolbar__button-text {
+  display: inline;
+}
+
+/* Icon in button */
+.toolbar-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* Secondary button (gray) */
+.poem-toolbar__button--secondary {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.poem-toolbar__button--secondary:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.poem-toolbar__button--secondary:active:not(:disabled) {
+  background-color: #d1d5db;
+}
+
+/* Danger button (red) */
+.poem-toolbar__button--danger {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.poem-toolbar__button--danger:hover:not(:disabled) {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+.poem-toolbar__button--danger:active:not(:disabled) {
+  background-color: #fecaca;
+}
+
+/* Primary button (blue) */
+.poem-toolbar__button--primary {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.poem-toolbar__button--primary:hover:not(:disabled) {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.poem-toolbar__button--primary:active:not(:disabled) {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.poem-toolbar__button--primary:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+}
+
+/* Error message */
+.poem-toolbar__error {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+  background-color: #fef2f2;
+  border-radius: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .poem-toolbar {
+    gap: 0.5rem;
+  }
+
+  .poem-toolbar__button {
+    padding: 0.5rem;
+  }
+
+  .poem-toolbar__button-text {
+    display: none;
+  }
+
+  .poem-toolbar__button--primary .poem-toolbar__button-text {
+    display: inline;
+  }
+}
+
+/* Dark mode support */
+.dark .poem-toolbar__button--secondary {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark .poem-toolbar__button--secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+  border-color: #6b7280;
+}
+
+.dark .poem-toolbar__button--secondary:active:not(:disabled) {
+  background-color: #6b7280;
+}
+
+.dark .poem-toolbar__button--danger {
+  background-color: #450a0a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+.dark .poem-toolbar__button--danger:hover:not(:disabled) {
+  background-color: #7f1d1d;
+  border-color: #b91c1c;
+}
+
+.dark .poem-toolbar__button--danger:active:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.dark .poem-toolbar__button--primary {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.dark .poem-toolbar__button--primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.dark .poem-toolbar__button--primary:active:not(:disabled) {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+.dark .poem-toolbar__error {
+  background-color: #450a0a;
+  color: #fca5a5;
+}
