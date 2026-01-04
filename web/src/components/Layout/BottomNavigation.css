@@ -1,0 +1,185 @@
+/**
+ * BottomNavigation Component Styles
+ *
+ * Mobile-only bottom navigation bar with touch-friendly targets.
+ * Hidden on desktop where sidebar takes over.
+ */
+
+/* =============================================================================
+   Base Bottom Navigation
+   ============================================================================= */
+
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* =============================================================================
+   Navigation List
+   ============================================================================= */
+
+.bottom-nav__list {
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* =============================================================================
+   Navigation Buttons
+   ============================================================================= */
+
+.bottom-nav__button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+  /* Touch-friendly minimum size per WCAG guidelines */
+  min-height: 56px;
+  min-width: 44px;
+  padding: 0.5rem 0.25rem;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav__button:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.bottom-nav__button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+.bottom-nav__button:active {
+  background-color: var(--bg-active);
+}
+
+/* =============================================================================
+   Active State
+   ============================================================================= */
+
+.bottom-nav__button--active {
+  color: var(--accent-primary);
+}
+
+.bottom-nav__button--active .bottom-nav__icon {
+  stroke: var(--accent-primary);
+}
+
+.bottom-nav__button--active .bottom-nav__label {
+  color: var(--accent-primary);
+}
+
+/* =============================================================================
+   Icons
+   ============================================================================= */
+
+.bottom-nav__icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   Labels
+   ============================================================================= */
+
+.bottom-nav__label {
+  display: block;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* =============================================================================
+   Responsive - Mobile Only
+   ============================================================================= */
+
+@media (max-width: 767px) {
+  .bottom-nav {
+    display: block;
+  }
+}
+
+/* =============================================================================
+   Responsive - Very Small Screens
+   ============================================================================= */
+
+@media (max-width: 359px) {
+  .bottom-nav__button {
+    padding: 0.375rem 0.125rem;
+    min-height: 52px;
+  }
+
+  .bottom-nav__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .bottom-nav__label {
+    font-size: 0.625rem;
+  }
+}
+
+/* =============================================================================
+   Landscape Mode Adjustments
+   ============================================================================= */
+
+@media (max-width: 767px) and (max-height: 500px) {
+  .bottom-nav__button {
+    min-height: 48px;
+    gap: 0.125rem;
+    padding: 0.25rem;
+  }
+
+  .bottom-nav__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .bottom-nav__label {
+    font-size: 0.5625rem;
+  }
+}
+
+/* =============================================================================
+   Desktop - Hidden
+   ============================================================================= */
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none !important;
+  }
+}
