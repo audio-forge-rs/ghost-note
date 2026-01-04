@@ -1,0 +1,138 @@
+/**
+ * PoemTextarea Component Styles
+ *
+ * CSS for the poem textarea with line numbers.
+ */
+
+/* Container for textarea with line numbers */
+.poem-textarea-container {
+  display: flex;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.poem-textarea-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.poem-textarea-container--disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+/* Line numbers gutter */
+.poem-textarea__line-numbers {
+  flex-shrink: 0;
+  width: 3rem;
+  padding: 0.75rem 0;
+  background-color: #f8fafc;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: hidden;
+  user-select: none;
+  text-align: right;
+}
+
+.poem-textarea__line-number {
+  padding: 0 0.5rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  color: #9ca3af;
+}
+
+/* Textarea input */
+.poem-textarea__input {
+  flex: 1;
+  min-height: 200px;
+  padding: 0.75rem 1rem;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: #1f2937;
+  background-color: transparent;
+  overflow-y: auto;
+}
+
+.poem-textarea__input::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.poem-textarea__input:disabled {
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Scrollbar styling */
+.poem-textarea__input::-webkit-scrollbar {
+  width: 8px;
+}
+
+.poem-textarea__input::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.poem-textarea__input::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.poem-textarea__input::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark mode support */
+.dark .poem-textarea-container {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .poem-textarea-container:focus-within {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+.dark .poem-textarea-container--disabled {
+  background-color: #111827;
+}
+
+.dark .poem-textarea__line-numbers {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+.dark .poem-textarea__line-number {
+  color: #6b7280;
+}
+
+.dark .poem-textarea__input {
+  color: #f3f4f6;
+}
+
+.dark .poem-textarea__input::placeholder {
+  color: #6b7280;
+}
+
+.dark .poem-textarea__input:disabled {
+  color: #9ca3af;
+}
+
+.dark .poem-textarea__input::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark .poem-textarea__input::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark .poem-textarea__input::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}

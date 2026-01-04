@@ -1,0 +1,155 @@
+/**
+ * PoemInput Component Styles
+ *
+ * CSS for the main poem input container.
+ */
+
+/* Main container */
+.poem-input {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.poem-input--disabled {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Header */
+.poem-input__header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.poem-input__title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.poem-input__subtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #6b7280;
+}
+
+/* Stats display */
+.poem-input__stats {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.poem-input__stat {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+}
+
+.poem-input__stat-label {
+  color: #6b7280;
+}
+
+.poem-input__stat-value {
+  font-weight: 500;
+  color: #374151;
+}
+
+.poem-input__stat--warning .poem-input__stat-value {
+  color: #d97706;
+}
+
+.poem-input__stat--error .poem-input__stat-value {
+  color: #dc2626;
+}
+
+/* Warning and error messages */
+.poem-input__warning,
+.poem-input__error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.poem-input__warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.poem-input__error {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #f87171;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .poem-input__header {
+    text-align: left;
+  }
+
+  .poem-input__title {
+    font-size: 1.25rem;
+  }
+
+  .poem-input__subtitle {
+    font-size: 0.875rem;
+  }
+
+  .poem-input__stats {
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .poem-input__stat {
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark mode support */
+.dark .poem-input__title {
+  color: #f3f4f6;
+}
+
+.dark .poem-input__subtitle {
+  color: #9ca3af;
+}
+
+.dark .poem-input__stat-label {
+  color: #9ca3af;
+}
+
+.dark .poem-input__stat-value {
+  color: #e5e7eb;
+}
+
+.dark .poem-input__stat--warning .poem-input__stat-value {
+  color: #fbbf24;
+}
+
+.dark .poem-input__stat--error .poem-input__stat-value {
+  color: #f87171;
+}
+
+.dark .poem-input__warning {
+  background-color: #451a03;
+  color: #fde68a;
+  border-color: #b45309;
+}
+
+.dark .poem-input__error {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border-color: #b91c1c;
+}
