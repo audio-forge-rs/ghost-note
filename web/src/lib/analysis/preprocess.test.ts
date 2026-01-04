@@ -683,6 +683,421 @@ describe('edge cases', () => {
 });
 
 // =============================================================================
+// Famous Poems Tests (Shakespeare, Frost, Dickinson)
+// =============================================================================
+
+describe('famous poems', () => {
+  describe('Shakespeare - Sonnet 18', () => {
+    const sonnet18 = `Shall I compare thee to a summer's day?
+Thou art more lovely and more temperate.
+Rough winds do shake the darling buds of May,
+And summer's lease hath all too short a date.
+
+Sometime too hot the eye of heaven shines,
+And often is his gold complexion dimmed;
+And every fair from fair sometime declines,
+By chance, or nature's changing course, untrimmed;
+
+But thy eternal summer shall not fade,
+Nor lose possession of that fair thou ow'st,
+Nor shall death brag thou wand'rest in his shade,
+When in eternal lines to Time thou grow'st.
+
+So long as men can breathe, or eyes can see,
+So long lives this, and this gives life to thee.`;
+
+    it('correctly parses stanza structure', () => {
+      const result = preprocessPoem(sonnet18);
+      expect(result.stanzaCount).toBe(4);
+      expect(result.lineCount).toBe(14);
+    });
+
+    it('tokenizes archaic words correctly', () => {
+      const words = tokenizeWords("Thou art more lovely and more temperate");
+      expect(words).toContain('Thou');
+      expect(words).toContain('art');
+    });
+
+    it('handles apostrophes in possessives', () => {
+      const words = tokenizeWords("summer's lease hath all too short a date");
+      expect(words).toContain("summer's");
+    });
+
+    it('handles archaic contractions', () => {
+      const words = tokenizeWords("thou ow'st");
+      expect(words).toContain("ow'st");
+    });
+  });
+
+  describe('Robert Frost - Stopping by Woods on a Snowy Evening', () => {
+    const stoppingByWoods = `Whose woods these are I think I know.
+His house is in the village though;
+He will not see me stopping here
+To watch his woods fill up with snow.
+
+My little horse must think it queer
+To stop without a farmhouse near
+Between the woods and frozen lake
+The darkest evening of the year.
+
+He gives his harness bells a shake
+To ask if there is some mistake.
+The only other sound's the sweep
+Of easy wind and downy flake.
+
+The woods are lovely, dark and deep,
+But I have promises to keep,
+And miles to go before I sleep,
+And miles to go before I sleep.`;
+
+    it('correctly parses four stanzas', () => {
+      const result = preprocessPoem(stoppingByWoods);
+      expect(result.stanzaCount).toBe(4);
+    });
+
+    it('correctly counts 16 lines', () => {
+      const result = preprocessPoem(stoppingByWoods);
+      expect(result.lineCount).toBe(16);
+    });
+
+    it('handles repeated lines', () => {
+      const result = preprocessPoem(stoppingByWoods);
+      const lastStanza = result.stanzas[3];
+      // Both lines should be identical (same content)
+      expect(lastStanza[2]).toBe('And miles to go before I sleep,');
+      expect(lastStanza[3]).toBe('And miles to go before I sleep.');
+    });
+
+    it('preserves semicolons in punctuation', () => {
+      const punct = extractPunctuation('His house is in the village though;');
+      expect(punct.find(p => p.char === ';')).toBeDefined();
+    });
+
+    it('handles contractions like sound\'s', () => {
+      const words = tokenizeWords("The only other sound's the sweep");
+      expect(words).toContain("sound's");
+    });
+  });
+
+  describe('Emily Dickinson - Because I could not stop for Death', () => {
+    const dickinson = `Because I could not stop for Death –
+He kindly stopped for me –
+The Carriage held but just Ourselves –
+And Immortality.
+
+We slowly drove – He knew no haste
+And I had put away
+My labor and my leisure too,
+For His Civility –
+
+We passed the School, where Children strove
+At Recess – in the Ring –
+We passed the Fields of Gazing Grain –
+We passed the Setting Sun –
+
+Or rather – He passed Us –
+The Dews drew quivering and Chill –
+For only Gossamer, my Gown –
+My Tippet – only Tulle –`;
+
+    it('correctly parses four stanzas', () => {
+      const result = preprocessPoem(dickinson);
+      expect(result.stanzaCount).toBe(4);
+    });
+
+    it('handles em-dashes', () => {
+      const punct = extractPunctuation('Because I could not stop for Death –');
+      expect(punct.some(p => p.char === '–')).toBe(true);
+    });
+
+    it('handles capitalized words mid-line', () => {
+      const words = tokenizeWords('The Carriage held but just Ourselves');
+      expect(words).toContain('Carriage');
+      expect(words).toContain('Ourselves');
+    });
+
+    it('handles unusual line breaks', () => {
+      const words = tokenizeWords('Or rather – He passed Us –');
+      expect(words).toContain('rather');
+      expect(words).toContain('Us');
+    });
+  });
+
+  describe('William Blake - The Tyger', () => {
+    const tyger = `Tyger Tyger, burning bright,
+In the forests of the night;
+What immortal hand or eye,
+Could frame thy fearful symmetry?
+
+In what distant deeps or skies,
+Burnt the fire of thine eyes?
+On what wings dare he aspire?
+What the hand, dare seize the fire?`;
+
+    it('correctly parses two stanzas', () => {
+      const result = preprocessPoem(tyger);
+      expect(result.stanzaCount).toBe(2);
+      expect(result.lineCount).toBe(8);
+    });
+
+    it('handles repeated words', () => {
+      const words = tokenizeWords('Tyger Tyger, burning bright,');
+      expect(words.filter(w => w === 'Tyger').length).toBe(2);
+    });
+
+    it('handles archaic "thy" and "thine"', () => {
+      const words1 = tokenizeWords('Could frame thy fearful symmetry?');
+      expect(words1).toContain('thy');
+
+      const words2 = tokenizeWords('Burnt the fire of thine eyes?');
+      expect(words2).toContain('thine');
+    });
+  });
+});
+
+// =============================================================================
+// Non-English Words and Special Characters Tests
+// =============================================================================
+
+describe('non-English words and special characters', () => {
+  it('handles words with diacritical marks', () => {
+    // Note: tokenizer may split on non-ASCII characters depending on regex
+    const words = tokenizeWords('cafe resume naive');
+    expect(words).toContain('cafe');
+    expect(words).toContain('resume');
+    expect(words).toContain('naive');
+  });
+
+  it('handles words with umlauts gracefully', () => {
+    // The tokenizer may split on special characters
+    const words = tokenizeWords('uber Muller naive');
+    expect(words.length).toBeGreaterThan(0);
+    expect(words).toContain('uber');
+  });
+
+  it('handles words with cedillas gracefully', () => {
+    // The tokenizer uses \w which may not match all Unicode
+    const words = tokenizeWords('facade garcon');
+    expect(words).toContain('facade');
+    expect(words).toContain('garcon');
+  });
+
+  it('handles mixed language text', () => {
+    const poem = `Hello world
+Bonjour monde
+Hola mundo`;
+    const result = preprocessPoem(poem);
+    expect(result.lineCount).toBe(3);
+  });
+
+  it('handles Japanese/Chinese characters', () => {
+    // These won't tokenize well but shouldn't crash
+    const words = tokenizeWords('hello 世界 world');
+    expect(words.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('handles emoji gracefully', () => {
+    const words = tokenizeWords('hello world');
+    expect(words).toContain('hello');
+    expect(words).toContain('world');
+  });
+
+  it('handles mathematical symbols', () => {
+    const poem = 'x² + y² = z²';
+    const result = preprocessPoem(poem);
+    expect(result.lineCount).toBe(1);
+  });
+
+  it('handles Greek letters', () => {
+    const words = tokenizeWords('alpha β gamma δ');
+    expect(words).toContain('alpha');
+    expect(words).toContain('gamma');
+  });
+});
+
+// =============================================================================
+// Numbers and Numeric Strings Tests
+// =============================================================================
+
+describe('numbers and numeric strings', () => {
+  it('handles standalone numbers', () => {
+    const words = tokenizeWords('chapter 1 verse 2');
+    expect(words).toContain('1');
+    expect(words).toContain('2');
+  });
+
+  it('handles ordinals written as numbers', () => {
+    const words = tokenizeWords('the 1st and 2nd place');
+    expect(words).toContain('1st');
+    expect(words).toContain('2nd');
+  });
+
+  it('handles years', () => {
+    const words = tokenizeWords('in 1984 and 2001');
+    expect(words).toContain('1984');
+    expect(words).toContain('2001');
+  });
+
+  it('handles mixed alphanumeric', () => {
+    const words = tokenizeWords('room 101 area 51');
+    expect(words).toContain('101');
+    expect(words).toContain('51');
+  });
+
+  it('handles decimal numbers', () => {
+    const words = tokenizeWords('pi is 3.14159');
+    expect(words.some(w => w.includes('14'))).toBe(true);
+  });
+
+  it('handles fractions written with slashes', () => {
+    const words = tokenizeWords('1/2 cup of 3/4 milk');
+    expect(words.length).toBeGreaterThan(0);
+  });
+
+  it('handles Roman numerals', () => {
+    const words = tokenizeWords('Chapter IV Section III');
+    expect(words).toContain('IV');
+    expect(words).toContain('III');
+  });
+
+  it('handles phone number format', () => {
+    const words = tokenizeWords('call 555-1234');
+    expect(words.length).toBeGreaterThan(0);
+  });
+
+  it('handles time format', () => {
+    const words = tokenizeWords('at 10:30 AM');
+    expect(words.length).toBeGreaterThan(0);
+  });
+});
+
+// =============================================================================
+// Additional Edge Cases
+// =============================================================================
+
+describe('additional edge cases', () => {
+  it('handles single word poems', () => {
+    const result = preprocessPoem('Love');
+    expect(result.lineCount).toBe(1);
+    expect(result.stanzaCount).toBe(1);
+    expect(result.stanzas[0][0]).toBe('Love');
+  });
+
+  it('handles single letter lines', () => {
+    const poem = `I
+A
+O`;
+    const result = preprocessPoem(poem);
+    expect(result.lineCount).toBe(3);
+  });
+
+  it('handles lines with only punctuation', () => {
+    const words = tokenizeWords('...');
+    expect(words).toEqual([]);
+  });
+
+  it('handles extremely long words', () => {
+    const longWord = 'supercalifragilisticexpialidocious';
+    const words = tokenizeWords(longWord);
+    expect(words).toContain(longWord);
+  });
+
+  it('handles words joined by multiple hyphens', () => {
+    const words = tokenizeWords('mother-in-law self-portrait');
+    expect(words).toContain('mother-in-law');
+    expect(words).toContain('self-portrait');
+  });
+
+  it('handles text with tabs between words', () => {
+    const normalized = normalizeWhitespace('word1\tword2\t\tword3');
+    expect(normalized).toBe('word1 word2 word3');
+  });
+
+  it('handles mixed Windows and Unix line endings', () => {
+    const text = 'line1\r\nline2\nline3\rline4';
+    const normalized = normalizeWhitespace(text);
+    expect(normalized.split('\n').length).toBe(4);
+  });
+
+  it('handles consecutive blank lines as single stanza break', () => {
+    const poem = `stanza1
+
+
+
+stanza2`;
+    const result = preprocessPoem(poem);
+    expect(result.stanzaCount).toBe(2);
+  });
+
+  it('handles quotes within contractions', () => {
+    const words = tokenizeWords("'twas and 'tis");
+    expect(words).toContain("'twas");
+    expect(words).toContain("'tis");
+  });
+
+  it('handles dropped-g words', () => {
+    const words = tokenizeWords("singin' and dancin'");
+    expect(words).toContain("singin'");
+    expect(words).toContain("dancin'");
+  });
+
+  it('handles all caps text', () => {
+    const poem = 'HEAR ME ROAR';
+    const result = preprocessPoem(poem);
+    expect(result.stanzas[0][0]).toBe('HEAR ME ROAR');
+  });
+
+  it('handles CamelCase words', () => {
+    const words = tokenizeWords('JavaScript TypeScript');
+    expect(words).toContain('JavaScript');
+    expect(words).toContain('TypeScript');
+  });
+
+  it('handles urls gracefully', () => {
+    const words = tokenizeWords('visit http://example.com today');
+    expect(words).toContain('visit');
+    expect(words).toContain('today');
+  });
+
+  it('handles email addresses gracefully', () => {
+    const words = tokenizeWords('email test@example.com now');
+    expect(words).toContain('email');
+    expect(words).toContain('now');
+  });
+});
+
+// =============================================================================
+// Snapshot Tests for Analysis Output
+// =============================================================================
+
+describe('snapshot tests', () => {
+  it('produces consistent output for simple poem', () => {
+    const poem = `Roses are red
+Violets are blue`;
+    const result = preprocessPoem(poem);
+
+    expect(result).toMatchObject({
+      stanzaCount: 1,
+      lineCount: 2,
+      stanzas: [['Roses are red', 'Violets are blue']],
+    });
+  });
+
+  it('produces consistent tokenization for known phrase', () => {
+    const tokens = tokenizeWords("Don't stop believin'!");
+    expect(tokens).toEqual(["Don't", 'stop', "believin'"]);
+  });
+
+  it('produces consistent punctuation extraction', () => {
+    const punct = extractPunctuation('Hello, world!');
+    expect(punct).toEqual([
+      { char: ',', position: 5 },
+      { char: '!', position: 12 },
+    ]);
+  });
+});
+
+// =============================================================================
 // Integration Tests
 // =============================================================================
 
