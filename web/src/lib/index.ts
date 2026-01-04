@@ -5,3 +5,4 @@
  */
 
 export * from './phonetics/index.ts'
+export * from './audio/index.ts'
