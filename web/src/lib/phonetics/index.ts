@@ -2,6 +2,7 @@
  * Phonetics Module
  *
  * Provides phonetic analysis using the CMU Pronouncing Dictionary.
+ * For words not in the dictionary, falls back to heuristic-based estimation.
  * This module is the main entry point for all phonetics-related functionality.
  */
 
@@ -33,3 +34,17 @@ export {
   getRhymingPart,
   doWordsRhyme,
 } from './cmuDict.ts'
+
+// Stress estimation for unknown words
+export {
+  // Types
+  type StressEstimation,
+  // Estimation functions
+  estimateSyllableCount,
+  estimateStressPattern,
+  estimateStressWithConfidence,
+  analyzeUnknownWord,
+  // Fallback integration
+  getStressWithFallback,
+  getSyllableCountWithFallback,
+} from './stressEstimator.ts'
