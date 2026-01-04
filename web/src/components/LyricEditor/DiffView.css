@@ -1,0 +1,329 @@
+/**
+ * DiffView Component Styles
+ *
+ * Provides styling for side-by-side diff comparison.
+ */
+
+/* Base container */
+.diff-view {
+  display: flex;
+  flex-direction: column;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+/* Headers */
+.diff-view__headers {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diff-view__header {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.diff-view__header--original {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diff-view__header-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.diff-view__header--original .diff-view__header-label {
+  color: #fca5a5;
+}
+
+.diff-view__header--modified .diff-view__header-label {
+  color: #86efac;
+}
+
+/* Body */
+.diff-view__body {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+/* Row */
+.diff-view__row {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.diff-view__row:last-child {
+  border-bottom: none;
+}
+
+/* Side */
+.diff-view__side {
+  flex: 1;
+  display: flex;
+  min-height: 1.5em;
+}
+
+.diff-view__side--original {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Line number */
+.diff-view__line-number {
+  flex-shrink: 0;
+  width: 3rem;
+  padding: 0.25rem 0.5rem;
+  text-align: right;
+  color: #6b7280;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  user-select: none;
+  font-size: 0.75rem;
+}
+
+/* Line content */
+.diff-view__line-content {
+  flex: 1;
+  padding: 0.25rem 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diff-view__line-content--equal {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.diff-view__line-content--remove {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.diff-view__line-content--add {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+.diff-view__line-content--empty {
+  background-color: rgba(107, 114, 128, 0.1);
+}
+
+/* Empty states */
+.diff-view__empty-line {
+  display: block;
+  opacity: 0.3;
+}
+
+.diff-view__empty-text {
+  color: transparent;
+}
+
+.diff-view__empty {
+  padding: 2rem;
+  text-align: center;
+}
+
+.diff-view__empty-message {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Summary */
+.diff-view__summary {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diff-view__summary-item {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+}
+
+.diff-view__summary-item--add {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+}
+
+.diff-view__summary-item--remove {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}
+
+/* Identical state */
+.diff-view--identical .diff-view__body {
+  opacity: 0.8;
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+:root.light .diff-view,
+.light .diff-view {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.light .diff-view__headers,
+.light .diff-view__headers {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.light .diff-view__header,
+.light .diff-view__header {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+:root.light .diff-view__header--original,
+.light .diff-view__header--original {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.light .diff-view__header-label,
+.light .diff-view__header-label {
+  color: #6b7280;
+}
+
+:root.light .diff-view__header--original .diff-view__header-label,
+.light .diff-view__header--original .diff-view__header-label {
+  color: #b91c1c;
+}
+
+:root.light .diff-view__header--modified .diff-view__header-label,
+.light .diff-view__header--modified .diff-view__header-label {
+  color: #15803d;
+}
+
+:root.light .diff-view__row,
+.light .diff-view__row {
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+:root.light .diff-view__side--original,
+.light .diff-view__side--original {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.light .diff-view__line-number,
+.light .diff-view__line-number {
+  color: #9ca3af;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+:root.light .diff-view__line-content--equal,
+.light .diff-view__line-content--equal {
+  color: #1f2937;
+}
+
+:root.light .diff-view__line-content--remove,
+.light .diff-view__line-content--remove {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+}
+
+:root.light .diff-view__line-content--add,
+.light .diff-view__line-content--add {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+
+:root.light .diff-view__line-content--empty,
+.light .diff-view__line-content--empty {
+  background-color: rgba(107, 114, 128, 0.05);
+}
+
+:root.light .diff-view__empty-message,
+.light .diff-view__empty-message {
+  color: #9ca3af;
+}
+
+:root.light .diff-view__summary,
+.light .diff-view__summary {
+  background-color: rgba(0, 0, 0, 0.01);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.light .diff-view__summary-item--add,
+.light .diff-view__summary-item--add {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+
+:root.light .diff-view__summary-item--remove,
+.light .diff-view__summary-item--remove {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+}
+
+/* =============================================================================
+   Responsive Adjustments
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .diff-view {
+    font-size: 0.8125rem;
+  }
+
+  .diff-view__headers {
+    flex-direction: column;
+  }
+
+  .diff-view__header--original {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .diff-view__row {
+    flex-direction: column;
+  }
+
+  .diff-view__side--original {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .diff-view__line-number {
+    width: 2.5rem;
+    font-size: 0.6875rem;
+  }
+
+  .diff-view__line-content {
+    padding: 0.25rem 0.5rem;
+  }
+
+  .diff-view__header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .diff-view__summary {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .diff-view__summary-item {
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .diff-view__line-number {
+    width: 2rem;
+    padding: 0.25rem 0.25rem;
+  }
+}
