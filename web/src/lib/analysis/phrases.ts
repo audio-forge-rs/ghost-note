@@ -19,10 +19,10 @@
 import {
   extractPunctuation,
   tokenizeWords,
-  type PunctuationMark,
 } from './preprocess';
 import type {
   PreprocessedPoem,
+  PunctuationMark,
 } from '@/types/analysis';
 
 // =============================================================================
