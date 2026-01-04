@@ -10,3 +10,4 @@ export * from './preprocess';
 export * from './emotion';
 export * from './stress';
 export * from './meter';
+export * from './rhyme';
