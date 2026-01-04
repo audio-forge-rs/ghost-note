@@ -134,6 +134,35 @@ export {
   selectThemeLabel,
 } from './useThemeStore';
 
+// Suggestion Store
+export { useSuggestionStore } from './useSuggestionStore';
+export type {
+  SuggestionStatus,
+  SuggestionWithStatus,
+  SuggestionLoadingState,
+  SuggestionState,
+  SuggestionActions,
+  SuggestionStore,
+} from './useSuggestionStore';
+export {
+  selectHasSuggestions,
+  selectSuggestionCount,
+  selectPendingSuggestions,
+  selectAcceptedSuggestions,
+  selectRejectedSuggestions,
+  selectPendingCount,
+  selectAcceptedCount,
+  selectRejectedCount,
+  selectIsLoading as selectSuggestionIsLoading,
+  selectIsSuccess as selectSuggestionIsSuccess,
+  selectHasError as selectSuggestionHasError,
+  selectAllProcessed,
+  selectAnyProcessed,
+  selectSuggestionsByPreservation,
+  selectSuggestionsSorted,
+  selectSuggestionsForLine,
+} from './useSuggestionStore';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -145,6 +174,7 @@ import { useMelodyStore as melodyStore } from './useMelodyStore';
 import { useRecordingStore as recordingStore } from './useRecordingStore';
 import { useUIStore as uiStore } from './useUIStore';
 import { useThemeStore as themeStore } from './useThemeStore';
+import { useSuggestionStore as suggestionStore } from './useSuggestionStore';
 
 /**
  * Reset all stores to their initial state
@@ -157,6 +187,7 @@ export function resetAllStores(): void {
   recordingStore.getState().reset();
   uiStore.getState().reset();
   themeStore.getState().reset();
+  suggestionStore.getState().reset();
 
   console.log('[Stores] All stores reset');
 }
