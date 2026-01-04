@@ -7,3 +7,4 @@
  */
 
 export * from './preprocess';
+export * from './emotion';
