@@ -7,3 +7,4 @@
 export * from './types';
 export * from './abcGenerator';
 export * from './rhythm';
+export * from './cadence';
