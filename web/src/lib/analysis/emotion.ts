@@ -941,5 +941,4 @@ export function analyzeEmotion(text: string, stanzas: string[][]): EmotionalAnal
 // Exports
 // =============================================================================
 
-export type { EmotionCategory };
 export { EMOTION_LEXICON, EMOTION_TO_VA, EMOTION_TO_MUSIC };
