@@ -1,0 +1,7 @@
+{
+  "issueNumber": "17",
+  "branch": "feature/GH-17",
+  "port": 5017,
+  "testPort": 5117,
+  "createdAt": "2026-01-03T18:15:53-06:00"
+}
