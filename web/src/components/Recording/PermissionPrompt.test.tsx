@@ -119,7 +119,7 @@ describe('PermissionPrompt', () => {
 
   describe('Denied State', () => {
     it('should render denied state when permission is denied', async () => {
-      mockQueryMicrophonePermission.mockResolvedValue('denied');
+      mockQueryMicrophonePermission.mockResolvedValue('prompt');
       mockRequestMicrophoneAccess.mockResolvedValue({
         success: false,
         stream: null,
@@ -129,17 +129,19 @@ describe('PermissionPrompt', () => {
 
       render(<PermissionPrompt />);
 
-      // First request permission to trigger the denied state
+      // Wait for initial prompt state
       await waitFor(() => {
         expect(screen.getByTestId('permission-prompt')).toBeInTheDocument();
       });
 
+      // Click button to request permission (which will be denied)
       const button = screen.getByRole('button');
       fireEvent.click(button);
 
+      // Wait for denied state to render
       await waitFor(() => {
         expect(screen.getByTestId('permission-prompt-denied')).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
 
       expect(screen.getByText('Microphone Access Denied')).toBeInTheDocument();
       expect(screen.getByText('Try Again')).toBeInTheDocument();
