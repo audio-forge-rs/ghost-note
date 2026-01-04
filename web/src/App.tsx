@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useUIStore } from '@/stores/useUIStore';
+import { useThemeStore } from '@/stores/useThemeStore';
 import { AppShell, type NavigationView } from '@/components/Layout';
 import { EmptyState } from '@/components/Common';
 import './App.css';
@@ -87,10 +87,10 @@ function App(): React.ReactElement {
   // Initialize theme on mount - only runs once
   useEffect(() => {
     // Re-apply theme to ensure it's set correctly after hydration
-    const currentTheme = useUIStore.getState().theme;
+    const currentTheme = useThemeStore.getState().theme;
     if (currentTheme) {
       log('Initializing theme:', currentTheme);
-      useUIStore.getState().setTheme(currentTheme);
+      useThemeStore.getState().setTheme(currentTheme);
     }
   }, []);
 

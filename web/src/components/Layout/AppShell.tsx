@@ -11,6 +11,7 @@
 import { type ReactNode, type ReactElement, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useUIStore } from '@/stores/useUIStore';
 import { useSwipeGesture } from '@/hooks/useSwipeGesture';
+import { useThemeStore } from '@/stores/useThemeStore';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { MainContent } from './MainContent';
@@ -87,7 +88,9 @@ export function AppShell({
   children,
   className = '',
 }: AppShellProps): ReactElement {
-  const resolvedTheme = useUIStore((state) => state.resolvedTheme);
+  // Use the dedicated theme store for theme-related state
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  // Use UI store for non-theme UI state
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebar = useUIStore((state) => state.toggleSidebar);
 
@@ -141,11 +144,12 @@ export function AppShell({
     enabled: isMobile && sidebarCollapsed, // Disable when sidebar is open
   });
 
-  // Apply theme class to document element on mount and theme change
+  // Theme is now applied by useThemeStore, but we still need to sync the class
+  // This effect ensures the DOM class matches the store state
   useEffect(() => {
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(resolvedTheme);
-    log('Applied theme to document:', resolvedTheme);
+    log('Synced theme class to document:', resolvedTheme);
   }, [resolvedTheme]);
 
   // Handle escape key to close sidebar on mobile

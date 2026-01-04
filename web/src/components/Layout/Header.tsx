@@ -9,6 +9,7 @@
 
 import { type ReactElement } from 'react';
 import { useUIStore } from '@/stores/useUIStore';
+import { useThemeStore, selectThemeLabel } from '@/stores/useThemeStore';
 import { APP_NAME } from '@/utils';
 import './Header.css';
 
@@ -157,9 +158,13 @@ function HelpIcon(): ReactElement {
  * ```
  */
 export function Header({ className = '' }: HeaderProps): ReactElement {
-  const theme = useUIStore((state) => state.theme);
-  const resolvedTheme = useUIStore((state) => state.resolvedTheme);
-  const setTheme = useUIStore((state) => state.setTheme);
+  // Theme state from dedicated theme store
+  const theme = useThemeStore((state) => state.theme);
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const cycleTheme = useThemeStore((state) => state.cycleTheme);
+  const themeLabel = useThemeStore(selectThemeLabel);
+
+  // UI state from UI store
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
   const toggleSidebar = useUIStore((state) => state.toggleSidebar);
   const openModalDialog = useUIStore((state) => state.openModalDialog);
@@ -167,10 +172,8 @@ export function Header({ className = '' }: HeaderProps): ReactElement {
   log('Rendering Header:', { theme, resolvedTheme, sidebarCollapsed });
 
   const handleThemeToggle = (): void => {
-    // Cycle through themes: light -> dark -> system -> light
-    const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
-    log('Toggling theme:', { from: theme, to: nextTheme });
-    setTheme(nextTheme);
+    log('Cycling theme:', { from: theme });
+    cycleTheme();
   };
 
   const handleHelpClick = (): void => {
@@ -184,12 +187,6 @@ export function Header({ className = '' }: HeaderProps): ReactElement {
   };
 
   const containerClass = ['header', className].filter(Boolean).join(' ').trim();
-
-  // Determine theme button label
-  const getThemeLabel = (): string => {
-    if (theme === 'system') return 'System theme';
-    return resolvedTheme === 'dark' ? 'Dark mode' : 'Light mode';
-  };
 
   return (
     <header className={containerClass} data-testid="header">
@@ -218,8 +215,8 @@ export function Header({ className = '' }: HeaderProps): ReactElement {
           type="button"
           className="header__button header__theme-button"
           onClick={handleThemeToggle}
-          aria-label={getThemeLabel()}
-          title={getThemeLabel()}
+          aria-label={themeLabel}
+          title={themeLabel}
           data-testid="theme-toggle"
         >
           {resolvedTheme === 'dark' ? <MoonIcon /> : <SunIcon />}

@@ -71,12 +71,12 @@
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1px solid transparent;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-hover);
   color: inherit;
 }
 
 .error-message__retry:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--bg-active);
 }
 
 .error-message__retry:focus-visible {
@@ -120,17 +120,17 @@
    ============================================================================= */
 
 .error-message--error {
-  background-color: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background-color: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
 }
 
 .error-message--error .error-message__icon {
-  color: #f87171;
+  color: var(--error-icon);
 }
 
 .error-message--error .error-message__title {
-  color: #fecaca;
+  color: var(--error-title);
 }
 
 /* =============================================================================
@@ -138,17 +138,17 @@
    ============================================================================= */
 
 .error-message--warning {
-  background-color: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #fcd34d;
+  background-color: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning-text);
 }
 
 .error-message--warning .error-message__icon {
-  color: #fbbf24;
+  color: var(--warning-icon);
 }
 
 .error-message--warning .error-message__title {
-  color: #fef3c7;
+  color: var(--warning-title);
 }
 
 /* =============================================================================
@@ -156,73 +156,17 @@
    ============================================================================= */
 
 .error-message--info {
-  background-color: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  background-color: var(--info-bg);
+  border-color: var(--info-border);
+  color: var(--info-text);
 }
 
 .error-message--info .error-message__icon {
-  color: #60a5fa;
+  color: var(--info-icon);
 }
 
 .error-message--info .error-message__title {
-  color: #bfdbfe;
-}
-
-/* =============================================================================
-   Light Mode
-   ============================================================================= */
-
-@media (prefers-color-scheme: light) {
-  .error-message--error {
-    background-color: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.25);
-    color: #dc2626;
-  }
-
-  .error-message--error .error-message__icon {
-    color: #dc2626;
-  }
-
-  .error-message--error .error-message__title {
-    color: #b91c1c;
-  }
-
-  .error-message--warning {
-    background-color: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.25);
-    color: #b45309;
-  }
-
-  .error-message--warning .error-message__icon {
-    color: #d97706;
-  }
-
-  .error-message--warning .error-message__title {
-    color: #92400e;
-  }
-
-  .error-message--info {
-    background-color: rgba(59, 130, 246, 0.1);
-    border-color: rgba(59, 130, 246, 0.25);
-    color: #2563eb;
-  }
-
-  .error-message--info .error-message__icon {
-    color: #2563eb;
-  }
-
-  .error-message--info .error-message__title {
-    color: #1d4ed8;
-  }
-
-  .error-message__retry {
-    background-color: rgba(0, 0, 0, 0.08);
-  }
-
-  .error-message__retry:hover {
-    background-color: rgba(0, 0, 0, 0.12);
-  }
+  color: var(--info-title);
 }
 
 /* =============================================================================
