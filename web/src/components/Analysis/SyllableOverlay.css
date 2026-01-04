@@ -1,0 +1,280 @@
+/**
+ * SyllableOverlay Component Styles
+ *
+ * Styles for displaying syllable counts overlaid on poem text.
+ */
+
+/* =============================================================================
+   Base Container
+   ============================================================================= */
+
+.syllable-overlay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--color-bg-tertiary, #111827);
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border, #374151);
+}
+
+.syllable-overlay--empty {
+  min-height: 100px;
+  justify-content: center;
+  align-items: center;
+}
+
+.syllable-overlay__empty-text {
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.syllable-overlay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.syllable-overlay__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin: 0;
+}
+
+.syllable-overlay__median {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+  padding: 0.125rem 0.5rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+/* =============================================================================
+   Content
+   ============================================================================= */
+
+.syllable-overlay__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.syllable-overlay__stanza {
+  display: flex;
+  flex-direction: column;
+}
+
+.syllable-overlay__stanza-break {
+  height: 1rem;
+}
+
+/* =============================================================================
+   Line Styles
+   ============================================================================= */
+
+.syllable-overlay__line {
+  position: relative;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.syllable-overlay__line:hover {
+  background-color: var(--color-bg-hover, rgba(59, 130, 246, 0.1));
+}
+
+.syllable-overlay__line-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.syllable-overlay__text {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary, #f9fafb);
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* =============================================================================
+   Syllable Count Badge
+   ============================================================================= */
+
+.syllable-overlay__count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  background-color: var(--color-syllable-normal, #374151);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.syllable-overlay__count-badge:hover {
+  transform: scale(1.1);
+}
+
+.syllable-overlay__count-badge:focus-visible {
+  outline: 2px solid var(--color-focus, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Deviation levels */
+.syllable-overlay__line--normal .syllable-overlay__count-badge {
+  background-color: var(--color-syllable-normal, #374151);
+}
+
+.syllable-overlay__line--minor .syllable-overlay__count-badge {
+  background-color: var(--color-syllable-minor, #ca8a04);
+  color: #ffffff;
+}
+
+.syllable-overlay__line--major .syllable-overlay__count-badge {
+  background-color: var(--color-syllable-major, #dc2626);
+  color: #ffffff;
+}
+
+/* =============================================================================
+   Tooltip
+   ============================================================================= */
+
+.syllable-overlay__tooltip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 20;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-tooltip, #1f2937);
+  border: 1px solid var(--color-border, #374151);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.syllable-overlay__line:hover .syllable-overlay__tooltip,
+.syllable-overlay__count-badge:focus-visible + .syllable-overlay__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.syllable-overlay__tooltip-header {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin-bottom: 0.25rem;
+}
+
+.syllable-overlay__tooltip-breakdown {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* =============================================================================
+   Summary
+   ============================================================================= */
+
+.syllable-overlay__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #374151);
+}
+
+.syllable-overlay__stat {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+:root.light .syllable-overlay,
+.light .syllable-overlay {
+  background-color: var(--color-bg-tertiary, #ffffff);
+  border-color: var(--color-border, #e5e7eb);
+}
+
+:root.light .syllable-overlay__title,
+.light .syllable-overlay__title {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .syllable-overlay__text,
+.light .syllable-overlay__text {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .syllable-overlay__median,
+.light .syllable-overlay__median {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .syllable-overlay__line--normal .syllable-overlay__count-badge,
+.light .syllable-overlay__line--normal .syllable-overlay__count-badge {
+  background-color: var(--color-syllable-normal, #9ca3af);
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .syllable-overlay {
+    padding: 0.75rem;
+  }
+
+  .syllable-overlay__text {
+    font-size: 0.875rem;
+  }
+
+  .syllable-overlay__summary {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .syllable-overlay__tooltip {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .syllable-overlay__line,
+  .syllable-overlay__count-badge,
+  .syllable-overlay__tooltip {
+    transition: none;
+  }
+
+  .syllable-overlay__count-badge:hover {
+    transform: none;
+  }
+}

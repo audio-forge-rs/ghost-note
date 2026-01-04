@@ -1,0 +1,426 @@
+/**
+ * SingabilityHeatmap Component Styles
+ *
+ * Styles for the singability heatmap visualization.
+ */
+
+/* =============================================================================
+   Base Container
+   ============================================================================= */
+
+.singability-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--color-bg-tertiary, #111827);
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border, #374151);
+}
+
+.singability-heatmap--empty {
+  min-height: 100px;
+  justify-content: center;
+  align-items: center;
+}
+
+.singability-heatmap__empty-text {
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.singability-heatmap__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.singability-heatmap__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin: 0;
+}
+
+.singability-heatmap__score-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+}
+
+/* =============================================================================
+   Legend
+   ============================================================================= */
+
+.singability-heatmap__legend {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.singability-heatmap__legend-gradient {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.singability-heatmap__legend-label {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.singability-heatmap__gradient-bar {
+  width: 120px;
+  height: 0.5rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    to right,
+    var(--color-singability-bad, #ef4444),
+    var(--color-singability-poor, #f97316),
+    var(--color-singability-fair, #eab308),
+    var(--color-singability-good, #84cc16),
+    var(--color-singability-excellent, #22c55e)
+  );
+}
+
+/* =============================================================================
+   Content
+   ============================================================================= */
+
+.singability-heatmap__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.singability-heatmap__stanza {
+  display: flex;
+  flex-direction: column;
+}
+
+.singability-heatmap__stanza-break {
+  height: 1rem;
+}
+
+/* =============================================================================
+   Line Styles
+   ============================================================================= */
+
+.singability-heatmap__line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.singability-heatmap__line:hover {
+  background-color: var(--color-bg-hover, rgba(59, 130, 246, 0.1));
+}
+
+/* =============================================================================
+   Line Score Indicator
+   ============================================================================= */
+
+.singability-heatmap__line-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #ffffff;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   Syllable Heatmap
+   ============================================================================= */
+
+.singability-heatmap__syllables {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  flex: 1;
+}
+
+.singability-heatmap__word {
+  display: inline-flex;
+  gap: 0;
+}
+
+.singability-heatmap__word::after {
+  content: '';
+  width: 0.25rem;
+}
+
+.singability-heatmap__syllable {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.6875rem;
+  font-family: monospace;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  border-radius: 0.125rem;
+  transition: transform 0.15s ease;
+  cursor: default;
+}
+
+.singability-heatmap__syllable:hover {
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.singability-heatmap__syllable--problem {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.8);
+}
+
+/* =============================================================================
+   Problem Count Badge
+   ============================================================================= */
+
+.singability-heatmap__problem-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--color-error, #ef4444);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+   Tooltip
+   ============================================================================= */
+
+.singability-heatmap__tooltip {
+  position: absolute;
+  left: 3rem;
+  top: calc(100% + 0.25rem);
+  z-index: 20;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-tooltip, #1f2937);
+  border: 1px solid var(--color-border, #374151);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.singability-heatmap__line:hover .singability-heatmap__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.singability-heatmap__tooltip-header {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin-bottom: 0.375rem;
+}
+
+.singability-heatmap__tooltip-problems {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+.singability-heatmap__tooltip-problems strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.singability-heatmap__tooltip-problems ul {
+  margin: 0;
+  padding: 0 0 0 1rem;
+  list-style: disc;
+}
+
+.singability-heatmap__tooltip-problems li {
+  margin: 0.125rem 0;
+}
+
+/* =============================================================================
+   Problems Section
+   ============================================================================= */
+
+.singability-heatmap__problems {
+  padding: 0.75rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+  border-left: 3px solid var(--color-error, #ef4444);
+}
+
+.singability-heatmap__problems-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.singability-heatmap__problems-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.singability-heatmap__problem-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.singability-heatmap__problem-item:last-child {
+  border-bottom: none;
+}
+
+.singability-heatmap__problem-location {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.singability-heatmap__problem-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+.singability-heatmap__problem-fix {
+  font-size: 0.75rem;
+  color: var(--color-primary, #3b82f6);
+  font-style: italic;
+}
+
+.singability-heatmap__problem-more {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+  padding: 0.375rem 0;
+}
+
+/* Problem severity colors */
+.singability-heatmap__problem--high .singability-heatmap__problem-desc {
+  color: var(--color-error, #ef4444);
+}
+
+.singability-heatmap__problem--medium .singability-heatmap__problem-desc {
+  color: var(--color-warning, #eab308);
+}
+
+.singability-heatmap__problem--low .singability-heatmap__problem-desc {
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+/* =============================================================================
+   Summary
+   ============================================================================= */
+
+.singability-heatmap__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #374151);
+}
+
+.singability-heatmap__stat {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.singability-heatmap__stat strong {
+  color: var(--color-text-secondary, #d1d5db);
+  font-weight: 600;
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+:root.light .singability-heatmap,
+.light .singability-heatmap {
+  background-color: var(--color-bg-tertiary, #ffffff);
+  border-color: var(--color-border, #e5e7eb);
+}
+
+:root.light .singability-heatmap__title,
+.light .singability-heatmap__title {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .singability-heatmap__problems,
+.light .singability-heatmap__problems {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .singability-heatmap__syllable,
+.light .singability-heatmap__syllable {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .singability-heatmap {
+    padding: 0.75rem;
+  }
+
+  .singability-heatmap__syllables {
+    font-size: 0.625rem;
+  }
+
+  .singability-heatmap__summary {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .singability-heatmap__tooltip {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .singability-heatmap__line,
+  .singability-heatmap__syllable,
+  .singability-heatmap__tooltip {
+    transition: none;
+  }
+
+  .singability-heatmap__syllable:hover {
+    transform: none;
+  }
+}

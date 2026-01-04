@@ -1,0 +1,331 @@
+/**
+ * StressVisualization Component Styles
+ *
+ * Styles for displaying stress patterns with visual indicators.
+ */
+
+/* =============================================================================
+   Base Container
+   ============================================================================= */
+
+.stress-viz {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--color-bg-tertiary, #111827);
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border, #374151);
+}
+
+.stress-viz--empty {
+  min-height: 100px;
+  justify-content: center;
+  align-items: center;
+}
+
+.stress-viz__empty-text {
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.stress-viz__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.stress-viz__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin: 0;
+}
+
+.stress-viz__meter-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary, #3b82f6);
+  padding: 0.125rem 0.5rem;
+  background-color: rgba(59, 130, 246, 0.15);
+  border-radius: 0.25rem;
+  text-transform: capitalize;
+}
+
+/* =============================================================================
+   Legend
+   ============================================================================= */
+
+.stress-viz__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.stress-viz__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.stress-viz__legend-item--deviation {
+  margin-left: auto;
+}
+
+.stress-viz__deviation-marker {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--color-error, #ef4444);
+  border-radius: 50%;
+}
+
+/* =============================================================================
+   Content
+   ============================================================================= */
+
+.stress-viz__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stress-viz__stanza {
+  display: flex;
+  flex-direction: column;
+}
+
+.stress-viz__stanza-break {
+  height: 1rem;
+}
+
+/* =============================================================================
+   Line Styles
+   ============================================================================= */
+
+.stress-viz__line {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.stress-viz__line:hover {
+  background-color: var(--color-bg-hover, rgba(59, 130, 246, 0.1));
+}
+
+.stress-viz__text {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary, #f9fafb);
+  line-height: 1.6;
+}
+
+/* =============================================================================
+   Stress Pattern Display
+   ============================================================================= */
+
+.stress-viz__pattern {
+  display: flex;
+  gap: 0.125rem;
+  padding: 0.25rem 0;
+}
+
+.stress-viz__symbol {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1rem;
+  border-radius: 0.125rem;
+  cursor: default;
+  transition: transform 0.15s ease;
+}
+
+.stress-viz__symbol:hover {
+  transform: scale(1.2);
+}
+
+/* Stress level colors */
+.stress-viz__symbol--unstressed {
+  color: var(--color-text-muted, #6b7280);
+}
+
+.stress-viz__symbol--primary {
+  color: var(--color-success, #22c55e);
+  font-weight: bold;
+}
+
+.stress-viz__symbol--secondary {
+  color: var(--color-warning, #eab308);
+}
+
+.stress-viz__symbol--unknown {
+  color: var(--color-text-muted, #6b7280);
+  opacity: 0.5;
+}
+
+/* Deviation indicator */
+.stress-viz__symbol--deviation {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-radius: 0.25rem;
+}
+
+.stress-viz__deviation-dot {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: var(--color-error, #ef4444);
+  border-radius: 50%;
+}
+
+/* =============================================================================
+   Tooltip
+   ============================================================================= */
+
+.stress-viz__tooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 20;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  color: var(--color-text-primary, #f9fafb);
+  background-color: var(--color-bg-tooltip, #1f2937);
+  border: 1px solid var(--color-border, #374151);
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  white-space: nowrap;
+}
+
+.stress-viz__line:hover .stress-viz__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.stress-viz__tooltip-deviation {
+  color: var(--color-error, #ef4444);
+}
+
+/* =============================================================================
+   Summary
+   ============================================================================= */
+
+.stress-viz__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #374151);
+}
+
+.stress-viz__stat {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.stress-viz__stat strong {
+  color: var(--color-text-secondary, #d1d5db);
+  font-weight: 600;
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+:root.light .stress-viz,
+.light .stress-viz {
+  background-color: var(--color-bg-tertiary, #ffffff);
+  border-color: var(--color-border, #e5e7eb);
+}
+
+:root.light .stress-viz__title,
+.light .stress-viz__title {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .stress-viz__text,
+.light .stress-viz__text {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .stress-viz__legend,
+.light .stress-viz__legend {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .stress-viz__stat strong,
+.light .stress-viz__stat strong {
+  color: var(--color-text-primary, #111827);
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .stress-viz {
+    padding: 0.75rem;
+  }
+
+  .stress-viz__text {
+    font-size: 0.875rem;
+  }
+
+  .stress-viz__legend {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stress-viz__legend-item--deviation {
+    margin-left: 0;
+  }
+
+  .stress-viz__summary {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stress-viz__tooltip {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .stress-viz__line,
+  .stress-viz__symbol,
+  .stress-viz__tooltip {
+    transition: none;
+  }
+
+  .stress-viz__symbol:hover {
+    transform: none;
+  }
+}

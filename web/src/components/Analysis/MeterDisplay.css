@@ -1,0 +1,402 @@
+/**
+ * MeterDisplay Component Styles
+ *
+ * Styles for displaying metrical analysis with gauges and indicators.
+ */
+
+/* =============================================================================
+   Base Container
+   ============================================================================= */
+
+.meter-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--color-bg-tertiary, #111827);
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border, #374151);
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.meter-display__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.meter-display__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin: 0;
+}
+
+.meter-display__meter-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary, #3b82f6);
+  padding: 0.125rem 0.5rem;
+  background-color: rgba(59, 130, 246, 0.15);
+  border-radius: 0.25rem;
+  text-transform: capitalize;
+}
+
+.meter-display__meter-name--irregular {
+  color: var(--color-warning, #eab308);
+  background-color: rgba(234, 179, 8, 0.15);
+}
+
+/* =============================================================================
+   Main Card
+   ============================================================================= */
+
+.meter-display__card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+/* =============================================================================
+   Sections
+   ============================================================================= */
+
+.meter-display__section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.meter-display__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.meter-display__section-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #9ca3af);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.meter-display__percentage {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+/* =============================================================================
+   Info Button
+   ============================================================================= */
+
+.meter-display__info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-text-muted, #9ca3af);
+  background-color: transparent;
+  border: 1px solid var(--color-border, #374151);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.meter-display__info-button:hover {
+  color: var(--color-text-primary, #f9fafb);
+  border-color: var(--color-text-muted, #9ca3af);
+}
+
+.meter-display__info-button:focus-visible {
+  outline: 2px solid var(--color-focus, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+   Foot Display
+   ============================================================================= */
+
+.meter-display__foot-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.meter-display__foot-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+}
+
+.meter-display__foot-pattern {
+  font-size: 1.5rem;
+  color: var(--color-primary, #3b82f6);
+  letter-spacing: 0.25rem;
+}
+
+/* =============================================================================
+   Feet Per Line Display
+   ============================================================================= */
+
+.meter-display__feet-display {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.meter-display__feet-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #f9fafb);
+}
+
+.meter-display__feet-name {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #9ca3af);
+  text-transform: capitalize;
+}
+
+/* =============================================================================
+   Gauge (Progress Bar)
+   ============================================================================= */
+
+.meter-display__gauge {
+  height: 0.5rem;
+  background-color: var(--color-bg-tertiary, #111827);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.meter-display__gauge-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.meter-display__gauge-fill--high {
+  background-color: var(--color-success, #22c55e);
+}
+
+.meter-display__gauge-fill--medium {
+  background-color: var(--color-warning, #eab308);
+}
+
+.meter-display__gauge-fill--low {
+  background-color: var(--color-error, #ef4444);
+}
+
+.meter-display__gauge-label {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #9ca3af);
+  margin: 0.25rem 0 0 0;
+}
+
+/* =============================================================================
+   Tooltip
+   ============================================================================= */
+
+.meter-display__tooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 20;
+  width: 200px;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-tooltip, #1f2937);
+  border: 1px solid var(--color-border, #374151);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.meter-display__info-button:hover + .meter-display__foot-display + .meter-display__tooltip,
+.meter-display__section:hover .meter-display__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.meter-display__tooltip-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #d1d5db);
+  margin: 0 0 0.25rem 0;
+}
+
+.meter-display__tooltip-example {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #9ca3af);
+  font-style: italic;
+  margin: 0;
+}
+
+/* =============================================================================
+   Pattern Section
+   ============================================================================= */
+
+.meter-display__pattern-section {
+  padding: 0.75rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+.meter-display__pattern-section .meter-display__section-title {
+  margin-bottom: 0.5rem;
+}
+
+.meter-display__pattern {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+}
+
+.meter-display__pattern-char {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1rem;
+  border-radius: 0.125rem;
+}
+
+.meter-display__pattern-char--stressed {
+  color: var(--color-success, #22c55e);
+  font-weight: bold;
+}
+
+.meter-display__pattern-char--unstressed {
+  color: var(--color-text-muted, #6b7280);
+}
+
+.meter-display__pattern-char--deviation {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-radius: 0.25rem;
+}
+
+/* =============================================================================
+   Summary
+   ============================================================================= */
+
+.meter-display__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #374151);
+}
+
+.meter-display__stat {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.meter-display__stat strong {
+  color: var(--color-text-secondary, #d1d5db);
+  font-weight: 600;
+}
+
+.meter-display__stat--positions {
+  color: var(--color-warning, #eab308);
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+:root.light .meter-display,
+.light .meter-display {
+  background-color: var(--color-bg-tertiary, #ffffff);
+  border-color: var(--color-border, #e5e7eb);
+}
+
+:root.light .meter-display__title,
+.light .meter-display__title {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .meter-display__card,
+.light .meter-display__card {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .meter-display__foot-name,
+.light .meter-display__foot-name {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .meter-display__feet-count,
+.light .meter-display__feet-count {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .meter-display__pattern-section,
+.light .meter-display__pattern-section {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .meter-display__gauge,
+.light .meter-display__gauge {
+  background-color: var(--color-bg-tertiary, #e5e7eb);
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .meter-display {
+    padding: 0.75rem;
+  }
+
+  .meter-display__card {
+    grid-template-columns: 1fr 1fr;
+    padding: 0.75rem;
+  }
+
+  .meter-display__foot-name {
+    font-size: 1rem;
+  }
+
+  .meter-display__foot-pattern {
+    font-size: 1.25rem;
+  }
+
+  .meter-display__summary {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .meter-display__tooltip {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .meter-display__gauge-fill,
+  .meter-display__info-button,
+  .meter-display__tooltip {
+    transition: none;
+  }
+}
