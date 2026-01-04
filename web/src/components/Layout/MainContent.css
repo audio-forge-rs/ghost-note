@@ -39,8 +39,15 @@
    ============================================================================= */
 
 @media (max-width: 767px) {
+  .main-content {
+    /* Account for bottom navigation height + safe area */
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
   .main-content__inner {
     padding: 1rem 0.75rem;
+    /* Prevent content from being cut off by bottom nav */
+    padding-bottom: 1rem;
   }
 }
 

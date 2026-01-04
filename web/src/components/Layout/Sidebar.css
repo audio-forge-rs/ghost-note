@@ -77,6 +77,8 @@
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
+  /* Touch-friendly minimum size per WCAG guidelines */
+  min-height: 44px;
 }
 
 .sidebar__link:hover {
@@ -166,8 +168,10 @@
     position: fixed;
     top: 56px; /* Height of header */
     left: 0;
-    bottom: 0;
+    /* Account for bottom navigation height + safe area */
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     width: 280px;
+    max-width: calc(100vw - 48px); /* Prevent overflow, leave space for close tap area */
     z-index: 45;
     box-shadow: var(--shadow-lg);
   }
@@ -175,11 +179,19 @@
   .sidebar--collapsed {
     transform: translateX(-100%);
     pointer-events: none;
+    visibility: hidden;
   }
 
   .sidebar--open {
     transform: translateX(0);
     pointer-events: auto;
+    visibility: visible;
+  }
+
+  /* Ensure links have ample touch area on mobile */
+  .sidebar__link {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
   }
 }
 

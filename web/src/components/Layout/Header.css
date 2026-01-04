@@ -70,8 +70,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background-color: transparent;
   border: 1px solid transparent;
@@ -79,6 +79,9 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  /* Touch-friendly minimum size per WCAG guidelines */
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .header__button:hover {
@@ -103,8 +106,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background-color: transparent;
   border: 1px solid transparent;
@@ -112,6 +115,9 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  /* Touch-friendly minimum size per WCAG guidelines */
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .header__menu-button:hover {
