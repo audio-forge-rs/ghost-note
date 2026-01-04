@@ -45,14 +45,14 @@
 
 ### Completed Issues
 - **#1**: ✅ Initialize React + TypeScript + Vite project (PR #68)
+- **#5**: ✅ Integrate CMU pronouncing dictionary (PR #69)
+- **#11**: ✅ Build ABC notation generator (PR #71)
+- **#18**: ✅ Design PoemAnalysis TypeScript interface (PR #70)
 
 ### Worker-Ready Issues (can start immediately)
-- **#5**: Integrate CMU pronouncing dictionary
 - **#6**: Create text normalization module
-- **#11**: Build ABC notation generator
 - **#16**: Integrate abcjs for music notation
 - **#17**: Implement emotion analysis module
-- **#18**: Design PoemAnalysis TypeScript interface
 - **#26**: Implement microphone access and level meter
 - **#30**: Design Zustand store architecture
 - **#32**: Create Claude integration layer
