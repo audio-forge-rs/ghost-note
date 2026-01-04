@@ -7,7 +7,7 @@
  * @module components/Common/EmptyState
  */
 
-import { ReactNode, ReactElement } from 'react';
+import type { ReactNode, ReactElement } from 'react';
 import './EmptyState.css';
 
 // Logging helper for debugging

@@ -8,8 +8,9 @@
  * @module components/Common/EmptyStateVariants
  */
 
-import { ReactElement } from 'react';
-import { EmptyState, EmptyStateProps } from './EmptyState';
+import type { ReactElement } from 'react';
+import { EmptyState } from './EmptyState';
+import type { EmptyStateProps } from './EmptyState';
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
