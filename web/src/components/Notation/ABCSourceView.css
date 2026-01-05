@@ -1,0 +1,432 @@
+/**
+ * ABCSourceView Component Styles
+ *
+ * CSS for ABC notation source view, syntax highlighting, and toolbar.
+ */
+
+/* Container */
+.abc-source-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.5rem;
+  background-color: var(--bg-primary, #ffffff);
+  overflow: hidden;
+}
+
+/* Toolbar */
+.abc-source-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-secondary, #f9fafb);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.abc-source-toolbar-left,
+.abc-source-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* View Toggle */
+.abc-view-toggle {
+  display: flex;
+  background-color: var(--bg-tertiary, #f3f4f6);
+  border-radius: 0.375rem;
+  padding: 0.125rem;
+}
+
+.abc-view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.abc-view-toggle-btn:hover {
+  color: var(--text-primary, #1f2937);
+}
+
+.abc-view-toggle-btn.active {
+  background-color: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #1f2937);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.abc-view-toggle-btn svg {
+  flex-shrink: 0;
+}
+
+/* Validation Status */
+.abc-validation-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+}
+
+.abc-validation-status.valid {
+  color: #059669;
+  background-color: #ecfdf5;
+}
+
+.abc-validation-status.invalid {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+
+/* Toolbar Buttons */
+.abc-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.375rem;
+  background-color: var(--bg-primary, #ffffff);
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.abc-toolbar-btn:hover {
+  background-color: var(--bg-hover, #f3f4f6);
+  color: var(--text-primary, #1f2937);
+  border-color: var(--border-hover, #d1d5db);
+}
+
+.abc-toolbar-btn:active {
+  background-color: var(--bg-active, #e5e7eb);
+}
+
+.abc-toolbar-btn svg {
+  flex-shrink: 0;
+}
+
+/* Content Area */
+.abc-source-content {
+  flex: 1;
+  min-height: 200px;
+  overflow: auto;
+}
+
+/* Rendered View */
+.abc-rendered-view {
+  padding: 1rem;
+  min-height: 200px;
+}
+
+.abc-rendered-view svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Source Display (Read-only with syntax highlighting) */
+.abc-source-display {
+  padding: 0;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: var(--bg-code, #f8f9fa);
+  overflow: auto;
+}
+
+.abc-source-display:focus {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.abc-source-pre {
+  margin: 0;
+  padding: 1rem;
+}
+
+.abc-source-code {
+  display: block;
+}
+
+.abc-source-line {
+  display: flex;
+  white-space: pre;
+  min-height: 1.5em;
+}
+
+.abc-line-number {
+  flex-shrink: 0;
+  width: 3rem;
+  padding-right: 1rem;
+  text-align: right;
+  color: var(--text-muted, #9ca3af);
+  user-select: none;
+}
+
+.abc-line-content {
+  flex: 1;
+}
+
+.abc-empty-line {
+  opacity: 0;
+}
+
+/* Editable Source View */
+.abc-editable-source {
+  display: flex;
+  flex-direction: column;
+}
+
+.abc-source-textarea {
+  width: 100%;
+  min-height: 300px;
+  padding: 1rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: none;
+  resize: vertical;
+  background-color: var(--bg-code, #f8f9fa);
+  color: var(--text-primary, #1f2937);
+}
+
+.abc-source-textarea:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent-primary, #3b82f6);
+}
+
+/* Validation Errors */
+.abc-validation-errors {
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-error, #fef2f2);
+  border-top: 1px solid var(--border-error, #fecaca);
+}
+
+.abc-validation-error,
+.abc-validation-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+}
+
+.abc-validation-error {
+  color: #dc2626;
+}
+
+.abc-validation-warning {
+  color: #d97706;
+}
+
+.abc-validation-error svg,
+.abc-validation-warning svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+/* Syntax Highlighting Tokens */
+.abc-token-field-key {
+  color: var(--syntax-field-key, #7c3aed);
+  font-weight: 600;
+}
+
+.abc-token-field-value {
+  color: var(--syntax-field-value, #0891b2);
+}
+
+.abc-token-note {
+  color: var(--syntax-note, #059669);
+  font-weight: 500;
+}
+
+.abc-token-rest {
+  color: var(--syntax-rest, #9ca3af);
+}
+
+.abc-token-bar {
+  color: var(--syntax-bar, #374151);
+  font-weight: 600;
+}
+
+.abc-token-chord {
+  color: var(--syntax-chord, #db2777);
+}
+
+.abc-token-lyric {
+  color: var(--syntax-lyric, #2563eb);
+  font-style: italic;
+}
+
+.abc-token-comment {
+  color: var(--syntax-comment, #6b7280);
+  font-style: italic;
+}
+
+.abc-token-decoration {
+  color: var(--syntax-decoration, #ea580c);
+}
+
+.abc-token-duration {
+  color: var(--syntax-duration, #0d9488);
+}
+
+.abc-token-accidental {
+  color: var(--syntax-accidental, #dc2626);
+}
+
+.abc-token-text {
+  color: var(--syntax-text, #374151);
+}
+
+.abc-token-header {
+  color: var(--syntax-header, #7c3aed);
+  font-weight: 600;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .abc-source-view {
+    background-color: var(--bg-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .abc-source-toolbar {
+    background-color: var(--bg-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .abc-view-toggle {
+    background-color: var(--bg-tertiary-dark, #1f2937);
+  }
+
+  .abc-view-toggle-btn {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .abc-view-toggle-btn:hover,
+  .abc-view-toggle-btn.active {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .abc-view-toggle-btn.active {
+    background-color: var(--bg-primary-dark, #374151);
+  }
+
+  .abc-toolbar-btn {
+    background-color: var(--bg-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .abc-toolbar-btn:hover {
+    background-color: var(--bg-hover-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .abc-source-display,
+  .abc-source-textarea {
+    background-color: var(--bg-code-dark, #111827);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .abc-line-number {
+    color: var(--text-muted-dark, #6b7280);
+  }
+
+  /* Dark mode syntax highlighting */
+  .abc-token-field-key {
+    color: var(--syntax-field-key-dark, #a78bfa);
+  }
+
+  .abc-token-field-value {
+    color: var(--syntax-field-value-dark, #22d3ee);
+  }
+
+  .abc-token-note {
+    color: var(--syntax-note-dark, #34d399);
+  }
+
+  .abc-token-rest {
+    color: var(--syntax-rest-dark, #6b7280);
+  }
+
+  .abc-token-bar {
+    color: var(--syntax-bar-dark, #d1d5db);
+  }
+
+  .abc-token-chord {
+    color: var(--syntax-chord-dark, #f472b6);
+  }
+
+  .abc-token-lyric {
+    color: var(--syntax-lyric-dark, #60a5fa);
+  }
+
+  .abc-token-comment {
+    color: var(--syntax-comment-dark, #9ca3af);
+  }
+
+  .abc-token-decoration {
+    color: var(--syntax-decoration-dark, #fb923c);
+  }
+
+  .abc-token-duration {
+    color: var(--syntax-duration-dark, #2dd4bf);
+  }
+
+  .abc-token-accidental {
+    color: var(--syntax-accidental-dark, #f87171);
+  }
+
+  .abc-token-text {
+    color: var(--syntax-text-dark, #e5e7eb);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .abc-source-toolbar {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .abc-view-toggle-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .abc-view-toggle-btn span {
+    display: none;
+  }
+
+  .abc-toolbar-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .abc-toolbar-btn span {
+    display: none;
+  }
+
+  .abc-line-number {
+    width: 2rem;
+    padding-right: 0.5rem;
+    font-size: 0.75rem;
+  }
+}

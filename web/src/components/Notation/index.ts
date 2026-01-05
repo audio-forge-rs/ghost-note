@@ -6,3 +6,9 @@
 
 export { NotationDisplay, type NotationDisplayProps, type NoteClickData } from './NotationDisplay';
 export { PlaybackControls, type PlaybackControlsProps, TEMPO_PRESETS } from './PlaybackControls';
+export {
+  ABCSourceView,
+  type ABCSourceViewProps,
+  type ABCValidationResult,
+  type ViewMode,
+} from './ABCSourceView';
