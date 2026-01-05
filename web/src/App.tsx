@@ -6,12 +6,19 @@
  * @module App
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { usePoemStore, selectCurrentLyrics, selectHasPoem } from '@/stores/usePoemStore';
 import { useAnalysisStore, selectHasAnalysis, selectIsAnalyzing } from '@/stores/useAnalysisStore';
 import { useMelodyStore, selectHasMelody, selectIsGenerating } from '@/stores/useMelodyStore';
 import { useRecordingStore, selectHasPermission, selectIsRecording } from '@/stores/useRecordingStore';
+import {
+  useSuggestionStore,
+  selectHasSuggestions,
+  selectIsLoading as selectSuggestionsLoading,
+} from '@/stores/useSuggestionStore';
+import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
+import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
 import { EmptyState, LoadingSpinner } from '@/components/Common';
 import { PoemInput } from '@/components/PoemInput';
@@ -37,6 +44,34 @@ interface ViewConfig {
   id: NavigationView;
   title: string;
   description: string;
+}
+
+/**
+ * Wrapper component for LyricEditor that triggers suggestion generation via effect.
+ * This avoids triggering effects during render which violates React rules.
+ */
+function LyricEditorWithSuggestions({
+  hasAnalysis,
+  analysis,
+  hasSuggestions,
+  suggestionsLoading,
+  onGenerateSuggestions,
+}: {
+  hasAnalysis: boolean;
+  analysis: PoemAnalysis | null;
+  hasSuggestions: boolean;
+  suggestionsLoading: boolean;
+  onGenerateSuggestions: () => void;
+}): React.ReactElement {
+  // Trigger suggestion generation when entering this view with analysis
+  useEffect(() => {
+    if (hasAnalysis && analysis && !hasSuggestions && !suggestionsLoading) {
+      log('Triggering suggestion generation from effect');
+      onGenerateSuggestions();
+    }
+  }, [hasAnalysis, analysis, hasSuggestions, suggestionsLoading, onGenerateSuggestions]);
+
+  return <LyricEditor testId="view-lyrics-editor" />;
 }
 
 const VIEW_CONFIGS: Record<NavigationView, ViewConfig> = {
@@ -117,6 +152,15 @@ function ViewContent({
   const startRecording = useRecordingStore((state) => state.startRecording);
   const stopRecording = useRecordingStore((state) => state.stopRecording);
 
+  // Suggestion store
+  const hasSuggestions = useSuggestionStore(selectHasSuggestions);
+  const suggestionsLoading = useSuggestionStore(selectSuggestionsLoading);
+  const setSuggestions = useSuggestionStore((state) => state.setSuggestions);
+  const setLoadingSuggestions = useSuggestionStore((state) => state.setLoading);
+
+  // Track if we've generated suggestions for the current analysis
+  const lastAnalysisIdRef = useRef<string | null>(null);
+
   // Trigger analysis when navigating to analysis view if poem exists but not analyzed
   const handleAnalyze = useCallback(() => {
     if (hasPoem && !hasAnalysis && !isAnalyzing) {
@@ -133,7 +177,67 @@ function ViewContent({
     }
   }, [hasAnalysis, analysis, hasMelody, isGenerating, generateMelody, currentLyrics]);
 
-  log('Rendering view content for:', view, { hasPoem, hasAnalysis, hasMelody });
+  // Generate suggestions from analysis when entering lyrics-editor view
+  const handleGenerateSuggestions = useCallback(() => {
+    if (!hasAnalysis || !analysis) {
+      log('No analysis available for suggestion generation');
+      return;
+    }
+
+    // Create a unique ID for this analysis based on problems
+    const analysisId = `${analysis.problems.length}-${analysis.meta.lineCount}`;
+
+    // Skip if we already have suggestions for this analysis
+    if (hasSuggestions && lastAnalysisIdRef.current === analysisId) {
+      log('Suggestions already generated for this analysis');
+      return;
+    }
+
+    // Skip if already loading
+    if (suggestionsLoading) {
+      log('Suggestions already loading');
+      return;
+    }
+
+    log('Generating suggestions from analysis', {
+      problemCount: analysis.problems.length,
+      analysisId,
+    });
+
+    // Set loading state
+    setLoadingSuggestions(true);
+    lastAnalysisIdRef.current = analysisId;
+
+    // Generate suggestions (this is synchronous but we use setTimeout to not block)
+    setTimeout(() => {
+      try {
+        const result = generateSuggestionsFromAnalysis(analysis, {
+          maxSuggestions: 10,
+          minSeverity: 'low',
+        });
+
+        log('Generated suggestions', {
+          count: result.suggestions.length,
+          processed: result.problemsProcessed,
+          skipped: result.problemsSkipped,
+        });
+
+        setSuggestions(result.suggestions);
+      } catch (error) {
+        log('Error generating suggestions:', error);
+        setLoadingSuggestions(false);
+      }
+    }, 0);
+  }, [
+    hasAnalysis,
+    analysis,
+    hasSuggestions,
+    suggestionsLoading,
+    setSuggestions,
+    setLoadingSuggestions,
+  ]);
+
+  log('Rendering view content for:', view, { hasPoem, hasAnalysis, hasMelody, hasSuggestions });
 
   switch (view) {
     case 'poem-input':
@@ -198,7 +302,13 @@ function ViewContent({
       }
 
       // LyricEditor handles its own internal state and hooks
-      return <LyricEditor testId="view-lyrics-editor" />;
+      return <LyricEditorWithSuggestions
+        hasAnalysis={hasAnalysis}
+        analysis={analysis}
+        hasSuggestions={hasSuggestions}
+        suggestionsLoading={suggestionsLoading}
+        onGenerateSuggestions={handleGenerateSuggestions}
+      />;
 
     case 'melody':
       // Trigger melody generation if needed when entering this view
