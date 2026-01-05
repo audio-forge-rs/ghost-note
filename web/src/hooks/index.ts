@@ -38,3 +38,12 @@ export {
   type FocusTrapOptions,
   type FocusTrapReturn,
 } from './useFocusTrap';
+
+export {
+  useAnalytics,
+  usePageView,
+  useFeatureTracker,
+  useErrorTracker,
+  type UseAnalyticsOptions,
+  type UseAnalyticsReturn,
+} from './useAnalytics';

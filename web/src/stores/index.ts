@@ -203,6 +203,24 @@ export {
   selectFutureDescriptions,
 } from './undoMiddleware';
 
+// Analytics Store
+export { useAnalyticsStore } from './useAnalyticsStore';
+export type {
+  AnalyticsState,
+  AnalyticsActions,
+  AnalyticsStore as AnalyticsStoreType,
+} from './useAnalyticsStore';
+export {
+  selectAnalyticsEnabled,
+  selectDoNotTrackDetected,
+  selectAnalyticsInitialized,
+  selectAnalyticsAggregate,
+  selectAnalyticsActive,
+  selectTotalPageViews,
+  selectTotalFeatureUsage,
+  selectTotalErrors,
+} from './useAnalyticsStore';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -217,6 +235,7 @@ import { useThemeStore as themeStore } from './useThemeStore';
 import { useSuggestionStore as suggestionStore } from './useSuggestionStore';
 import { useToastStore as toastStore } from './useToastStore';
 import { useUndoStore as undoStore } from './undoMiddleware';
+import { useAnalyticsStore as analyticsStore } from './useAnalyticsStore';
 
 /**
  * Reset all stores to their initial state
@@ -232,6 +251,7 @@ export function resetAllStores(): void {
   suggestionStore.getState().reset();
   toastStore.getState().reset();
   undoStore.getState().clearHistory();
+  analyticsStore.getState().reset();
 
   console.log('[Stores] All stores reset');
 }
@@ -246,6 +266,9 @@ export function clearPersistedData(): void {
     localStorage.removeItem('ghost-note-recording-store');
     localStorage.removeItem('ghost-note-ui-store');
     localStorage.removeItem('ghost-note-theme-store');
+    localStorage.removeItem('ghost-note-analytics');
+    localStorage.removeItem('ghost-note-analytics-preferences');
+    localStorage.removeItem('ghost-note-analytics-consent');
     console.log('[Stores] All persisted data cleared');
   }
 }

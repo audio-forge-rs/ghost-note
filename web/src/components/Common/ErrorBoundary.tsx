@@ -2,13 +2,14 @@
  * ErrorBoundary Component
  *
  * A React error boundary that catches JavaScript errors in child components,
- * logs them, and displays a fallback UI.
+ * logs them, displays a fallback UI, and reports errors to analytics.
  *
  * @module components/Common/ErrorBoundary
  */
 
 import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { ErrorMessage } from './ErrorMessage';
+import { analyticsService } from '@/lib/analytics';
 import './ErrorBoundary.css';
 
 // Logging helper for debugging
@@ -37,6 +38,10 @@ export interface ErrorBoundaryProps {
   className?: string;
   /** Data test ID for testing */
   testId?: string;
+  /** Component name for error reporting */
+  componentName?: string;
+  /** Whether to report errors to analytics (default: true) */
+  reportToAnalytics?: boolean;
 }
 
 /**
@@ -97,9 +102,38 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     this.setState({ errorInfo });
 
+    // Report error to analytics (if enabled)
+    const { reportToAnalytics = true, componentName } = this.props;
+    if (reportToAnalytics) {
+      // Extract component name from stack if not provided
+      const component = componentName || this.extractComponentName(errorInfo.componentStack);
+
+      log('Reporting error to analytics', { component });
+      analyticsService.trackError(error, {
+        component,
+        caught: true,
+        isReactError: true,
+      });
+    }
+
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
+  }
+
+  /**
+   * Extract the component name from the React component stack
+   */
+  private extractComponentName(componentStack: string | null | undefined): string | undefined {
+    if (!componentStack) return undefined;
+
+    // The first line typically contains the component that threw
+    const lines = componentStack.trim().split('\n');
+    if (lines.length === 0) return undefined;
+
+    // Extract component name from format like "    at ComponentName (url)"
+    const match = lines[0].match(/at\s+(\w+)/);
+    return match ? match[1] : undefined;
   }
 
   handleRetry = (): void => {
