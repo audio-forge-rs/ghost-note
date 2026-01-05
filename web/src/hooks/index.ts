@@ -13,3 +13,14 @@ export {
   type SwipeEvent,
   type SwipeGestureCallbacks,
 } from './useSwipeGesture';
+
+export {
+  useKeyboardShortcuts,
+  getShortcutForAction,
+  getShortcutsByCategory,
+  SHORTCUT_DEFINITIONS,
+  type ShortcutAction,
+  type ShortcutDefinition,
+  type ShortcutCallbacks,
+  type KeyboardShortcutsOptions,
+} from './useKeyboardShortcuts';
