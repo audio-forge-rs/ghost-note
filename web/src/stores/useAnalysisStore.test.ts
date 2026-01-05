@@ -66,6 +66,97 @@ describe('useAnalysisStore', () => {
       const state = useAnalysisStore.getState();
       expect(state.analysis?.meta.lineCount).toBe(3);
     });
+
+    it('should populate stanza structure from multi-stanza poem', async () => {
+      const poem = `Roses are red
+Violets are blue
+
+Sugar is sweet
+And so are you`;
+
+      await useAnalysisStore.getState().analyze(poem);
+
+      const state = useAnalysisStore.getState();
+      expect(state.analysis).not.toBeNull();
+      expect(state.analysis?.structure.stanzas.length).toBe(2);
+      expect(state.analysis?.structure.stanzas[0].lines.length).toBe(2);
+      expect(state.analysis?.structure.stanzas[1].lines.length).toBe(2);
+    });
+
+    it('should analyze stress patterns and meter', async () => {
+      // Iambic poem: "da-DUM da-DUM da-DUM da-DUM"
+      const poem = `The sun descends on ocean waves
+As night arrives to claim the day`;
+
+      await useAnalysisStore.getState().analyze(poem);
+
+      const state = useAnalysisStore.getState();
+      expect(state.analysis).not.toBeNull();
+      expect(state.analysis?.prosody.meter.detectedMeter).not.toBe('irregular');
+      expect(state.analysis?.prosody.meter.confidence).toBeGreaterThan(0);
+    });
+
+    it('should detect rhymes in rhyming text', async () => {
+      const poem = `Roses are red
+Violets are blue
+Sugar is sweet
+And so are you`;
+
+      await useAnalysisStore.getState().analyze(poem);
+
+      const state = useAnalysisStore.getState();
+      expect(state.analysis).not.toBeNull();
+      // Rhyme scheme like "ABAB" or "ABCB" indicates rhymes were detected
+      expect(state.analysis?.prosody.rhyme.scheme.length).toBeGreaterThan(0);
+      // rhymeGroups contains the actual rhyming lines grouped by letter
+      expect(Object.keys(state.analysis?.prosody.rhyme.rhymeGroups || {}).length).toBeGreaterThan(0);
+    });
+
+    it('should analyze emotion and sentiment', async () => {
+      const sadPoem = `Tears fall down like autumn rain
+Sorrow fills my weary heart`;
+
+      await useAnalysisStore.getState().analyze(sadPoem);
+
+      const state = useAnalysisStore.getState();
+      expect(state.analysis).not.toBeNull();
+      expect(state.analysis?.emotion).toBeDefined();
+      expect(typeof state.analysis?.emotion.overallSentiment).toBe('number');
+      expect(typeof state.analysis?.emotion.arousal).toBe('number');
+    });
+
+    it('should provide melody suggestions', async () => {
+      await useAnalysisStore.getState().analyze('A simple test poem for melody');
+
+      const state = useAnalysisStore.getState();
+      expect(state.analysis?.melodySuggestions).toBeDefined();
+      expect(state.analysis?.melodySuggestions.timeSignature).toBeDefined();
+      expect(state.analysis?.melodySuggestions.tempo).toBeGreaterThan(0);
+      expect(state.analysis?.melodySuggestions.key).toBeDefined();
+    });
+
+    it('should calculate line syllable counts', async () => {
+      const poem = `The quick brown fox jumps over
+A lazy dog sleeping soundly`;
+
+      await useAnalysisStore.getState().analyze(poem);
+
+      const state = useAnalysisStore.getState();
+      expect(state.analysis).not.toBeNull();
+      const lines = state.analysis?.structure.stanzas[0].lines;
+      expect(lines).toBeDefined();
+      expect(lines![0].syllableCount).toBeGreaterThan(0);
+      expect(lines![1].syllableCount).toBeGreaterThan(0);
+    });
+
+    it('should analyze singability per line', async () => {
+      await useAnalysisStore.getState().analyze('Hello world test');
+
+      const state = useAnalysisStore.getState();
+      const line = state.analysis?.structure.stanzas[0]?.lines[0];
+      expect(line?.singability).toBeDefined();
+      expect(typeof line?.singability.lineScore).toBe('number');
+    });
   });
 
   describe('setAnalysis', () => {
@@ -182,9 +273,14 @@ describe('useAnalysisStore', () => {
         expect(selectOverallSingability(useAnalysisStore.getState())).toBeNull();
       });
 
-      it('should return null when no stanzas', async () => {
+      it('should return singability score when stanzas exist', async () => {
         await useAnalysisStore.getState().analyze('Test');
-        expect(selectOverallSingability(useAnalysisStore.getState())).toBeNull();
+        const score = selectOverallSingability(useAnalysisStore.getState());
+        // Real orchestrator returns actual singability scores
+        expect(score).not.toBeNull();
+        expect(typeof score).toBe('number');
+        expect(score).toBeGreaterThanOrEqual(0);
+        expect(score).toBeLessThanOrEqual(1);
       });
     });
 
@@ -195,7 +291,11 @@ describe('useAnalysisStore', () => {
 
       it('should return detected meter when available', async () => {
         await useAnalysisStore.getState().analyze('Test poem');
-        expect(selectMeter(useAnalysisStore.getState())).toBe('irregular');
+        const meter = selectMeter(useAnalysisStore.getState());
+        // Real orchestrator returns actual meter detection
+        expect(meter).not.toBeNull();
+        expect(typeof meter).toBe('string');
+        expect(meter!.length).toBeGreaterThan(0);
       });
     });
 
@@ -204,9 +304,12 @@ describe('useAnalysisStore', () => {
         expect(selectRhymeScheme(useAnalysisStore.getState())).toBeNull();
       });
 
-      it('should return empty string for default analysis', async () => {
+      it('should return rhyme scheme after analysis', async () => {
         await useAnalysisStore.getState().analyze('Test');
-        expect(selectRhymeScheme(useAnalysisStore.getState())).toBe('');
+        const scheme = selectRhymeScheme(useAnalysisStore.getState());
+        // Real orchestrator returns actual rhyme scheme (could be empty or detected)
+        expect(scheme).not.toBeNull();
+        expect(typeof scheme).toBe('string');
       });
     });
 
@@ -226,9 +329,12 @@ describe('useAnalysisStore', () => {
         expect(selectProblemCount(useAnalysisStore.getState())).toBe(0);
       });
 
-      it('should return 0 for default analysis', async () => {
+      it('should return problem count after analysis', async () => {
         await useAnalysisStore.getState().analyze('Test');
-        expect(selectProblemCount(useAnalysisStore.getState())).toBe(0);
+        const count = selectProblemCount(useAnalysisStore.getState());
+        // Real orchestrator may detect problems depending on the text
+        expect(typeof count).toBe('number');
+        expect(count).toBeGreaterThanOrEqual(0);
       });
     });
 
