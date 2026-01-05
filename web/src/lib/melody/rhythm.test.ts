@@ -841,3 +841,232 @@ describe('Integration Tests', () => {
     });
   });
 });
+
+// =============================================================================
+// Stress Pattern Correctness Tests
+// =============================================================================
+
+describe('Stress Pattern Correctness', () => {
+  describe('stress-to-duration relationships', () => {
+    it('stressed syllables are always longer than unstressed in same context', () => {
+      const timeSignatures: TimeSignature[] = ['4/4', '3/4', '6/8', '2/4'];
+      const tempos = [60, 100, 140];
+
+      for (const ts of timeSignatures) {
+        for (const tempo of tempos) {
+          const context: RhythmContext = { timeSignature: ts, tempo, position: 0 };
+          const stressed = stressToNoteDuration('1', context);
+          const unstressed = stressToNoteDuration('0', context);
+          expect(stressed).toBeGreaterThan(unstressed);
+        }
+      }
+    });
+
+    it('secondary stress is between primary and unstressed', () => {
+      const context: RhythmContext = { timeSignature: '4/4', tempo: 100, position: 0 };
+      const primary = stressToNoteDuration('1', context);
+      const secondary = stressToNoteDuration('2', context);
+      const unstressed = stressToNoteDuration('0', context);
+
+      expect(secondary).toBeGreaterThan(unstressed);
+      expect(secondary).toBeLessThanOrEqual(primary);
+    });
+
+    it('maintains stress hierarchy across all positions in measure', () => {
+      for (let pos = 0; pos < 4; pos++) {
+        const context: RhythmContext = { timeSignature: '4/4', tempo: 100, position: pos };
+        const stressed = stressToNoteDuration('1', context);
+        const unstressed = stressToNoteDuration('0', context);
+        expect(stressed).toBeGreaterThan(unstressed);
+      }
+    });
+  });
+
+  describe('duration quantization to musical values', () => {
+    it('all durations are valid musical note values', () => {
+      const validDurations = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+      const stressLevels: ('0' | '1' | '2')[] = ['0', '1', '2'];
+      const context: RhythmContext = { timeSignature: '4/4', tempo: 100, position: 0 };
+
+      for (const stress of stressLevels) {
+        const duration = stressToNoteDuration(stress, context);
+        const isValidDuration = validDurations.includes(duration);
+        expect(isValidDuration).toBe(true);
+      }
+    });
+
+    it('rhythm patterns result in quantized durations', () => {
+      const pattern = '01010101';
+      const durations = mapLineToRhythm(pattern, '4/4');
+      const validDurations = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+
+      for (const d of durations) {
+        const isValid = validDurations.includes(d.beats);
+        expect(isValid).toBe(true);
+      }
+    });
+  });
+
+  describe('real poetry examples', () => {
+    it('correctly maps iambic tetrameter (Shakespeare)', () => {
+      // "Shall I compare thee to a summer's day"
+      // shall I | com PARE | thee TO | a SUM | mer's DAY
+      // Simplified as: 01 01 01 01 01
+      const stressPattern = '0101010101';
+      const durations = mapLineToRhythm(stressPattern, '4/4');
+
+      // Verify alternating pattern: short-long-short-long...
+      for (let i = 0; i < durations.length - 1; i += 2) {
+        expect(durations[i].beats).toBeLessThan(durations[i + 1].beats);
+      }
+    });
+
+    it('correctly maps trochaic tetrameter (Poe)', () => {
+      // "Once upon a midnight dreary"
+      // ONCE up | ON a | MID night | DREAR y
+      // Simplified as: 10 10 10 10
+      const stressPattern = '10101010';
+      const durations = mapLineToRhythm(stressPattern, '4/4');
+
+      // Verify alternating pattern: long-short-long-short...
+      for (let i = 0; i < durations.length - 1; i += 2) {
+        expect(durations[i].beats).toBeGreaterThan(durations[i + 1].beats);
+      }
+    });
+
+    it('correctly maps anapestic pattern (Byron)', () => {
+      // "The Assyrian came down like the wolf on the fold"
+      // the as SYR | ian came DOWN | like the WOLF | on the FOLD
+      // Simplified: 001 001 001 001
+      const stressPattern = '001001001001';
+      const durations = mapLineToRhythm(stressPattern, '4/4');
+
+      // Every third syllable should be stressed (longer)
+      for (let i = 2; i < durations.length; i += 3) {
+        expect(durations[i].beats).toBeGreaterThan(durations[i - 1].beats);
+        expect(durations[i].beats).toBeGreaterThan(durations[i - 2].beats);
+      }
+    });
+
+    it('correctly maps dactylic pattern (Longfellow)', () => {
+      // "This is the forest primeval"
+      // THIS is the | FOR est pri | ME val
+      // Simplified: 100 100 10
+      const stressPattern = '10010010';
+      const durations = mapLineToRhythm(stressPattern, '4/4');
+
+      // First of every three should be stressed (longer)
+      expect(durations[0].beats).toBeGreaterThan(durations[1].beats);
+      expect(durations[3].beats).toBeGreaterThan(durations[4].beats);
+      expect(durations[6].beats).toBeGreaterThan(durations[7].beats);
+    });
+  });
+
+  describe('musical fit verification', () => {
+    it('iambic tetrameter fits naturally in 4/4 time', () => {
+      const pattern = '01010101';
+      const durations = mapLineToRhythm(pattern, '4/4');
+      const fitted = fitToMeasure(durations, 4);
+      const totalBeats = calculateTotalDuration(fitted);
+
+      // Should fit into reasonable number of measures
+      const measureCount = totalBeats / 4;
+      expect(measureCount).toBeGreaterThanOrEqual(1);
+      expect(measureCount).toBeLessThanOrEqual(3);
+    });
+
+    it('waltz rhythm (3/4) creates proper measure structure', () => {
+      // Strong-weak-weak pattern
+      const pattern = '100100';
+      const durations = mapLineToRhythm(pattern, '3/4');
+      const fitted = fitToMeasure(durations, 3);
+
+      expect(validateRhythm(fitted).valid).toBe(true);
+    });
+
+    it('compound meter (6/8) handles dotted rhythms', () => {
+      const pattern = '100100';
+      const durations = mapLineToRhythm(pattern, '6/8');
+
+      // 6/8 should have shorter base durations
+      const avgDuration = calculateTotalDuration(durations) / durations.length;
+      expect(avgDuration).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe('edge cases in stress patterns', () => {
+    it('handles all-stressed pattern', () => {
+      const pattern = '1111';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      expect(durations).toHaveLength(4);
+      // All notes should be relatively long
+      for (const d of durations) {
+        expect(d.beats).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it('handles all-unstressed pattern', () => {
+      const pattern = '0000';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      expect(durations).toHaveLength(4);
+      // All notes should be relatively short
+      for (const d of durations) {
+        expect(d.beats).toBeLessThanOrEqual(0.5);
+      }
+    });
+
+    it('handles mixed primary and secondary stress', () => {
+      const pattern = '0120';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      expect(durations).toHaveLength(4);
+      // Secondary stress (index 1) should be longer than unstressed (index 0)
+      expect(durations[1].beats).toBeGreaterThan(durations[0].beats);
+      // Primary stress (index 2) should be longer than unstressed (index 0)
+      expect(durations[2].beats).toBeGreaterThan(durations[0].beats);
+    });
+
+    it('handles long stress patterns (16+ syllables)', () => {
+      const pattern = '0101010101010101';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      expect(durations).toHaveLength(16);
+      expect(validateRhythm(durations).valid).toBe(true);
+    });
+
+    it('handles single syllable', () => {
+      const pattern = '1';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      expect(durations).toHaveLength(1);
+      expect(durations[0].beats).toBeGreaterThan(0);
+    });
+  });
+
+  describe('breath rest placement musicality', () => {
+    it('breath rests do not disrupt musical phrasing', () => {
+      const pattern = '01010101';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      // Insert breath at phrase boundary (after position 3)
+      const withBreath = insertBreathRests(durations, [3]);
+      const fitted = fitToMeasure(withBreath, 4);
+
+      expect(validateRhythm(fitted).valid).toBe(true);
+    });
+
+    it('multiple breath rests create natural phrasing', () => {
+      const pattern = '0101010101010101';
+      const durations = mapLineToRhythm(pattern, '4/4');
+
+      // Insert breaths at natural phrase boundaries
+      const withBreaths = insertBreathRests(durations, [3, 7, 11]);
+
+      // Should have original notes + 3 rests
+      const restCount = withBreaths.filter((d) => d.isRest).length;
+      expect(restCount).toBe(3);
+    });
+  });
+});

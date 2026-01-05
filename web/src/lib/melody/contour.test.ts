@@ -931,3 +931,333 @@ describe('edge cases', () => {
     expect(result).toHaveLength(3);
   });
 });
+
+// =============================================================================
+// Arch Shape and Range Verification Tests
+// =============================================================================
+
+describe('Arch Shape Properties', () => {
+  describe('contour symmetry and shape', () => {
+    it('contour rises monotonically to peak', () => {
+      const contour = generatePhraseContour(10);
+      const peakIndex = contour.indexOf(Math.max(...contour));
+
+      // Rising phase should be non-decreasing
+      for (let i = 1; i < peakIndex; i++) {
+        expect(contour[i]).toBeGreaterThanOrEqual(contour[i - 1]);
+      }
+    });
+
+    it('contour falls after peak', () => {
+      const contour = generatePhraseContour(10);
+      const peakIndex = contour.indexOf(Math.max(...contour));
+
+      // Falling phase should be non-increasing
+      for (let i = peakIndex + 1; i < contour.length; i++) {
+        expect(contour[i]).toBeLessThanOrEqual(contour[i - 1]);
+      }
+    });
+
+    it('golden ratio peak placement (approximately 0.618)', () => {
+      const testLengths = [8, 10, 12, 16];
+
+      for (const len of testLengths) {
+        const contour = generatePhraseContour(len);
+        const peakIndex = contour.indexOf(Math.max(...contour));
+        const peakRatio = peakIndex / len;
+
+        // Peak should be between 0.5 and 0.7 (around golden ratio 0.618)
+        expect(peakRatio).toBeGreaterThanOrEqual(0.5);
+        expect(peakRatio).toBeLessThanOrEqual(0.7);
+      }
+    });
+
+    it('peak height proportional to phrase length', () => {
+      const short = generatePhraseContour(4);
+      const medium = generatePhraseContour(8);
+      const long = generatePhraseContour(16);
+
+      const shortPeak = Math.max(...short);
+      const mediumPeak = Math.max(...medium);
+      const longPeak = Math.max(...long);
+
+      expect(mediumPeak).toBeGreaterThanOrEqual(shortPeak);
+      expect(longPeak).toBeGreaterThanOrEqual(mediumPeak);
+    });
+
+    it('contour starts and ends near root', () => {
+      const testLengths = [6, 8, 10, 12];
+
+      for (const len of testLengths) {
+        const contour = generatePhraseContour(len);
+
+        // Start should be at or near 0
+        expect(contour[0]).toBeLessThanOrEqual(1);
+
+        // End should be at or near 0
+        expect(contour[contour.length - 1]).toBeLessThanOrEqual(2);
+      }
+    });
+  });
+
+  describe('musical range constraints', () => {
+    it('contour values stay within singable range', () => {
+      const contour = generatePhraseContour(20);
+
+      for (const value of contour) {
+        // Values should not exceed reasonable scale degree range
+        expect(value).toBeGreaterThanOrEqual(0);
+        expect(value).toBeLessThanOrEqual(7); // One octave
+      }
+    });
+
+    it('step-wise motion predominates', () => {
+      const contour = generatePhraseContour(12);
+
+      let stepCount = 0;
+      let leapCount = 0;
+
+      for (let i = 1; i < contour.length; i++) {
+        const interval = Math.abs(contour[i] - contour[i - 1]);
+        if (interval <= 2) {
+          stepCount++;
+        } else {
+          leapCount++;
+        }
+      }
+
+      // Step-wise motion should predominate
+      expect(stepCount).toBeGreaterThan(leapCount);
+    });
+  });
+
+  describe('phrase length specific behaviors', () => {
+    it('very short phrases (3-4 notes) have minimal arch', () => {
+      const contour3 = generatePhraseContour(3);
+      const contour4 = generatePhraseContour(4);
+
+      const peak3 = Math.max(...contour3);
+      const peak4 = Math.max(...contour4);
+
+      expect(peak3).toBeLessThanOrEqual(2);
+      expect(peak4).toBeLessThanOrEqual(3);
+    });
+
+    it('medium phrases (8 notes) have moderate arch', () => {
+      const contour = generatePhraseContour(8);
+      const peak = Math.max(...contour);
+
+      expect(peak).toBeGreaterThanOrEqual(2);
+      expect(peak).toBeLessThanOrEqual(5);
+    });
+
+    it('long phrases (16+ notes) have fuller arch', () => {
+      const contour = generatePhraseContour(16);
+      const peak = Math.max(...contour);
+
+      expect(peak).toBeGreaterThanOrEqual(3);
+      expect(peak).toBeLessThanOrEqual(6);
+    });
+  });
+});
+
+describe('Vocal Range Verification', () => {
+  describe('range constraint effectiveness', () => {
+    it('extreme high pitches are lowered', () => {
+      const range: VocalRange = {
+        low: 'C',
+        high: 'G',
+        octaveLow: 0,
+        octaveHigh: 0,
+      };
+
+      const highPitches = ["c'", "d'", "e'", "f'"]; // Two octaves up
+      const constrained = constrainToRange(highPitches, range);
+
+      for (const pitch of constrained) {
+        const parsed = parseABCPitch(pitch);
+        expect(parsed.octave).toBe(0);
+      }
+    });
+
+    it('extreme low pitches are raised', () => {
+      const range: VocalRange = {
+        low: 'C',
+        high: 'G',
+        octaveLow: 0,
+        octaveHigh: 0,
+      };
+
+      const lowPitches = ['C,,', 'D,,', 'E,,']; // Two octaves down
+      const constrained = constrainToRange(lowPitches, range);
+
+      for (const pitch of constrained) {
+        const parsed = parseABCPitch(pitch);
+        expect(parsed.octave).toBe(0);
+      }
+    });
+
+    it('pitches within range are preserved', () => {
+      const range: VocalRange = {
+        low: 'C',
+        high: 'G',
+        octaveLow: 0,
+        octaveHigh: 0,
+      };
+
+      const inRangePitches = ['C', 'D', 'E', 'F', 'G'];
+      const constrained = constrainToRange(inRangePitches, range);
+
+      for (let i = 0; i < inRangePitches.length; i++) {
+        expect(constrained[i]).toBe(inRangePitches[i]);
+      }
+    });
+  });
+
+  describe('register-specific ranges', () => {
+    it('low register spans approximately G-1 to D0', () => {
+      const lowRange = DEFAULT_RANGES.low;
+
+      expect(lowRange.octaveLow).toBeLessThan(0);
+      expect(lowRange.octaveHigh).toBeLessThanOrEqual(0);
+    });
+
+    it('middle register spans approximately C0 to G0', () => {
+      const middleRange = DEFAULT_RANGES.middle;
+
+      expect(middleRange.octaveLow).toBe(0);
+      expect(middleRange.octaveHigh).toBe(0);
+    });
+
+    it('high register spans approximately E0 to C1', () => {
+      const highRange = DEFAULT_RANGES.high;
+
+      expect(highRange.octaveLow).toBe(0);
+      expect(highRange.octaveHigh).toBeGreaterThan(0);
+    });
+  });
+
+  describe('range span calculations', () => {
+    it('each register covers approximately one octave', () => {
+      for (const register of ['low', 'middle', 'high'] as const) {
+        const range = DEFAULT_RANGES[register];
+
+        const lowPitchIndex = 'CDEFGAB'.indexOf(range.low);
+        const highPitchIndex = 'CDEFGAB'.indexOf(range.high);
+        const octaveSpan = range.octaveHigh - range.octaveLow;
+
+        // Calculate total steps
+        let steps = highPitchIndex - lowPitchIndex + octaveSpan * 7;
+        if (steps < 0) steps += 7; // Handle wrap-around
+
+        // Should be approximately 7-12 steps (around one octave)
+        expect(steps).toBeGreaterThanOrEqual(3);
+        expect(steps).toBeLessThanOrEqual(14);
+      }
+    });
+  });
+});
+
+describe('Complete Pipeline Integration', () => {
+  describe('end-to-end contour generation', () => {
+    it('generates valid ABC pitches for various configurations', () => {
+      const configs = [
+        { scale: 'major' as Scale, rootPitch: 'C', stressPattern: '01010101' },
+        { scale: 'minor' as Scale, rootPitch: 'A', stressPattern: '10101010' },
+        { scale: 'dorian' as Scale, rootPitch: 'D', stressPattern: '00100100' },
+      ];
+
+      for (const config of configs) {
+        const pitches = generateMelodicContour(8, config);
+
+        expect(pitches).toHaveLength(8);
+        for (const pitch of pitches) {
+          const parsed = parseABCPitch(pitch);
+          expect(['C', 'D', 'E', 'F', 'G', 'A', 'B']).toContain(parsed.pitch);
+          expect(parsed.octave).toBeGreaterThanOrEqual(-2);
+          expect(parsed.octave).toBeLessThanOrEqual(2);
+        }
+      }
+    });
+
+    it('produces different outputs for different stress patterns', () => {
+      const iambic = generateMelodicContour(8, { stressPattern: '01010101' });
+      const trochaic = generateMelodicContour(8, { stressPattern: '10101010' });
+
+      // Pitches should be different due to stress adjustment
+      let differences = 0;
+      for (let i = 0; i < 8; i++) {
+        if (iambic[i] !== trochaic[i]) differences++;
+      }
+
+      expect(differences).toBeGreaterThan(0);
+    });
+
+    it('produces different outputs for different emotions', () => {
+      const happy: EmotionParams = { mode: 'major', intensity: 0.8, register: 'high' };
+      const sad: EmotionParams = { mode: 'minor', intensity: 0.3, register: 'low' };
+
+      const happyPitches = generateMelodicContour(6, { emotion: happy });
+      const sadPitches = generateMelodicContour(6, { emotion: sad });
+
+      // Average octave should differ
+      const avgHappy = happyPitches.reduce((sum, p) => sum + parseABCPitch(p).octave, 0) / 6;
+      const avgSad = sadPitches.reduce((sum, p) => sum + parseABCPitch(p).octave, 0) / 6;
+
+      expect(avgHappy).toBeGreaterThan(avgSad);
+    });
+  });
+
+  describe('real-world poem examples', () => {
+    it('generates contour for iambic pentameter line', () => {
+      // "Shall I compare thee to a summer's day" - 10 syllables
+      const pitches = generateMelodicContour(10, {
+        scale: 'major',
+        rootPitch: 'C',
+        stressPattern: '0101010101',
+        emotion: { mode: 'major', intensity: 0.5, register: 'middle' },
+      });
+
+      expect(pitches).toHaveLength(10);
+
+      // Should have arch shape in pitch values
+      const octaves = pitches.map((p) => parseABCPitch(p).octave);
+      const pitchIndices = pitches.map((p) => 'CDEFGAB'.indexOf(parseABCPitch(p).pitch));
+
+      // Combined value should show arch pattern
+      const values = pitches.map(
+        (_, i) => octaves[i] * 7 + pitchIndices[i]
+      );
+      const maxValue = Math.max(...values);
+      const maxIndex = values.indexOf(maxValue);
+
+      // Peak should be in the middle portion
+      expect(maxIndex).toBeGreaterThan(2);
+      expect(maxIndex).toBeLessThan(8);
+    });
+
+    it('generates contour for trochaic tetrameter line', () => {
+      // "Once upon a midnight dreary" - 8 syllables
+      const pitches = generateMelodicContour(8, {
+        scale: 'minor',
+        rootPitch: 'A',
+        stressPattern: '10101010',
+        emotion: { mode: 'minor', intensity: 0.6, register: 'middle' },
+      });
+
+      expect(pitches).toHaveLength(8);
+    });
+
+    it('generates contour for anapestic line', () => {
+      // "The Assyrian came down like the wolf" - 9 syllables (3 anapests)
+      const pitches = generateMelodicContour(9, {
+        scale: 'major',
+        rootPitch: 'G',
+        stressPattern: '001001001',
+        emotion: { mode: 'major', intensity: 0.7, register: 'middle' },
+      });
+
+      expect(pitches).toHaveLength(9);
+    });
+  });
+});
