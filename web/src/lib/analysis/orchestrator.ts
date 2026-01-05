@@ -64,6 +64,8 @@ import {
   analyzeLineSingability,
 } from './singability';
 
+import { analyzeSoundPatterns } from './soundPatterns';
+
 import { analyzeEmotion } from './emotion';
 
 // =============================================================================
@@ -124,10 +126,11 @@ const DEBUG = process.env.NODE_ENV === 'development';
  */
 const ANALYSIS_STAGES = [
   { name: 'preprocess', weight: 5, message: 'Preprocessing poem text...' },
-  { name: 'phonetic', weight: 25, message: 'Looking up phonetics...' },
+  { name: 'phonetic', weight: 20, message: 'Looking up phonetics...' },
   { name: 'stress', weight: 15, message: 'Analyzing stress patterns...' },
   { name: 'meter', weight: 15, message: 'Detecting meter...' },
-  { name: 'rhyme', weight: 15, message: 'Analyzing rhyme scheme...' },
+  { name: 'rhyme', weight: 10, message: 'Analyzing rhyme scheme...' },
+  { name: 'soundPatterns', weight: 10, message: 'Detecting sound patterns...' },
   { name: 'singability', weight: 15, message: 'Scoring singability...' },
   { name: 'emotion', weight: 10, message: 'Analyzing emotional content...' },
 ] as const;
@@ -739,12 +742,18 @@ export async function analyzePoem(
   const rhymeAnalysis = analyzeRhymes(allLines);
   progress.completeStage('rhyme');
 
-  // Stage 6: Singability is already done per-line in Stage 2
+  // Stage 6: Sound patterns analysis (alliteration, assonance, consonance)
+  progress.startStage('soundPatterns');
+  const soundPatternsAnalysis = analyzeSoundPatterns(allLines);
+  log('Sound patterns detected:', soundPatternsAnalysis.summary);
+  progress.completeStage('soundPatterns');
+
+  // Stage 7: Singability is already done per-line in Stage 2
   progress.startStage('singability');
   // Just a placeholder - singability was calculated during line analysis
   progress.completeStage('singability');
 
-  // Stage 7: Emotion analysis
+  // Stage 8: Emotion analysis
   progress.startStage('emotion');
   const emotionAnalysis = analyzeEmotion(text, preprocessed.stanzas);
   progress.completeStage('emotion');
@@ -789,6 +798,7 @@ export async function analyzePoem(
       rhyme: rhymeAnalysis,
       regularity: meterAnalysis.regularity,
     },
+    soundPatterns: soundPatternsAnalysis,
     emotion: emotionAnalysis,
     problems,
     melodySuggestions: {

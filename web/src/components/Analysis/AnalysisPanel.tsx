@@ -15,6 +15,7 @@ import { StressVisualization } from './StressVisualization';
 import { RhymeSchemeDisplay } from './RhymeSchemeDisplay';
 import { MeterDisplay } from './MeterDisplay';
 import { SingabilityHeatmap } from './SingabilityHeatmap';
+import { SoundPatternsDisplay } from './SoundPatternsDisplay';
 import './AnalysisPanel.css';
 
 // Logging helper for debugging
@@ -33,6 +34,7 @@ export interface AnalysisToggles {
   stress: boolean;
   rhyme: boolean;
   meter: boolean;
+  soundPatterns: boolean;
   singability: boolean;
 }
 
@@ -44,6 +46,7 @@ const DEFAULT_TOGGLES: AnalysisToggles = {
   stress: false,
   rhyme: false,
   meter: false,
+  soundPatterns: false,
   singability: false,
 };
 
@@ -79,6 +82,11 @@ const TOGGLE_CONFIG: ToggleConfig[] = [
     key: 'meter',
     label: 'Meter',
     tooltip: 'Show metrical foot type and regularity',
+  },
+  {
+    key: 'soundPatterns',
+    label: 'Sounds',
+    tooltip: 'Show alliteration, assonance, and consonance patterns',
   },
   {
     key: 'singability',
@@ -155,6 +163,7 @@ export function AnalysisPanel({
         stress: enabled,
         rhyme: enabled,
         meter: enabled,
+        soundPatterns: enabled,
         singability: enabled,
       };
       setToggles(newToggles);
@@ -280,6 +289,13 @@ export function AnalysisPanel({
           <MeterDisplay
             meter={analysis.prosody.meter}
             regularity={analysis.prosody.regularity}
+          />
+        )}
+
+        {toggles.soundPatterns && analysis.soundPatterns && (
+          <SoundPatternsDisplay
+            soundPatterns={analysis.soundPatterns}
+            structure={analysis.structure}
           />
         )}
 

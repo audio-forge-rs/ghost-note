@@ -12,5 +12,6 @@ export * from './stress';
 export * from './meter';
 export * from './rhyme';
 export * from './singability';
+export * from './soundPatterns';
 export * from './orchestrator';
 export * from './phrases';
