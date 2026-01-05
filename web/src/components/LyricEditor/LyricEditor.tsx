@@ -11,6 +11,12 @@ import type { ReactElement } from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import { usePoemStore, selectCurrentLyrics, selectCurrentVersion } from '@/stores/usePoemStore';
 import { useAnalysisStore } from '@/stores/useAnalysisStore';
+import {
+  useSuggestionStore,
+  selectPendingCount,
+  selectIsLoading as selectSuggestionsLoading,
+} from '@/stores/useSuggestionStore';
+import type { SuggestionWithStatus } from '@/stores/useSuggestionStore';
 import { DiffView } from './DiffView';
 import { InlineDiff } from './InlineDiff';
 import { SuggestionCard } from './SuggestionCard';
@@ -25,6 +31,70 @@ const log = (message: string, ...args: unknown[]): void => {
     console.log(`[LyricEditor] ${message}`, ...args);
   }
 };
+
+/**
+ * Maps a SuggestionWithStatus from the store to a LyricSuggestion for the UI.
+ * This bridges the gap between the store's suggestion format and the
+ * SuggestionCard component's expected format.
+ */
+function mapStoreToLyricSuggestion(
+  storeSuggestion: SuggestionWithStatus,
+  currentLyrics: string
+): LyricSuggestion {
+  // Extract the line text to find positions
+  const lines = currentLyrics.split('\n');
+  const lineIndex = storeSuggestion.lineNumber - 1;
+  const lineText = lines[lineIndex] ?? '';
+
+  // Find the word position in the line
+  const wordIndex = lineText.toLowerCase().indexOf(storeSuggestion.originalWord.toLowerCase());
+  const startPos = wordIndex >= 0 ? wordIndex : 0;
+  const endPos = startPos + storeSuggestion.originalWord.length;
+
+  // Map problem type to category
+  const category = mapProblemTypeToCategory(storeSuggestion.reason);
+
+  return {
+    id: storeSuggestion.id,
+    originalText: storeSuggestion.originalWord,
+    suggestedText: storeSuggestion.suggestedWord,
+    reason: storeSuggestion.reason,
+    category,
+    status: storeSuggestion.status,
+    lineNumber: storeSuggestion.lineNumber,
+    startPos,
+    endPos,
+  };
+}
+
+/**
+ * Escapes special regex characters in a string
+ */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Maps a reason/problem description to a suggestion category
+ */
+function mapProblemTypeToCategory(reason: string): LyricSuggestion['category'] {
+  const lowerReason = reason.toLowerCase();
+
+  if (lowerReason.includes('sing') || lowerReason.includes('sound')) {
+    return 'singability';
+  }
+  if (lowerReason.includes('stress') || lowerReason.includes('beat') || lowerReason.includes('rhythm')) {
+    return 'meter';
+  }
+  if (lowerReason.includes('rhyme')) {
+    return 'rhyme';
+  }
+  if (lowerReason.includes('syllable') || lowerReason.includes('variance')) {
+    return 'meter';
+  }
+
+  return 'other';
+}
 
 /**
  * Tab options for the editor
@@ -65,15 +135,14 @@ export function LyricEditor({
   className = '',
   testId = 'lyric-editor',
 }: LyricEditorProps): ReactElement {
-  // State
+  // Local UI state
   const [activeTab, setActiveTab] = useState<TabId>('editor');
   const [diffViewMode, setDiffViewMode] = useState<DiffViewMode>('side-by-side');
   const [editText, setEditText] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
-  const [suggestions, setSuggestions] = useState<LyricSuggestion[]>([]);
   const [expandedSuggestionId, setExpandedSuggestionId] = useState<string | null>(null);
 
-  // Store data
+  // Poem store data
   const original = usePoemStore((state) => state.original);
   const versions = usePoemStore((state) => state.versions);
   const currentVersionIndex = usePoemStore((state) => state.currentVersionIndex);
@@ -82,7 +151,21 @@ export function LyricEditor({
   const addVersion = usePoemStore((state) => state.addVersion);
   const revertToVersion = usePoemStore((state) => state.revertToVersion);
   const deleteVersion = usePoemStore((state) => state.deleteVersion);
+
+  // Analysis store
   const analyze = useAnalysisStore((state) => state.analyze);
+
+  // Suggestion store data
+  const storeSuggestions = useSuggestionStore((state) => state.suggestions);
+  const pendingSuggestionsCount = useSuggestionStore(selectPendingCount);
+  const suggestionsLoading = useSuggestionStore(selectSuggestionsLoading);
+  const acceptSuggestion = useSuggestionStore((state) => state.acceptSuggestion);
+  const rejectSuggestion = useSuggestionStore((state) => state.rejectSuggestion);
+
+  // Map store suggestions to LyricSuggestion format for UI
+  const suggestions = useMemo(() => {
+    return storeSuggestions.map((s) => mapStoreToLyricSuggestion(s, currentLyrics));
+  }, [storeSuggestions, currentLyrics]);
 
   log('Rendering LyricEditor', {
     activeTab,
@@ -167,34 +250,44 @@ export function LyricEditor({
   const handleSuggestionAccept = useCallback(
     (id: string) => {
       log('Accepting suggestion:', id);
-      setSuggestions((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, status: 'accepted' as const } : s))
-      );
 
-      // Find the suggestion and apply it
+      // Update store state
+      acceptSuggestion(id);
+
+      // Find the suggestion and apply it to create a new version
       const suggestion = suggestions.find((s) => s.id === id);
       if (suggestion) {
-        // For now, we'll create a new version with the suggestion applied
-        // In a real implementation, this would be more sophisticated
-        const newText = currentLyrics.replace(
-          suggestion.originalText,
-          suggestion.suggestedText
-        );
+        log('Applying suggestion to lyrics:', suggestion.originalText, '->', suggestion.suggestedText);
 
-        if (newText !== currentLyrics) {
-          addVersion(newText, `Applied suggestion: ${suggestion.reason}`);
+        // Replace the word in the lyrics (case-insensitive replacement preserving case)
+        const lines = currentLyrics.split('\n');
+        const lineIndex = suggestion.lineNumber - 1;
+
+        if (lineIndex >= 0 && lineIndex < lines.length) {
+          const line = lines[lineIndex];
+          // Find and replace the word in this specific line
+          const regex = new RegExp(`\\b${escapeRegExp(suggestion.originalText)}\\b`, 'i');
+          const newLine = line.replace(regex, suggestion.suggestedText);
+
+          if (newLine !== line) {
+            lines[lineIndex] = newLine;
+            const newText = lines.join('\n');
+            addVersion(newText, `Applied suggestion: ${suggestion.reason}`);
+            log('Created new version with applied suggestion');
+          }
         }
       }
     },
-    [suggestions, currentLyrics, addVersion]
+    [suggestions, currentLyrics, addVersion, acceptSuggestion]
   );
 
-  const handleSuggestionReject = useCallback((id: string) => {
-    log('Rejecting suggestion:', id);
-    setSuggestions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status: 'rejected' as const } : s))
-    );
-  }, []);
+  const handleSuggestionReject = useCallback(
+    (id: string) => {
+      log('Rejecting suggestion:', id);
+      rejectSuggestion(id);
+    },
+    [rejectSuggestion]
+  );
 
   const handleToggleSuggestionExpand = useCallback((id: string) => {
     setExpandedSuggestionId((prev) => (prev === id ? null : id));
@@ -220,11 +313,6 @@ export function LyricEditor({
     },
     [handleSaveEdit, handleCancelEdit]
   );
-
-  // Pending suggestions count
-  const pendingSuggestionsCount = useMemo(() => {
-    return suggestions.filter((s) => s.status === 'pending').length;
-  }, [suggestions]);
 
   const containerClass = [
     'lyric-editor',
@@ -390,7 +478,11 @@ export function LyricEditor({
             className="lyric-editor__panel lyric-editor__panel--suggestions"
             data-testid={`${testId}-panel-suggestions`}
           >
-            {suggestions.length === 0 ? (
+            {suggestionsLoading ? (
+              <div className="lyric-editor__suggestions-loading" data-testid={`${testId}-suggestions-loading`}>
+                <p>Generating suggestions...</p>
+              </div>
+            ) : suggestions.length === 0 ? (
               <div className="lyric-editor__no-suggestions">
                 <p className="lyric-editor__no-suggestions-text">
                   No suggestions available yet. Analyze your poem to get lyric improvement suggestions.
