@@ -24,7 +24,9 @@ import {
 } from '@/stores/useSuggestionStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { useUndoStore, selectCanUndo, selectCanRedo } from '@/stores/undoMiddleware';
+import { useToastStore } from '@/stores/useToastStore';
 import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
+import { parseAndImportShareDataFromUrl, hasShareDataInUrl } from '@/lib/share';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
 import { EmptyState, LoadingSpinner, ToastContainer, SkipLinks } from '@/components/Common';
@@ -41,6 +43,7 @@ import {
   selectIsTutorialActive,
   selectShouldShowTutorial,
 } from '@/stores/useTutorialStore';
+import { ShareDialog } from '@/components/Share';
 import { useKeyboardShortcuts } from '@/hooks';
 import './App.css';
 
@@ -537,6 +540,16 @@ function App(): React.ReactElement {
   // Poem store for setting lyrics after undo/redo
   const updateCurrentVersion = usePoemStore((state) => state.updateCurrentVersion);
 
+  // UI store for share dialog
+  const openModal = useUIStore((state) => state.openModal);
+  const closeModal = useUIStore((state) => state.closeModal);
+
+  // Toast store for notifications
+  const addToast = useToastStore((state) => state.addToast);
+
+  // Track if share data has been processed
+  const shareDataProcessed = useRef(false);
+
   // Initialize theme on mount - only runs once
   useEffect(() => {
     // Re-apply theme to ensure it's set correctly after hydration
@@ -587,6 +600,63 @@ function App(): React.ReactElement {
       setActiveView(navView);
     }
   }, []);
+
+  // Check for share data in URL on mount
+  useEffect(() => {
+    // Only process share data once
+    if (shareDataProcessed.current) {
+      return;
+    }
+
+    // Check if URL contains share data
+    if (!hasShareDataInUrl()) {
+      log('No share data in URL');
+      shareDataProcessed.current = true;
+      return;
+    }
+
+    log('Share data detected in URL, importing...');
+    shareDataProcessed.current = true;
+
+    // Parse and import the share data
+    const importShareData = async (): Promise<void> => {
+      try {
+        const result = await parseAndImportShareDataFromUrl({ clearExisting: true });
+
+        if (result === null) {
+          log('No share data to import');
+          return;
+        }
+
+        if (result.success && result.imported) {
+          log('Share data imported successfully:', result.mode);
+          addToast(`Shared ${result.mode === 'poem-only' ? 'poem' : 'project'} loaded successfully`, {
+            type: 'success',
+            duration: 4000,
+          });
+
+          // Navigate based on what was imported
+          if (result.mode === 'full' || result.mode === 'with-analysis') {
+            setActiveView('analysis');
+          }
+        } else if (!result.success) {
+          log('Failed to import share data:', result.error);
+          addToast(result.error || 'Failed to load shared content', {
+            type: 'error',
+            duration: 5000,
+          });
+        }
+      } catch (error) {
+        log('Error importing share data:', error);
+        addToast('Failed to load shared content', {
+          type: 'error',
+          duration: 5000,
+        });
+      }
+    };
+
+    importShareData();
+  }, [addToast]);
 
   // Track if we're in the middle of an undo/redo operation
   const isUndoRedoInProgress = useRef(false);
@@ -850,6 +920,10 @@ function App(): React.ReactElement {
         onComplete={handleTutorialComplete}
         onNavigate={handleTutorialNavigate}
         testId="app-tutorial"
+      />
+      <ShareDialog
+        isOpen={openModal === 'share'}
+        onClose={closeModal}
       />
       <ToastContainer position="top-right" />
     </>

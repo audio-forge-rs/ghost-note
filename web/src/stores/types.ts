@@ -93,7 +93,8 @@ export type ModalType =
   | 'import'
   | 'help'
   | 'version-history'
-  | 'recording-manager';
+  | 'recording-manager'
+  | 'share';
 
 /**
  * Panel identifiers for visibility tracking

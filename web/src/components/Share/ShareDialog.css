@@ -1,0 +1,464 @@
+/**
+ * ShareDialog Component Styles
+ *
+ * Styles for the share dialog modal.
+ */
+
+/* Overlay */
+.share-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+  animation: share-dialog-fade-in 0.15s ease-out;
+}
+
+@keyframes share-dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dialog Container */
+.share-dialog {
+  background-color: var(--color-surface, white);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: share-dialog-slide-in 0.2s ease-out;
+}
+
+@keyframes share-dialog-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.share-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.share-dialog__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.share-dialog__close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6b7280);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.share-dialog__close-button:hover {
+  background-color: var(--color-button-secondary-bg, #f3f4f6);
+  color: var(--color-text-primary, #111827);
+}
+
+.share-dialog__close-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary, #3b82f6);
+}
+
+/* Content */
+.share-dialog__content {
+  padding: 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.share-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-dialog__section-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #374151);
+}
+
+/* Mode Options */
+.share-dialog__mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-dialog__mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--color-surface, #f9fafb);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.share-dialog__mode-option:hover:not(.share-dialog__mode-option--disabled) {
+  background-color: var(--color-button-secondary-bg, #f3f4f6);
+}
+
+.share-dialog__mode-option--selected {
+  border-color: var(--color-primary, #3b82f6);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.share-dialog__mode-option--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-dialog__mode-radio {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.share-dialog__mode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.share-dialog__mode-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #374151);
+}
+
+.share-dialog__mode-description {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  line-height: 1.4;
+}
+
+.share-dialog__mode-unavailable {
+  color: var(--color-warning, #f59e0b);
+  font-style: italic;
+}
+
+/* Generate Button */
+.share-dialog__generate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: var(--color-primary, #3b82f6);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.share-dialog__generate-button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover, #2563eb);
+}
+
+.share-dialog__generate-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.share-dialog__generate-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Spinner */
+.share-dialog__spinner {
+  animation: share-dialog-spin 1s linear infinite;
+}
+
+@keyframes share-dialog-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Result Section */
+.share-dialog__result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-dialog__url-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.share-dialog__url-input {
+  flex: 1;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: var(--color-text-primary, #374151);
+  background-color: var(--color-surface, #f9fafb);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.share-dialog__url-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.share-dialog__copy-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #374151);
+  background-color: var(--color-button-secondary-bg, #f3f4f6);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.share-dialog__copy-button:hover {
+  background-color: var(--color-button-secondary-hover, #e5e7eb);
+}
+
+.share-dialog__copy-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary, #3b82f6);
+}
+
+.share-dialog__copy-button--copied {
+  color: var(--color-success, #10b981);
+  border-color: var(--color-success, #10b981);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* Stats */
+.share-dialog__stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.share-dialog__stat {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.share-dialog__stat--info {
+  color: var(--color-primary, #3b82f6);
+}
+
+/* Warning */
+.share-dialog__warning {
+  font-size: 0.75rem;
+  color: var(--color-warning, #f59e0b);
+  background-color: rgba(245, 158, 11, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin: 0;
+}
+
+/* Error */
+.share-dialog__error {
+  font-size: 0.875rem;
+  color: var(--color-error, #ef4444);
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 0.75rem;
+  border-radius: 6px;
+}
+
+.share-dialog__error p {
+  margin: 0;
+}
+
+/* Privacy Note */
+.share-dialog__privacy-note {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+  background-color: var(--color-surface, #f9fafb);
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--color-primary, #3b82f6);
+}
+
+.share-dialog__privacy-note p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.share-dialog__privacy-note strong {
+  color: var(--color-text-primary, #374151);
+}
+
+/* Empty State */
+.share-dialog__empty-message {
+  text-align: center;
+  color: var(--color-text-secondary, #6b7280);
+  padding: 2rem 1rem;
+  margin: 0;
+}
+
+/* Dark Mode */
+.dark .share-dialog {
+  background-color: var(--color-surface-dark, #1f2937);
+}
+
+.dark .share-dialog__header {
+  border-bottom-color: var(--color-border-dark, #374151);
+}
+
+.dark .share-dialog__title {
+  color: var(--color-text-primary-dark, #f9fafb);
+}
+
+.dark .share-dialog__close-button {
+  color: var(--color-text-secondary-dark, #9ca3af);
+}
+
+.dark .share-dialog__close-button:hover {
+  background-color: var(--color-button-secondary-bg-dark, #374151);
+  color: var(--color-text-primary-dark, #f9fafb);
+}
+
+.dark .share-dialog__section-label {
+  color: var(--color-text-primary-dark, #e5e7eb);
+}
+
+.dark .share-dialog__mode-option {
+  background-color: var(--color-surface-dark, #111827);
+}
+
+.dark .share-dialog__mode-option:hover:not(.share-dialog__mode-option--disabled) {
+  background-color: var(--color-button-secondary-bg-dark, #374151);
+}
+
+.dark .share-dialog__mode-option--selected {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.dark .share-dialog__mode-label {
+  color: var(--color-text-primary-dark, #e5e7eb);
+}
+
+.dark .share-dialog__mode-description {
+  color: var(--color-text-secondary-dark, #9ca3af);
+}
+
+.dark .share-dialog__url-input {
+  background-color: var(--color-surface-dark, #111827);
+  border-color: var(--color-border-dark, #374151);
+  color: var(--color-text-primary-dark, #e5e7eb);
+}
+
+.dark .share-dialog__copy-button {
+  background-color: var(--color-button-secondary-bg-dark, #374151);
+  border-color: var(--color-border-dark, #4b5563);
+  color: var(--color-text-primary-dark, #e5e7eb);
+}
+
+.dark .share-dialog__copy-button:hover {
+  background-color: var(--color-button-secondary-hover-dark, #4b5563);
+}
+
+.dark .share-dialog__stat {
+  color: var(--color-text-secondary-dark, #9ca3af);
+}
+
+.dark .share-dialog__privacy-note {
+  background-color: var(--color-surface-dark, #111827);
+}
+
+.dark .share-dialog__privacy-note strong {
+  color: var(--color-text-primary-dark, #e5e7eb);
+}
+
+.dark .share-dialog__empty-message {
+  color: var(--color-text-secondary-dark, #9ca3af);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .share-dialog__overlay,
+  .share-dialog,
+  .share-dialog__spinner {
+    animation: none;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .share-dialog {
+    max-width: calc(100% - 2rem);
+    max-height: calc(100vh - 4rem);
+  }
+
+  .share-dialog__header {
+    padding: 0.875rem 1rem;
+  }
+
+  .share-dialog__content {
+    padding: 1rem;
+  }
+
+  .share-dialog__url-container {
+    flex-direction: column;
+  }
+
+  .share-dialog__copy-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
