@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { AppShell, type NavigationView } from '@/components/Layout';
 import { EmptyState } from '@/components/Common';
+import { PoemInput } from '@/components/PoemInput';
 import './App.css';
 
 // Logging helper for debugging
@@ -58,20 +59,46 @@ const VIEW_CONFIGS: Record<NavigationView, ViewConfig> = {
 };
 
 /**
- * Placeholder view component for each navigation section.
- * These will be replaced with actual view implementations.
+ * Renders the appropriate component for each navigation view.
+ * Falls back to EmptyState placeholder for views not yet implemented.
  */
-function ViewPlaceholder({ view }: { view: NavigationView }): React.ReactElement {
+function ViewContent({
+  view,
+  onNavigate,
+}: {
+  view: NavigationView;
+  onNavigate: (view: NavigationView) => void;
+}): React.ReactElement {
   const config = VIEW_CONFIGS[view];
 
-  return (
-    <EmptyState
-      title={config.title}
-      description={config.description}
-      variant="centered"
-      testId={`view-${view}`}
-    />
-  );
+  log('Rendering view content for:', view);
+
+  switch (view) {
+    case 'poem-input':
+      return (
+        <PoemInput
+          onAnalyze={() => {
+            log('Analyze triggered, navigating to analysis view');
+            onNavigate('analysis');
+          }}
+          showStats
+        />
+      );
+
+    case 'analysis':
+    case 'lyrics-editor':
+    case 'melody':
+    case 'recording':
+    default:
+      return (
+        <EmptyState
+          title={config.title}
+          description={config.description}
+          variant="centered"
+          testId={`view-${view}`}
+        />
+      );
+  }
 }
 
 /**
@@ -101,7 +128,7 @@ function App(): React.ReactElement {
 
   return (
     <AppShell activeView={activeView} onNavigate={handleNavigate}>
-      <ViewPlaceholder view={activeView} />
+      <ViewContent view={activeView} onNavigate={handleNavigate} />
     </AppShell>
   );
 }

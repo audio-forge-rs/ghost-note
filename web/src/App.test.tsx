@@ -51,6 +51,24 @@ vi.mock('@/components/Common', () => ({
   ),
 }));
 
+// Mock PoemInput component
+vi.mock('@/components/PoemInput', () => ({
+  PoemInput: ({ onAnalyze, showStats }: { onAnalyze?: () => void; showStats?: boolean }) => (
+    <div data-testid="poem-input-component" data-show-stats={showStats}>
+      <h2>Enter Your Poem</h2>
+      <textarea data-testid="poem-textarea" placeholder="Enter your poem..." />
+      <button data-testid="analyze-button" onClick={onAnalyze}>Analyze</button>
+      {showStats && (
+        <div data-testid="poem-stats">
+          <span>Lines: 0</span>
+          <span>Words: 0</span>
+          <span>Characters: 0</span>
+        </div>
+      )}
+    </div>
+  ),
+}));
+
 interface MockUIState {
   theme: 'light' | 'dark' | 'system';
   setTheme: ReturnType<typeof vi.fn>;
@@ -86,10 +104,17 @@ describe('App', () => {
       expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'poem-input');
     });
 
-    it('renders the default view placeholder', () => {
+    it('renders the PoemInput component in the default view', () => {
       render(<App />);
-      expect(screen.getByTestId('view-poem-input')).toBeInTheDocument();
-      expect(screen.getByText('No Poem Entered')).toBeInTheDocument();
+      expect(screen.getByTestId('poem-input-component')).toBeInTheDocument();
+      expect(screen.getByText('Enter Your Poem')).toBeInTheDocument();
+      expect(screen.getByTestId('poem-textarea')).toBeInTheDocument();
+      expect(screen.getByTestId('analyze-button')).toBeInTheDocument();
+    });
+
+    it('renders poem stats when showStats is true', () => {
+      render(<App />);
+      expect(screen.getByTestId('poem-stats')).toBeInTheDocument();
     });
   });
 
@@ -144,14 +169,25 @@ describe('App', () => {
       // Navigate back
       fireEvent.click(screen.getByTestId('nav-poem-input'));
       expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'poem-input');
+      expect(screen.getByTestId('poem-input-component')).toBeInTheDocument();
+    });
+
+    it('navigates to analysis view when analyze button is clicked', () => {
+      render(<App />);
+
+      // Click analyze button in PoemInput
+      fireEvent.click(screen.getByTestId('analyze-button'));
+
+      expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'analysis');
+      expect(screen.getByTestId('view-analysis')).toBeInTheDocument();
     });
   });
 
   describe('view placeholders', () => {
-    it('displays correct title and description for poem-input view', () => {
+    it('renders PoemInput component for poem-input view', () => {
       render(<App />);
-      expect(screen.getByText('No Poem Entered')).toBeInTheDocument();
-      expect(screen.getByText('Paste or type your poem to get started.')).toBeInTheDocument();
+      expect(screen.getByTestId('poem-input-component')).toBeInTheDocument();
+      expect(screen.getByText('Enter Your Poem')).toBeInTheDocument();
     });
 
     it('displays correct title and description for analysis view', () => {
