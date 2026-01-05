@@ -3,9 +3,17 @@
  *
  * Comprehensive tests for stress pattern extraction and analysis.
  * Tests cover known poems, edge cases, and integration with CMU dictionary.
+ *
+ * NOTE: Uses the CMU dictionary which is lazily loaded.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
+import { ensureDictionaryLoaded } from '@/lib/phonetics/cmuDict';
+
+// Ensure dictionary is loaded before running dictionary-dependent tests
+beforeAll(async () => {
+  await ensureDictionaryLoaded();
+});
 import {
   // Core functions
   extractStressFromPhonemes,

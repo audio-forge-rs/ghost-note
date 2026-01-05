@@ -42,6 +42,7 @@ import {
   analyzeWord as cmuAnalyzeWord,
   isVowel,
   getPhonemeStress,
+  ensureDictionaryLoaded,
 } from '@/lib/phonetics/cmuDict';
 
 import {
@@ -739,6 +740,10 @@ export async function analyzePoem(
 
   // Stage 2: Phonetic lookup and word analysis
   progress.startStage('phonetic');
+
+  // Ensure the CMU dictionary is loaded before phonetic analysis
+  // This is a lazy-loaded 4MB resource, so we load it just-in-time
+  await ensureDictionaryLoaded();
   const analyzedStanzas: AnalyzedStanza[] = [];
 
   for (const stanza of preprocessed.stanzas) {

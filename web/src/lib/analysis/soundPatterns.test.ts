@@ -5,7 +5,7 @@
  * Tests cover pattern detection, scoring, edge cases, and famous poetry examples.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import {
   // Core detection functions
   detectAlliteration,
@@ -25,6 +25,12 @@ import {
   type SoundPatternOccurrence,
   type LineSoundPatterns,
 } from './soundPatterns';
+import { ensureDictionaryLoaded } from '@/lib/phonetics/cmuDict';
+
+// Ensure dictionary is loaded before running tests (required for lazy-loaded dictionary)
+beforeAll(async () => {
+  await ensureDictionaryLoaded();
+});
 
 // Suppress console.log output during tests
 beforeEach(() => {

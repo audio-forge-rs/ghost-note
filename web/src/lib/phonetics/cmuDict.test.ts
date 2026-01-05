@@ -2,9 +2,12 @@
  * CMU Pronouncing Dictionary Module Tests
  *
  * Comprehensive tests for phonetic word lookup functionality.
+ *
+ * NOTE: The CMU dictionary is now lazily loaded. Tests that require
+ * the dictionary must ensure it's loaded before running.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
 import {
   // Constants
   ARPABET_VOWELS,
@@ -26,11 +29,18 @@ import {
   // Rhyme functions
   getRhymingPart,
   doWordsRhyme,
+  // Dictionary loading utilities
+  ensureDictionaryLoaded,
 } from './cmuDict.ts'
 
 // Suppress console.debug output during tests
 beforeEach(() => {
   vi.spyOn(console, 'debug').mockImplementation(() => {})
+})
+
+// Ensure dictionary is loaded before running dictionary-dependent tests
+beforeAll(async () => {
+  await ensureDictionaryLoaded()
 })
 
 describe('Constants', () => {

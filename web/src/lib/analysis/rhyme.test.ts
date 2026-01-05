@@ -4,9 +4,17 @@
  * Comprehensive tests for rhyme detection and classification.
  * Tests cover perfect rhymes, slant rhymes, assonance, consonance,
  * rhyme scheme detection, and internal rhymes.
+ *
+ * NOTE: Uses the CMU dictionary which is lazily loaded.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
+import { ensureDictionaryLoaded } from '@/lib/phonetics/cmuDict';
+
+// Ensure dictionary is loaded before running dictionary-dependent tests
+beforeAll(async () => {
+  await ensureDictionaryLoaded();
+});
 import {
   // Core functions
   getRhymingPart,

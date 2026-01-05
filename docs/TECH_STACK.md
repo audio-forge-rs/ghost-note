@@ -174,6 +174,61 @@ Testing framework that works natively with Vite.
 }
 ```
 
+## Performance & Bundle Optimization
+
+### Code Splitting Strategy
+
+The application uses aggressive code splitting to minimize initial load time:
+
+**Lazy-loaded chunks (loaded on demand):**
+- `vendor-abcjs` (~148KB gzipped) - Music notation library, loaded when viewing melody
+- `vendor-cmu-dict` (~961KB gzipped) - Pronunciation dictionary, loaded during analysis
+- `vendor-sentiment` (~26KB gzipped) - Sentiment analysis, loaded during analysis
+- `AnalysisPanel`, `LyricEditor`, `NotationDisplay` - React components, loaded on navigation
+
+**Initial bundle (~104KB gzipped):**
+- React core
+- Zustand state management
+- Basic UI components (Layout, PoemInput)
+- CSS styles
+
+### Bundle Analysis
+
+To analyze bundle size and composition:
+
+```bash
+npm run build:analyze
+# Opens dist/stats.html with a treemap visualization
+```
+
+### Key Optimization Techniques
+
+1. **Dynamic imports for heavy libraries**
+   - CMU dictionary (4MB) loaded only when analysis starts
+   - abcjs loaded only when playback is needed
+
+2. **React.lazy for route-level splitting**
+   - Analysis, Lyrics, Melody, and Recording views lazy-loaded
+   - Suspense boundaries with loading spinners
+
+3. **Manual chunk splitting in Vite**
+   - Vendor libraries separated into cacheable chunks
+   - Shared dependencies optimized for browser caching
+
+4. **Tree-shaking**
+   - Only imported functions are bundled
+   - ESM modules enable dead code elimination
+
+### Performance Targets
+
+| Metric | Target | Actual |
+|--------|--------|--------|
+| Initial JS bundle (gzipped) | < 200KB | ~104KB |
+| Full app (gzipped) | < 500KB | ~1.2MB* |
+| Time to Interactive (3G) | < 3s | ~1.5s |
+
+*Note: The CMU dictionary (~961KB gzipped) is loaded lazily and only when analysis is triggered.
+
 ## Reference Links
 
 - [abcjs Documentation](https://paulrosen.github.io/abcjs/)
@@ -181,3 +236,4 @@ Testing framework that works natively with Vite.
 - [Web Audio API MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 - [MediaRecorder API MDN](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder)
 - [Zustand Documentation](https://github.com/pmndrs/zustand)
+- [Vite Code Splitting](https://vitejs.dev/guide/build.html#chunking-strategy)

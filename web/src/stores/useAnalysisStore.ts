@@ -3,6 +3,10 @@
  *
  * Manages poem analysis state, loading progress, and results.
  *
+ * PERFORMANCE NOTE: The analysis orchestrator imports heavy libraries (sentiment ~68KB).
+ * To keep the initial bundle small, we use dynamic imports to load
+ * the orchestrator only when analysis is actually requested.
+ *
  * @module stores/useAnalysisStore
  */
 
@@ -10,7 +14,52 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { AnalysisStore, AnalysisState, AnalysisStage } from './types';
 import type { PoemAnalysis } from '../types';
-import { analyzePoem, type AnalysisProgress } from '../lib/analysis/orchestrator';
+
+// Type for the dynamically imported orchestrator module
+type OrchestratorModule = typeof import('../lib/analysis/orchestrator');
+
+// Re-declare AnalysisProgress interface locally to avoid importing the module
+interface AnalysisProgress {
+  stage: string;
+  percent?: number;
+  message: string;
+}
+
+// Cached module reference
+let orchestratorModule: OrchestratorModule | null = null;
+let orchestratorLoadPromise: Promise<OrchestratorModule> | null = null;
+
+/**
+ * Lazily loads the analysis orchestrator module.
+ * This keeps sentiment (~68KB) out of the initial bundle.
+ */
+async function loadOrchestrator(): Promise<OrchestratorModule> {
+  if (orchestratorModule) {
+    return orchestratorModule;
+  }
+
+  if (orchestratorLoadPromise) {
+    return orchestratorLoadPromise;
+  }
+
+  console.debug('[AnalysisStore] Loading orchestrator module...');
+  const startTime = performance.now();
+
+  orchestratorLoadPromise = import('../lib/analysis/orchestrator')
+    .then((module) => {
+      orchestratorModule = module;
+      const loadTime = Math.round(performance.now() - startTime);
+      console.debug(`[AnalysisStore] Orchestrator loaded in ${loadTime}ms`);
+      return module;
+    })
+    .catch((error) => {
+      console.error('[AnalysisStore] Failed to load orchestrator:', error);
+      orchestratorLoadPromise = null;
+      throw error;
+    });
+
+  return orchestratorLoadPromise;
+}
 
 // =============================================================================
 // Initial State
@@ -108,6 +157,9 @@ export const useAnalysisStore = create<AnalysisStore>()(
         );
 
         try {
+          // Lazily load the orchestrator module
+          const orchestrator = await loadOrchestrator();
+
           // Create progress callback to update store state
           const onProgress = (progress: AnalysisProgress): void => {
             const { stage: mappedStage, progress: mappedProgress } = mapOrchestratorProgress(progress);
@@ -124,7 +176,7 @@ export const useAnalysisStore = create<AnalysisStore>()(
 
           // Call the actual orchestrator
           console.log('[AnalysisStore] Calling analyzePoem orchestrator');
-          const analysis = await analyzePoem(text, {
+          const analysis = await orchestrator.analyzePoem(text, {
             onProgress,
             useCache: true,
           });
