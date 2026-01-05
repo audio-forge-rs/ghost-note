@@ -61,3 +61,15 @@ export type {
   ExportDialogResult,
   ExportMode,
 } from './ExportDialog';
+
+export { GuideVolumeSlider } from './GuideVolumeSlider';
+export type { GuideVolumeSliderProps } from './GuideVolumeSlider';
+
+export { LyricsTeleprompter } from './LyricsTeleprompter';
+export type { LyricsTeleprompterProps } from './LyricsTeleprompter';
+
+export { ClickTrackToggle } from './ClickTrackToggle';
+export type { ClickTrackToggleProps } from './ClickTrackToggle';
+
+export { RecordingStudio } from './RecordingStudio';
+export type { RecordingStudioProps } from './RecordingStudio';
