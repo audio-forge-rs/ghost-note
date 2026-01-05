@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" fill="#1e1b4b" rx="24"/>
+  <g transform="translate(40, 40)">
+    <!-- Musical note icon -->
+    <path d="M90 20 L90 75 C90 80 85 90 70 90 C55 90 50 80 50 75 C50 65 60 60 75 60 L75 30 L30 45 L30 95 C30 100 25 110 10 110 C-5 110 -10 100 -10 95 C-10 85 0 80 15 80 L15 15 L90 0 L90 20" fill="white" transform="translate(16, 6)"/>
+  </g>
+</svg>

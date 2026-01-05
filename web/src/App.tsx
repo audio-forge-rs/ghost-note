@@ -27,7 +27,7 @@ import { useUndoStore, selectCanUndo, selectCanRedo } from '@/stores/undoMiddlew
 import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
-import { EmptyState, LoadingSpinner, ToastContainer, SkipLinks } from '@/components/Common';
+import { EmptyState, LoadingSpinner, ToastContainer, SkipLinks, OfflineIndicator } from '@/components/Common';
 import { PoemInput } from '@/components/PoemInput';
 import { AnalysisPanel } from '@/components/Analysis';
 import { LyricEditor } from '@/components/LyricEditor';
@@ -836,6 +836,7 @@ function App(): React.ReactElement {
           { targetId: 'sidebar-navigation', label: 'Skip to navigation' },
         ]}
       />
+      <OfflineIndicator position="top" />
       <AppShell activeView={activeView} onNavigate={handleNavigate}>
         <ViewContent view={activeView} onNavigate={handleNavigate} />
       </AppShell>

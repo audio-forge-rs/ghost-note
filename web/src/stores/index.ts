@@ -221,6 +221,26 @@ export {
   selectTotalErrors,
 } from './useAnalyticsStore';
 
+// Offline Store
+export { useOfflineStore } from './useOfflineStore';
+export type {
+  SyncOperationType,
+  SyncOperationStatus,
+  SyncOperation,
+  OfflineState,
+  OfflineActions,
+  OfflineStore,
+} from './useOfflineStore';
+export {
+  selectHasPendingOperations,
+  selectPendingCount as selectOfflinePendingCount,
+  selectFailedCount as selectOfflineFailedCount,
+  selectIsSyncing,
+  selectCanWorkOffline,
+  selectOperationsByStatus,
+  selectQueueSize,
+} from './useOfflineStore';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -236,6 +256,7 @@ import { useSuggestionStore as suggestionStore } from './useSuggestionStore';
 import { useToastStore as toastStore } from './useToastStore';
 import { useUndoStore as undoStore } from './undoMiddleware';
 import { useAnalyticsStore as analyticsStore } from './useAnalyticsStore';
+import { useOfflineStore as offlineStore } from './useOfflineStore';
 
 /**
  * Reset all stores to their initial state
@@ -252,6 +273,7 @@ export function resetAllStores(): void {
   toastStore.getState().reset();
   undoStore.getState().clearHistory();
   analyticsStore.getState().reset();
+  offlineStore.getState().reset();
 
   console.log('[Stores] All stores reset');
 }
@@ -269,6 +291,7 @@ export function clearPersistedData(): void {
     localStorage.removeItem('ghost-note-analytics');
     localStorage.removeItem('ghost-note-analytics-preferences');
     localStorage.removeItem('ghost-note-analytics-consent');
+    localStorage.removeItem('ghost-note-offline-queue');
     console.log('[Stores] All persisted data cleared');
   }
 }
