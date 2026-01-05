@@ -206,13 +206,17 @@ describe('PoemInput', () => {
       expect(onAnalyze).toHaveBeenCalledTimes(1);
     });
 
-    it('calls reset when clear button is clicked', async () => {
+    it('calls reset when clear button is clicked and confirmed', async () => {
       const user = userEvent.setup();
       vi.mocked(usePoemStore).mockImplementation(createMockSelector('Some text'));
       render(<PoemInput {...defaultProps} />);
 
       const clearButton = screen.getByTestId('clear-button');
       await user.click(clearButton);
+
+      // Click the confirm button in the dialog
+      const confirmButton = screen.getByTestId('clear-poem-dialog-confirm');
+      await user.click(confirmButton);
 
       expect(mockReset).toHaveBeenCalledTimes(1);
     });

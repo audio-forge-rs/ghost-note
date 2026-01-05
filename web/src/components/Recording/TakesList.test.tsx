@@ -232,9 +232,10 @@ describe('TakesList', () => {
       render(<TakesList takes={mockTakes} onDeleteTake={handleDelete} />);
 
       const deleteButtons = screen.getAllByTestId('take-delete-button');
-      // Click twice to confirm
+      // Click to show confirmation dialog
       fireEvent.click(deleteButtons[0]);
-      fireEvent.click(deleteButtons[0]);
+      // Confirm the deletion
+      fireEvent.click(screen.getByTestId('take-delete-dialog-confirm'));
 
       expect(handleDelete).toHaveBeenCalled();
     });

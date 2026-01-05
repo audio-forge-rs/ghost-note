@@ -153,7 +153,7 @@ describe('PoemToolbar', () => {
   });
 
   describe('clear button', () => {
-    it('calls onClear when clicked with text', async () => {
+    it('shows confirmation dialog when clicked with text', async () => {
       const onClear = vi.fn();
       const user = userEvent.setup();
       render(<PoemToolbar {...defaultProps} onClear={onClear} hasText />);
@@ -161,7 +161,42 @@ describe('PoemToolbar', () => {
       const clearButton = screen.getByTestId('clear-button');
       await user.click(clearButton);
 
+      // Should show confirmation dialog
+      expect(screen.getByTestId('clear-poem-dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('clear-poem-dialog-title')).toHaveTextContent('Clear Poem');
+
+      // onClear should not be called yet
+      expect(onClear).not.toHaveBeenCalled();
+    });
+
+    it('calls onClear when confirmation is confirmed', async () => {
+      const onClear = vi.fn();
+      const user = userEvent.setup();
+      render(<PoemToolbar {...defaultProps} onClear={onClear} hasText />);
+
+      // Click clear button to show dialog
+      await user.click(screen.getByTestId('clear-button'));
+
+      // Confirm the dialog
+      await user.click(screen.getByTestId('clear-poem-dialog-confirm'));
+
       expect(onClear).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onClear when confirmation is cancelled', async () => {
+      const onClear = vi.fn();
+      const user = userEvent.setup();
+      render(<PoemToolbar {...defaultProps} onClear={onClear} hasText />);
+
+      // Click clear button to show dialog
+      await user.click(screen.getByTestId('clear-button'));
+
+      // Cancel the dialog
+      await user.click(screen.getByTestId('clear-poem-dialog-cancel'));
+
+      expect(onClear).not.toHaveBeenCalled();
+      // Dialog should be closed
+      expect(screen.queryByTestId('clear-poem-dialog')).not.toBeInTheDocument();
     });
 
     it('is disabled when there is no text', () => {

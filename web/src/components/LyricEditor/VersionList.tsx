@@ -8,8 +8,9 @@
  */
 
 import type { ReactElement } from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { createPreview, countWords } from './diffUtils';
+import { ConfirmDialog } from '@/components/Common';
 import type { VersionListProps, LyricVersion } from './types';
 import './VersionList.css';
 
@@ -264,6 +265,11 @@ export function VersionList({
   className = '',
   testId = 'version-list',
 }: VersionListProps): ReactElement {
+  // State for confirmation dialogs
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [versionToDelete, setVersionToDelete] = useState<LyricVersion | null>(null);
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
+
   log('Rendering VersionList', {
     versionCount: versions.length,
     currentVersionIndex,
@@ -277,6 +283,58 @@ export function VersionList({
   const sortedVersions = useMemo(() => {
     return [...versions].sort((a, b) => b.timestamp - a.timestamp);
   }, [versions]);
+
+  // Handle delete with confirmation
+  const handleDeleteClick = useCallback((id: string) => {
+    const version = versions.find((v) => v.id === id);
+    if (version) {
+      log('Opening delete dialog for version:', id);
+      setVersionToDelete(version);
+      setShowDeleteDialog(true);
+    }
+  }, [versions]);
+
+  // Confirm delete
+  const handleConfirmDelete = useCallback(() => {
+    if (versionToDelete && onDeleteVersion) {
+      log('Delete confirmed for version:', versionToDelete.id);
+      onDeleteVersion(versionToDelete.id);
+    }
+    setShowDeleteDialog(false);
+    setVersionToDelete(null);
+  }, [versionToDelete, onDeleteVersion]);
+
+  // Cancel delete
+  const handleCancelDelete = useCallback(() => {
+    log('Delete cancelled');
+    setShowDeleteDialog(false);
+    setVersionToDelete(null);
+  }, []);
+
+  // Handle select with revert confirmation when selecting original
+  const handleSelectVersion = useCallback((index: number) => {
+    // If selecting original and we have versions, show confirmation
+    if (index === -1 && versions.length > 0 && currentVersionIndex !== -1) {
+      log('Opening revert dialog');
+      setShowRevertDialog(true);
+    } else {
+      log('Selecting version:', index);
+      onSelectVersion(index);
+    }
+  }, [versions.length, currentVersionIndex, onSelectVersion]);
+
+  // Confirm revert to original
+  const handleConfirmRevert = useCallback(() => {
+    log('Revert to original confirmed');
+    onSelectVersion(-1);
+    setShowRevertDialog(false);
+  }, [onSelectVersion]);
+
+  // Cancel revert
+  const handleCancelRevert = useCallback(() => {
+    log('Revert cancelled');
+    setShowRevertDialog(false);
+  }, []);
 
   const containerClass = [
     'version-list',
@@ -311,7 +369,7 @@ export function VersionList({
           isSelected={isViewingOriginal}
           isOriginal
           originalText={originalText}
-          onSelect={onSelectVersion}
+          onSelect={handleSelectVersion}
           compact={compact}
           testId={`${testId}-item-original`}
         />
@@ -326,8 +384,8 @@ export function VersionList({
               version={version}
               index={originalIndex}
               isSelected={currentVersionIndex === originalIndex}
-              onSelect={onSelectVersion}
-              onDelete={onDeleteVersion}
+              onSelect={handleSelectVersion}
+              onDelete={onDeleteVersion ? handleDeleteClick : undefined}
               compact={compact}
               testId={`${testId}-item-${version.id}`}
             />
@@ -343,6 +401,36 @@ export function VersionList({
           </span>
         </div>
       )}
+
+      {/* Delete version confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Version"
+        message={
+          versionToDelete
+            ? `Are you sure you want to delete "${versionToDelete.description || 'this version'}"? This action cannot be undone.`
+            : 'Are you sure you want to delete this version?'
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        testId="version-delete-dialog"
+      />
+
+      {/* Revert to original confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showRevertDialog}
+        onClose={handleCancelRevert}
+        onConfirm={handleConfirmRevert}
+        title="Revert to Original"
+        message="Are you sure you want to revert to the original version? You can still switch back to any edited version from the history."
+        confirmText="Revert"
+        cancelText="Cancel"
+        variant="warning"
+        testId="version-revert-dialog"
+      />
     </div>
   );
 }
