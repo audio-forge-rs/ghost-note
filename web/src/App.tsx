@@ -26,7 +26,7 @@ import { useUIStore } from '@/stores/useUIStore';
 import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
-import { EmptyState, LoadingSpinner } from '@/components/Common';
+import { EmptyState, LoadingSpinner, ToastContainer } from '@/components/Common';
 import { PoemInput } from '@/components/PoemInput';
 import { AnalysisPanel } from '@/components/Analysis';
 import { LyricEditor } from '@/components/LyricEditor';
@@ -672,6 +672,7 @@ function App(): React.ReactElement {
         isOpen={showShortcutsDialog}
         onClose={() => setShowShortcutsDialog(false)}
       />
+      <ToastContainer position="top-right" />
     </>
   );
 }

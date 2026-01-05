@@ -246,6 +246,9 @@ vi.mock('@/components/Common', () => ({
   LoadingSpinner: ({ size }: { size?: string }) => (
     <div data-testid="loading-spinner" data-size={size}>Loading...</div>
   ),
+  ToastContainer: ({ position, testId }: { position?: string; testId?: string }) => (
+    <div data-testid={testId ?? 'toast-container'} data-position={position}>Toast Container</div>
+  ),
 }));
 
 // Mock PoemInput component
