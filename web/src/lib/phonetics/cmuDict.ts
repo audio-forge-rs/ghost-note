@@ -9,11 +9,70 @@
  * - 1 = primary stress
  * - 2 = secondary stress
  *
+ * PERFORMANCE NOTE: The CMU dictionary is ~4MB and is loaded lazily
+ * on first use to avoid impacting initial page load.
+ *
  * @see http://www.speech.cs.cmu.edu/cgi-bin/cmudict
  * @see https://en.wikipedia.org/wiki/ARPABET
  */
 
-import { dictionary } from 'cmu-pronouncing-dictionary'
+// Lazy-loaded dictionary reference
+let dictionaryCache: Record<string, string> | null = null;
+let dictionaryLoadPromise: Promise<Record<string, string>> | null = null;
+
+/**
+ * Lazily loads the CMU Pronouncing Dictionary.
+ * The dictionary is only loaded once and cached for subsequent calls.
+ *
+ * @returns Promise resolving to the dictionary object
+ */
+async function loadDictionary(): Promise<Record<string, string>> {
+  if (dictionaryCache) {
+    return dictionaryCache;
+  }
+
+  if (dictionaryLoadPromise) {
+    return dictionaryLoadPromise;
+  }
+
+  console.debug('[cmuDict] Loading CMU Pronouncing Dictionary...');
+  const startTime = performance.now();
+
+  dictionaryLoadPromise = import('cmu-pronouncing-dictionary')
+    .then((module) => {
+      dictionaryCache = module.dictionary;
+      const loadTime = Math.round(performance.now() - startTime);
+      console.debug(`[cmuDict] Dictionary loaded in ${loadTime}ms`);
+      return dictionaryCache;
+    })
+    .catch((error) => {
+      console.error('[cmuDict] Failed to load dictionary:', error);
+      dictionaryLoadPromise = null;
+      throw error;
+    });
+
+  return dictionaryLoadPromise;
+}
+
+/**
+ * Gets the dictionary synchronously if already loaded.
+ * Returns null if dictionary hasn't been loaded yet.
+ *
+ * @returns The dictionary or null
+ */
+function getDictionarySync(): Record<string, string> | null {
+  return dictionaryCache;
+}
+
+/**
+ * Preloads the dictionary without blocking.
+ * Call this early in the app lifecycle to start loading the dictionary in the background.
+ */
+export function preloadDictionary(): void {
+  loadDictionary().catch(() => {
+    // Errors are logged in loadDictionary
+  });
+}
 
 /**
  * ARPAbet vowel phonemes (without stress markers)
@@ -165,17 +224,43 @@ export function getPhonemeStress(phoneme: string): StressLevel | null {
 }
 
 /**
- * Looks up a word in the CMU dictionary and returns its phonemes.
- * Returns the primary pronunciation as an array of phonemes.
+ * Looks up a word in the CMU dictionary and returns its phonemes (sync version).
+ * Returns null if dictionary isn't loaded or word not found.
+ *
+ * NOTE: Use lookupWordAsync for guaranteed results after dictionary loads.
  *
  * @param word - The word to look up
  * @returns Array of phonemes, or null if word not found
- *
- * @example
- * lookupWord('hello') // ['HH', 'AH0', 'L', 'OW1'] or ['HH', 'EH0', 'L', 'OW1']
- * lookupWord('xyzzy') // null
  */
 export function lookupWord(word: string): PhonemeSequence | null {
+  const dictionary = getDictionarySync()
+  if (!dictionary) {
+    console.debug(`[cmuDict] Dictionary not loaded yet, returning null for: "${word}"`)
+    return null
+  }
+
+  const normalized = normalizeWord(word)
+  const pronunciation = dictionary[normalized]
+
+  if (!pronunciation) {
+    console.debug(`[cmuDict] Word not found: "${word}"`)
+    return null
+  }
+
+  const phonemes = parsePronunciation(pronunciation)
+  console.debug(`[cmuDict] Lookup "${word}": ${phonemes.join(' ')}`)
+  return phonemes
+}
+
+/**
+ * Looks up a word in the CMU dictionary and returns its phonemes (async version).
+ * This ensures the dictionary is loaded before lookup.
+ *
+ * @param word - The word to look up
+ * @returns Promise resolving to array of phonemes, or null if word not found
+ */
+export async function lookupWordAsync(word: string): Promise<PhonemeSequence | null> {
+  const dictionary = await loadDictionary()
   const normalized = normalizeWord(word)
   const pronunciation = dictionary[normalized]
 
@@ -200,12 +285,51 @@ export function lookupWord(word: string): PhonemeSequence | null {
  *
  * @param word - The word to look up
  * @returns LookupResult with all pronunciations found
- *
- * @example
- * lookupAllPronunciations('hello')
- * // { word: 'hello', pronunciations: [['HH', 'AH0', 'L', 'OW1']], found: true }
  */
 export function lookupAllPronunciations(word: string): LookupResult {
+  const dictionary = getDictionarySync()
+  if (!dictionary) {
+    console.debug(`[cmuDict] Dictionary not loaded yet for all pronunciations: "${word}"`)
+    return {
+      word,
+      pronunciations: [],
+      found: false,
+    }
+  }
+
+  const normalized = normalizeWord(word)
+  const pronunciation = dictionary[normalized]
+
+  if (!pronunciation) {
+    console.debug(`[cmuDict] Word not found for all pronunciations: "${word}"`)
+    return {
+      word,
+      pronunciations: [],
+      found: false,
+    }
+  }
+
+  const phonemes = parsePronunciation(pronunciation)
+  console.debug(
+    `[cmuDict] All pronunciations for "${word}": ${phonemes.join(' ')}`
+  )
+
+  return {
+    word,
+    pronunciations: [phonemes],
+    found: true,
+  }
+}
+
+/**
+ * Async version of lookupAllPronunciations.
+ * Ensures dictionary is loaded before lookup.
+ *
+ * @param word - The word to look up
+ * @returns Promise resolving to LookupResult
+ */
+export async function lookupAllPronunciationsAsync(word: string): Promise<LookupResult> {
+  const dictionary = await loadDictionary()
   const normalized = normalizeWord(word)
   const pronunciation = dictionary[normalized]
 
@@ -235,12 +359,28 @@ export function lookupAllPronunciations(word: string): LookupResult {
  *
  * @param word - The word to check
  * @returns True if the word exists in the dictionary
- *
- * @example
- * hasWord('hello') // true
- * hasWord('xyzzy') // false
  */
 export function hasWord(word: string): boolean {
+  const dictionary = getDictionarySync()
+  if (!dictionary) {
+    console.debug(`[cmuDict] Dictionary not loaded yet for hasWord: "${word}"`)
+    return false
+  }
+
+  const normalized = normalizeWord(word)
+  const exists = normalized in dictionary
+  console.debug(`[cmuDict] hasWord "${word}": ${exists}`)
+  return exists
+}
+
+/**
+ * Async version of hasWord. Ensures dictionary is loaded.
+ *
+ * @param word - The word to check
+ * @returns Promise resolving to true if word exists
+ */
+export async function hasWordAsync(word: string): Promise<boolean> {
+  const dictionary = await loadDictionary()
   const normalized = normalizeWord(word)
   const exists = normalized in dictionary
   console.debug(`[cmuDict] hasWord "${word}": ${exists}`)
@@ -258,11 +398,6 @@ export function hasWord(word: string): boolean {
  *
  * @param word - The word to analyze
  * @returns Stress pattern string (e.g., "01" for "hello"), or null if not found
- *
- * @example
- * getStress('hello')      // "01" (he-LLO)
- * getStress('beautiful')  // "100" (BEAU-ti-ful)
- * getStress('understand') // "201" (UN-der-STAND)
  */
 export function getStress(word: string): string | null {
   const phonemes = lookupWord(word)
@@ -285,11 +420,6 @@ export function getStress(word: string): string | null {
  *
  * @param word - The word to count syllables for
  * @returns Number of syllables, or null if word not found
- *
- * @example
- * getSyllableCount('hello')     // 2
- * getSyllableCount('beautiful') // 3
- * getSyllableCount('I')         // 1
  */
 export function getSyllableCount(word: string): number | null {
   const phonemes = lookupWord(word)
@@ -308,19 +438,54 @@ export function getSyllableCount(word: string): number | null {
  *
  * @param word - The word to analyze
  * @returns Complete phonetic analysis, or analysis with inDictionary=false
- *
- * @example
- * analyzeWord('hello')
- * // {
- * //   word: 'hello',
- * //   phonemes: ['HH', 'AH0', 'L', 'OW1'],
- * //   syllableCount: 2,
- * //   stressPattern: '01',
- * //   inDictionary: true
- * // }
  */
 export function analyzeWord(word: string): PhoneticAnalysis {
   const lookupResult = lookupAllPronunciations(word)
+
+  if (!lookupResult.found) {
+    console.debug(`[cmuDict] Analysis failed - word not found: "${word}"`)
+    return {
+      word,
+      phonemes: [],
+      syllableCount: 0,
+      stressPattern: '',
+      inDictionary: false,
+    }
+  }
+
+  const primaryPhonemes = lookupResult.pronunciations[0]
+  const stressPattern = primaryPhonemes
+    .map((phoneme) => getPhonemeStress(phoneme))
+    .filter((stress): stress is StressLevel => stress !== null)
+    .join('')
+
+  const syllableCount = primaryPhonemes.filter((p) => isVowel(p)).length
+
+  const analysis: PhoneticAnalysis = {
+    word,
+    phonemes: primaryPhonemes,
+    syllableCount,
+    stressPattern,
+    inDictionary: true,
+  }
+
+  // Include alternative pronunciations if available
+  if (lookupResult.pronunciations.length > 1) {
+    analysis.alternativePronunciations = lookupResult.pronunciations.slice(1)
+  }
+
+  console.debug(`[cmuDict] Complete analysis for "${word}":`, analysis)
+  return analysis
+}
+
+/**
+ * Async version of analyzeWord. Ensures dictionary is loaded.
+ *
+ * @param word - The word to analyze
+ * @returns Promise resolving to complete phonetic analysis
+ */
+export async function analyzeWordAsync(word: string): Promise<PhoneticAnalysis> {
+  const lookupResult = await lookupAllPronunciationsAsync(word)
 
   if (!lookupResult.found) {
     console.debug(`[cmuDict] Analysis failed - word not found: "${word}"`)
@@ -385,11 +550,6 @@ export function extractConsonants(phonemes: PhonemeSequence): Phoneme[] {
  *
  * @param word - The word to get rhyming part for
  * @returns Phonemes from last stressed vowel to end, or null if not found
- *
- * @example
- * getRhymingPart('cat')    // ['AE1', 'T']
- * getRhymingPart('hello')  // ['OW1']
- * getRhymingPart('river')  // ['IH1', 'V', 'ER0'] (from primary stress)
  */
 export function getRhymingPart(word: string): PhonemeSequence | null {
   const phonemes = lookupWord(word)
@@ -435,11 +595,6 @@ export function getRhymingPart(word: string): PhonemeSequence | null {
  * @param word1 - First word
  * @param word2 - Second word
  * @returns True if the words rhyme
- *
- * @example
- * doWordsRhyme('cat', 'hat')     // true
- * doWordsRhyme('love', 'move')   // false (slant rhyme)
- * doWordsRhyme('time', 'rhyme')  // true
  */
 export function doWordsRhyme(word1: string, word2: string): boolean {
   const rhyme1 = getRhymingPart(word1)
@@ -456,4 +611,23 @@ export function doWordsRhyme(word1: string, word2: string): boolean {
   const match = normalize(rhyme1) === normalize(rhyme2)
   console.debug(`[cmuDict] doWordsRhyme("${word1}", "${word2}"): ${match}`)
   return match
+}
+
+/**
+ * Ensures the dictionary is loaded. Call this before performing
+ * synchronous operations if you need guaranteed results.
+ *
+ * @returns Promise that resolves when dictionary is loaded
+ */
+export async function ensureDictionaryLoaded(): Promise<void> {
+  await loadDictionary()
+}
+
+/**
+ * Checks if the dictionary is currently loaded.
+ *
+ * @returns True if dictionary is loaded and ready
+ */
+export function isDictionaryLoaded(): boolean {
+  return dictionaryCache !== null
 }

@@ -6,7 +6,7 @@
  * @module App
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { usePoemStore, selectCurrentLyrics, selectHasPoem } from '@/stores/usePoemStore';
 import { useAnalysisStore, selectHasAnalysis, selectIsAnalyzing } from '@/stores/useAnalysisStore';
@@ -31,11 +31,15 @@ import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
 import { EmptyState, LoadingSpinner, ToastContainer, SkipLinks, OfflineIndicator } from '@/components/Common';
 import { PoemInput } from '@/components/PoemInput';
-import { AnalysisPanel } from '@/components/Analysis';
-import { LyricEditor } from '@/components/LyricEditor';
-import { NotationDisplay } from '@/components/Notation';
-import { PlaybackContainer } from '@/components/Playback';
-import { PermissionPrompt, AudioLevelMeter, MicrophoneSelect } from '@/components/Recording';
+// Lazy-loaded components for code splitting
+// These components import heavy libraries (abcjs ~500KB, Recording components)
+const AnalysisPanel = lazy(() => import('@/components/Analysis/AnalysisPanel').then(m => ({ default: m.AnalysisPanel })));
+const LyricEditor = lazy(() => import('@/components/LyricEditor/LyricEditor').then(m => ({ default: m.LyricEditor })));
+const NotationDisplay = lazy(() => import('@/components/Notation/NotationDisplay').then(m => ({ default: m.NotationDisplay })));
+const PlaybackContainer = lazy(() => import('@/components/Playback/PlaybackContainer').then(m => ({ default: m.PlaybackContainer })));
+const PermissionPrompt = lazy(() => import('@/components/Recording/PermissionPrompt').then(m => ({ default: m.PermissionPrompt })));
+const AudioLevelMeter = lazy(() => import('@/components/Recording/AudioLevelMeter').then(m => ({ default: m.AudioLevelMeter })));
+const MicrophoneSelect = lazy(() => import('@/components/Recording/MicrophoneSelect').then(m => ({ default: m.MicrophoneSelect })));
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcuts';
 import { TutorialDialog } from '@/components/Tutorial';
 import {
@@ -47,6 +51,18 @@ import { ShareDialog } from '@/components/Share';
 import { HelpPanel } from '@/components/Help';
 import { useKeyboardShortcuts } from '@/hooks';
 import './App.css';
+
+/**
+ * Loading fallback component for lazy-loaded sections
+ */
+function SectionLoadingFallback(): React.ReactElement {
+  return (
+    <div className="section-loading" data-testid="section-loading">
+      <LoadingSpinner size="large" />
+      <p>Loading...</p>
+    </div>
+  );
+}
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
@@ -301,10 +317,12 @@ function ViewContent({
 
       // Show AnalysisPanel with analysis data
       return (
-        <AnalysisPanel
-          analysis={analysis}
-          poemText={original}
-        />
+        <Suspense fallback={<SectionLoadingFallback />}>
+          <AnalysisPanel
+            analysis={analysis}
+            poemText={original}
+          />
+        </Suspense>
       );
 
     case 'lyrics-editor':
@@ -321,13 +339,17 @@ function ViewContent({
       }
 
       // LyricEditor handles its own internal state and hooks
-      return <LyricEditorWithSuggestions
-        hasAnalysis={hasAnalysis}
-        analysis={analysis}
-        hasSuggestions={hasSuggestions}
-        suggestionsLoading={suggestionsLoading}
-        onGenerateSuggestions={handleGenerateSuggestions}
-      />;
+      return (
+        <Suspense fallback={<SectionLoadingFallback />}>
+          <LyricEditorWithSuggestions
+            hasAnalysis={hasAnalysis}
+            analysis={analysis}
+            hasSuggestions={hasSuggestions}
+            suggestionsLoading={suggestionsLoading}
+            onGenerateSuggestions={handleGenerateSuggestions}
+          />
+        </Suspense>
+      );
 
     case 'melody':
       // Trigger melody generation if needed when entering this view
@@ -359,42 +381,44 @@ function ViewContent({
 
       // Show NotationDisplay and PlaybackContainer
       return (
-        <div className="melody-view" data-testid="view-melody">
-          {hasMelody && abcNotation ? (
-            <>
-              <NotationDisplay
-                abc={abcNotation}
-                responsive
-                className="melody-notation"
+        <Suspense fallback={<SectionLoadingFallback />}>
+          <div className="melody-view" data-testid="view-melody">
+            {hasMelody && abcNotation ? (
+              <>
+                <NotationDisplay
+                  abc={abcNotation}
+                  responsive
+                  className="melody-notation"
+                />
+                <PlaybackContainer
+                  playbackState={playbackState}
+                  currentTime={currentTime}
+                  duration={duration}
+                  hasContent={hasMelody}
+                  tempo={tempo}
+                  onTempoChange={setTempo}
+                  keySignature={keySignature}
+                  onKeyChange={setKey}
+                  loopEnabled={loop}
+                  onLoopEnabledChange={() => toggleLoop()}
+                  onPlay={play}
+                  onPause={pause}
+                  onStop={stop}
+                  onSeek={seek}
+                  layout="vertical"
+                  testId="melody-playback"
+                />
+              </>
+            ) : (
+              <EmptyState
+                title="No Melody Generated"
+                description="Click below to generate a melody from your lyrics."
+                variant="centered"
+                testId="view-melody-empty"
               />
-              <PlaybackContainer
-                playbackState={playbackState}
-                currentTime={currentTime}
-                duration={duration}
-                hasContent={hasMelody}
-                tempo={tempo}
-                onTempoChange={setTempo}
-                keySignature={keySignature}
-                onKeyChange={setKey}
-                loopEnabled={loop}
-                onLoopEnabledChange={() => toggleLoop()}
-                onPlay={play}
-                onPause={pause}
-                onStop={stop}
-                onSeek={seek}
-                layout="vertical"
-                testId="melody-playback"
-              />
-            </>
-          ) : (
-            <EmptyState
-              title="No Melody Generated"
-              description="Click below to generate a melody from your lyrics."
-              variant="centered"
-              testId="view-melody-empty"
-            />
-          )}
-        </div>
+            )}
+          </div>
+        </Suspense>
       );
 
     case 'recording':
@@ -412,57 +436,59 @@ function ViewContent({
 
       // Show recording interface
       return (
-        <div className="recording-view" data-testid="view-recording">
-          {!hasPermission ? (
-            <PermissionPrompt
-              onPermissionGranted={() => {
-                log('Microphone permission granted');
-              }}
-              onPermissionDenied={(error) => {
-                log('Microphone permission denied:', error);
-              }}
-              variant="card"
-            />
-          ) : (
-            <div className="recording-controls">
-              <h3>Recording Studio</h3>
-              <MicrophoneSelect
-                hasPermission={hasPermission}
-                className="recording-mic-select"
+        <Suspense fallback={<SectionLoadingFallback />}>
+          <div className="recording-view" data-testid="view-recording">
+            {!hasPermission ? (
+              <PermissionPrompt
+                onPermissionGranted={() => {
+                  log('Microphone permission granted');
+                }}
+                onPermissionDenied={(error) => {
+                  log('Microphone permission denied:', error);
+                }}
+                variant="card"
               />
-              <AudioLevelMeter
-                level={inputLevel}
-                meterStyle="gradient"
-                orientation="horizontal"
-                showPeak
-                width="100%"
-                height="24px"
-                className="recording-level-meter"
-              />
-              <div className="recording-actions">
-                {isRecording ? (
-                  <button
-                    type="button"
-                    className="recording-button recording-button--stop"
-                    onClick={stopRecording}
-                    data-testid="stop-recording-button"
-                  >
-                    Stop Recording
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="recording-button recording-button--start"
-                    onClick={() => startRecording()}
-                    data-testid="start-recording-button"
-                  >
-                    Start Recording
-                  </button>
-                )}
+            ) : (
+              <div className="recording-controls">
+                <h3>Recording Studio</h3>
+                <MicrophoneSelect
+                  hasPermission={hasPermission}
+                  className="recording-mic-select"
+                />
+                <AudioLevelMeter
+                  level={inputLevel}
+                  meterStyle="gradient"
+                  orientation="horizontal"
+                  showPeak
+                  width="100%"
+                  height="24px"
+                  className="recording-level-meter"
+                />
+                <div className="recording-actions">
+                  {isRecording ? (
+                    <button
+                      type="button"
+                      className="recording-button recording-button--stop"
+                      onClick={stopRecording}
+                      data-testid="stop-recording-button"
+                    >
+                      Stop Recording
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="recording-button recording-button--start"
+                      onClick={() => startRecording()}
+                      data-testid="start-recording-button"
+                    >
+                      Start Recording
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </Suspense>
       );
 
     default:

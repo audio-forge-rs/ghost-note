@@ -3,6 +3,10 @@
  *
  * Manages melody generation, ABC notation, and playback state.
  *
+ * PERFORMANCE NOTE: The abcRenderer module imports abcjs (~500KB).
+ * To keep the initial bundle small, we use dynamic imports to load
+ * the synth functions only when playback is actually requested.
+ *
  * @module stores/useMelodyStore
  */
 
@@ -11,15 +15,47 @@ import { devtools, persist } from 'zustand/middleware';
 import type { MelodyStore, MelodyState } from './types';
 import type { PoemAnalysis } from '../types';
 import type { Melody } from '../lib/melody/types';
-import {
-  initSynth,
-  getSynth,
-  playMelody,
-  pausePlayback,
-  stopPlayback,
-  resumePlayback,
-  type SynthState,
-} from '../lib/music/abcRenderer';
+
+// Type for the dynamically imported abcRenderer module
+type AbcRendererModule = typeof import('../lib/music/abcRenderer');
+type SynthState = 'uninitialized' | 'loading' | 'ready' | 'playing' | 'paused' | 'stopped' | 'error';
+
+// Cached module reference
+let abcRendererModule: AbcRendererModule | null = null;
+let abcRendererLoadPromise: Promise<AbcRendererModule> | null = null;
+
+/**
+ * Lazily loads the abcRenderer module.
+ * This keeps abcjs (~500KB) out of the initial bundle.
+ */
+async function loadAbcRenderer(): Promise<AbcRendererModule> {
+  if (abcRendererModule) {
+    return abcRendererModule;
+  }
+
+  if (abcRendererLoadPromise) {
+    return abcRendererLoadPromise;
+  }
+
+  console.debug('[MelodyStore] Loading abcRenderer module...');
+  const startTime = performance.now();
+
+  abcRendererLoadPromise = import('../lib/music/abcRenderer')
+    .then((module) => {
+      abcRendererModule = module;
+      const loadTime = Math.round(performance.now() - startTime);
+      console.debug(`[MelodyStore] abcRenderer loaded in ${loadTime}ms`);
+      return module;
+    })
+    .catch((error) => {
+      console.error('[MelodyStore] Failed to load abcRenderer:', error);
+      abcRendererLoadPromise = null;
+      throw error;
+    });
+
+  return abcRendererLoadPromise;
+}
+
 
 // =============================================================================
 // Constants
@@ -204,12 +240,14 @@ w: Place-hold-er me-lo-dy here~`;
           );
 
           try {
-            const synth = getSynth();
+            // Lazily load the abcRenderer module
+            const abcRenderer = await loadAbcRenderer();
+            const synth = abcRenderer.getSynth();
 
             // If paused, resume playback
             if (playbackState === 'paused' && synth && synth.getState() === 'paused') {
               console.log('[MelodyStore] Resuming from paused state');
-              const resumed = resumePlayback();
+              const resumed = abcRenderer.resumePlayback();
               if (resumed) {
                 set(
                   {
@@ -234,7 +272,7 @@ w: Place-hold-er me-lo-dy here~`;
 
             // Initialize synth with progress callbacks
             console.log('[MelodyStore] Initializing synth for fresh playback');
-            await initSynth({
+            await abcRenderer.initSynth({
               onProgress: (currentBeat, totalBeats, totalTime) => {
                 // Convert beat progress to time
                 // totalTime is in milliseconds from abcjs
@@ -284,7 +322,7 @@ w: Place-hold-er me-lo-dy here~`;
             // Start playback using playMelody helper
             // This handles rendering, loading, and playing in one call
             console.log('[MelodyStore] Starting playMelody with notation');
-            const success = await playMelody(abcNotation, NOTATION_ELEMENT_ID);
+            const success = await abcRenderer.playMelody(abcNotation, NOTATION_ELEMENT_ID);
 
             if (success) {
               console.log('[MelodyStore] Playback started successfully');
@@ -320,7 +358,7 @@ w: Place-hold-er me-lo-dy here~`;
           }
         },
 
-        pause: () => {
+        pause: async () => {
           const state = get();
           console.log('[MelodyStore] Pause requested, current state:', state.playbackState);
 
@@ -330,43 +368,49 @@ w: Place-hold-er me-lo-dy here~`;
             return;
           }
 
-          // Call the actual synth pause
-          const paused = pausePlayback();
-
-          if (paused) {
-            console.log('[MelodyStore] Paused successfully');
-            set(
-              {
-                playbackState: 'paused',
-              },
-              false,
-              'pause'
-            );
-          } else {
-            console.warn('[MelodyStore] Failed to pause, synth may not be active');
-            // Still update the state since the user expects it to be paused
-            set(
-              {
-                playbackState: 'paused',
-              },
-              false,
-              'pause/fallback'
-            );
+          // Try to pause using the loaded module
+          const abcRenderer = abcRendererModule;
+          if (abcRenderer) {
+            const paused = abcRenderer.pausePlayback();
+            if (paused) {
+              console.log('[MelodyStore] Paused successfully');
+              set(
+                {
+                  playbackState: 'paused',
+                },
+                false,
+                'pause'
+              );
+              return;
+            }
           }
+
+          console.warn('[MelodyStore] Failed to pause, synth may not be active');
+          // Still update the state since the user expects it to be paused
+          set(
+            {
+              playbackState: 'paused',
+            },
+            false,
+            'pause/fallback'
+          );
         },
 
         stop: () => {
           const state = get();
           console.log('[MelodyStore] Stop requested, current state:', state.playbackState);
 
-          // Call the actual synth stop if we have a synth
-          const synth = getSynth();
-          if (synth) {
-            const stopped = stopPlayback();
-            if (stopped) {
-              console.log('[MelodyStore] Stopped synth successfully');
-            } else {
-              console.log('[MelodyStore] Synth stop returned false (may already be stopped)');
+          // Call the actual synth stop if we have the module loaded
+          const abcRenderer = abcRendererModule;
+          if (abcRenderer) {
+            const synth = abcRenderer.getSynth();
+            if (synth) {
+              const stopped = abcRenderer.stopPlayback();
+              if (stopped) {
+                console.log('[MelodyStore] Stopped synth successfully');
+              } else {
+                console.log('[MelodyStore] Synth stop returned false (may already be stopped)');
+              }
             }
           }
 
@@ -493,9 +537,12 @@ w: Place-hold-er me-lo-dy here~`;
           console.log('[MelodyStore] Clearing melody');
 
           // Stop any active playback
-          const synth = getSynth();
-          if (synth) {
-            stopPlayback();
+          const abcRenderer = abcRendererModule;
+          if (abcRenderer) {
+            const synth = abcRenderer.getSynth();
+            if (synth) {
+              abcRenderer.stopPlayback();
+            }
           }
 
           set(
@@ -517,9 +564,12 @@ w: Place-hold-er me-lo-dy here~`;
           console.log('[MelodyStore] Resetting store');
 
           // Stop any active playback
-          const synth = getSynth();
-          if (synth) {
-            stopPlayback();
+          const abcRenderer = abcRendererModule;
+          if (abcRenderer) {
+            const synth = abcRenderer.getSynth();
+            if (synth) {
+              abcRenderer.stopPlayback();
+            }
           }
 
           set(initialState, false, 'reset');

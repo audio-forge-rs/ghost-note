@@ -5,9 +5,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 import { createDefaultPoemAnalysis } from './types';
+
+// Allow time for lazy-loaded components to load
+const LAZY_COMPONENT_TIMEOUT = 5000;
 
 // Mock all the stores
 vi.mock('@/stores/useThemeStore', () => ({
@@ -49,6 +52,12 @@ vi.mock('@/stores/usePoemStore', () => ({
   ),
   selectCurrentLyrics: (state: typeof mockPoemStoreState) => state.original,
   selectHasPoem: (state: typeof mockPoemStoreState) => state.original.trim().length > 0,
+  selectCurrentVersion: (state: typeof mockPoemStoreState) => {
+    if (state.currentVersionIndex >= 0 && state.versions[state.currentVersionIndex]) {
+      return state.versions[state.currentVersionIndex];
+    }
+    return null;
+  },
 }));
 
 const mockAnalysisStoreState: {
@@ -326,7 +335,7 @@ vi.mock('@/components/PoemInput', () => ({
   ),
 }));
 
-// Mock Analysis components
+// Mock Analysis components (barrel import)
 vi.mock('@/components/Analysis', () => ({
   AnalysisPanel: ({ analysis, poemText }: { analysis: unknown; poemText?: string }) => (
     <div data-testid="analysis-panel" data-has-analysis={!!analysis} data-poem-text={poemText?.substring(0, 20)}>
@@ -336,7 +345,17 @@ vi.mock('@/components/Analysis', () => ({
   ),
 }));
 
-// Mock LyricEditor components
+// Mock Analysis components (direct import for React.lazy)
+vi.mock('@/components/Analysis/AnalysisPanel', () => ({
+  AnalysisPanel: ({ analysis, poemText }: { analysis: unknown; poemText?: string }) => (
+    <div data-testid="analysis-panel" data-has-analysis={!!analysis} data-poem-text={poemText?.substring(0, 20)}>
+      <h2>Analysis Panel</h2>
+      {analysis ? <div data-testid="analysis-content">Analysis data loaded</div> : <p>No analysis</p>}
+    </div>
+  ),
+}));
+
+// Mock LyricEditor components (barrel import)
 vi.mock('@/components/LyricEditor', () => ({
   LyricEditor: ({ testId }: { testId?: string }) => (
     <div data-testid={testId || 'lyric-editor'}>
@@ -346,7 +365,17 @@ vi.mock('@/components/LyricEditor', () => ({
   ),
 }));
 
-// Mock Notation components
+// Mock LyricEditor components (direct import for React.lazy)
+vi.mock('@/components/LyricEditor/LyricEditor', () => ({
+  LyricEditor: ({ testId }: { testId?: string }) => (
+    <div data-testid={testId || 'lyric-editor'}>
+      <h2>Lyric Editor</h2>
+      <textarea data-testid="lyric-textarea" placeholder="Edit lyrics..." />
+    </div>
+  ),
+}));
+
+// Mock Notation components (barrel import)
 vi.mock('@/components/Notation', () => ({
   NotationDisplay: ({ abc, responsive, className }: { abc: string; responsive?: boolean; className?: string }) => (
     <div data-testid="notation-display" data-abc={abc?.substring(0, 20)} data-responsive={responsive} className={className}>
@@ -355,7 +384,16 @@ vi.mock('@/components/Notation', () => ({
   ),
 }));
 
-// Mock Playback components
+// Mock Notation components (direct import for React.lazy)
+vi.mock('@/components/Notation/NotationDisplay', () => ({
+  NotationDisplay: ({ abc, responsive, className }: { abc: string; responsive?: boolean; className?: string }) => (
+    <div data-testid="notation-display" data-abc={abc?.substring(0, 20)} data-responsive={responsive} className={className}>
+      <h2>Music Notation</h2>
+    </div>
+  ),
+}));
+
+// Mock Playback components (barrel import)
 vi.mock('@/components/Playback', () => ({
   PlaybackContainer: ({
     playbackState,
@@ -382,7 +420,34 @@ vi.mock('@/components/Playback', () => ({
   ),
 }));
 
-// Mock Recording components
+// Mock Playback components (direct import for React.lazy)
+vi.mock('@/components/Playback/PlaybackContainer', () => ({
+  PlaybackContainer: ({
+    playbackState,
+    hasContent,
+    tempo,
+    testId,
+    onPlay,
+    onPause,
+    onStop,
+  }: {
+    playbackState: string;
+    hasContent: boolean;
+    tempo: number;
+    testId?: string;
+    onPlay: () => void;
+    onPause: () => void;
+    onStop: () => void;
+  }) => (
+    <div data-testid={testId || 'playback-container'} data-state={playbackState} data-has-content={hasContent} data-tempo={tempo}>
+      <button data-testid="play-button" onClick={onPlay}>Play</button>
+      <button data-testid="pause-button" onClick={onPause}>Pause</button>
+      <button data-testid="stop-button" onClick={onStop}>Stop</button>
+    </div>
+  ),
+}));
+
+// Mock Recording components (barrel import)
 vi.mock('@/components/Recording', () => ({
   PermissionPrompt: ({ onPermissionGranted, variant }: {
     onPermissionGranted?: () => void;
@@ -399,6 +464,36 @@ vi.mock('@/components/Recording', () => ({
       Level Meter
     </div>
   ),
+  MicrophoneSelect: ({ hasPermission, className }: { hasPermission?: boolean; className?: string }) => (
+    <select data-testid="microphone-select" data-has-permission={hasPermission} className={className}>
+      <option>Default Microphone</option>
+    </select>
+  ),
+}));
+
+// Mock Recording components (direct imports for React.lazy)
+vi.mock('@/components/Recording/PermissionPrompt', () => ({
+  PermissionPrompt: ({ onPermissionGranted, variant }: {
+    onPermissionGranted?: () => void;
+    onPermissionDenied?: (error: string) => void;
+    variant?: string;
+  }) => (
+    <div data-testid="permission-prompt" data-variant={variant}>
+      <h2>Microphone Permission Required</h2>
+      <button data-testid="grant-permission" onClick={() => onPermissionGranted?.()}>Enable Microphone</button>
+    </div>
+  ),
+}));
+
+vi.mock('@/components/Recording/AudioLevelMeter', () => ({
+  AudioLevelMeter: ({ level, meterStyle, orientation }: { level?: number; meterStyle?: string; orientation?: string }) => (
+    <div data-testid="audio-level-meter" data-level={level} data-style={meterStyle} data-orientation={orientation}>
+      Level Meter
+    </div>
+  ),
+}));
+
+vi.mock('@/components/Recording/MicrophoneSelect', () => ({
   MicrophoneSelect: ({ hasPermission, className }: { hasPermission?: boolean; className?: string }) => (
     <select data-testid="microphone-select" data-has-permission={hasPermission} className={className}>
       <option>Default Microphone</option>
@@ -498,11 +593,14 @@ describe('App', () => {
       expect(screen.getByText('Enter a poem first to see its analysis.')).toBeInTheDocument();
     });
 
-    it('shows AnalysisPanel when poem exists', () => {
+    it('shows AnalysisPanel when poem exists', async () => {
       mockPoemStoreState.original = 'Roses are red, violets are blue';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-analysis'));
-      expect(screen.getByTestId('analysis-panel')).toBeInTheDocument();
+      // Wait for lazy-loaded AnalysisPanel to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('analysis-panel')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
     });
 
     it('shows loading state when analyzing', () => {
@@ -524,12 +622,15 @@ describe('App', () => {
       expect(screen.getByText('No Lyrics to Edit')).toBeInTheDocument();
     });
 
-    it('shows LyricEditor when poem exists', () => {
+    it('shows LyricEditor when poem exists', async () => {
       mockPoemStoreState.original = 'Roses are red, violets are blue';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-lyrics-editor'));
-      expect(screen.getByTestId('view-lyrics-editor')).toBeInTheDocument();
-      expect(screen.getByText('Lyric Editor')).toBeInTheDocument();
+      // Wait for lazy-loaded LyricEditor to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('view-lyrics-editor')).toBeInTheDocument();
+        expect(screen.getByText('Lyric Editor')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
     });
   });
 
@@ -551,15 +652,18 @@ describe('App', () => {
       expect(screen.getByText('Generating melody...')).toBeInTheDocument();
     });
 
-    it('shows NotationDisplay and PlaybackContainer when melody exists', () => {
+    it('shows NotationDisplay and PlaybackContainer when melody exists', async () => {
       mockPoemStoreState.original = 'Roses are red';
       mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
-      expect(screen.getByTestId('view-melody')).toBeInTheDocument();
-      expect(screen.getByTestId('notation-display')).toBeInTheDocument();
-      expect(screen.getByTestId('melody-playback')).toBeInTheDocument();
+      // Wait for lazy-loaded NotationDisplay and PlaybackContainer to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('view-melody')).toBeInTheDocument();
+        expect(screen.getByTestId('notation-display')).toBeInTheDocument();
+        expect(screen.getByTestId('melody-playback')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
     });
   });
 
@@ -572,86 +676,115 @@ describe('App', () => {
       expect(screen.getByText('Generate a melody first, then record your performance.')).toBeInTheDocument();
     });
 
-    it('shows PermissionPrompt when melody exists but no permission', () => {
+    it('shows PermissionPrompt when melody exists but no permission', async () => {
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       mockRecordingStoreState.hasPermission = false;
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-recording'));
-      expect(screen.getByTestId('view-recording')).toBeInTheDocument();
-      expect(screen.getByTestId('permission-prompt')).toBeInTheDocument();
-      expect(screen.getByText('Microphone Permission Required')).toBeInTheDocument();
+      // Wait for lazy-loaded PermissionPrompt to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('view-recording')).toBeInTheDocument();
+        expect(screen.getByTestId('permission-prompt')).toBeInTheDocument();
+        expect(screen.getByText('Microphone Permission Required')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
     });
 
-    it('shows recording controls when permission is granted', () => {
+    it('shows recording controls when permission is granted', async () => {
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       mockRecordingStoreState.hasPermission = true;
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-recording'));
-      expect(screen.getByTestId('view-recording')).toBeInTheDocument();
-      expect(screen.getByText('Recording Studio')).toBeInTheDocument();
-      expect(screen.getByTestId('microphone-select')).toBeInTheDocument();
-      expect(screen.getByTestId('audio-level-meter')).toBeInTheDocument();
-      expect(screen.getByTestId('start-recording-button')).toBeInTheDocument();
+      // Wait for lazy-loaded recording components to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('view-recording')).toBeInTheDocument();
+        expect(screen.getByText('Recording Studio')).toBeInTheDocument();
+        expect(screen.getByTestId('microphone-select')).toBeInTheDocument();
+        expect(screen.getByTestId('audio-level-meter')).toBeInTheDocument();
+        expect(screen.getByTestId('start-recording-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
     });
 
-    it('shows stop button when recording', () => {
+    it('shows stop button when recording', async () => {
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       mockRecordingStoreState.hasPermission = true;
       mockRecordingStoreState.recordingState = 'recording';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-recording'));
-      expect(screen.getByTestId('stop-recording-button')).toBeInTheDocument();
+      // Wait for lazy-loaded components to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('stop-recording-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
     });
   });
 
   describe('playback controls', () => {
-    it('calls play when play button is clicked', () => {
+    it('calls play when play button is clicked', async () => {
       mockPoemStoreState.original = 'Roses are red';
       mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
+      // Wait for lazy-loaded PlaybackContainer to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('play-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
       fireEvent.click(screen.getByTestId('play-button'));
       expect(mockMelodyStoreState.play).toHaveBeenCalled();
     });
 
-    it('calls pause when pause button is clicked', () => {
+    it('calls pause when pause button is clicked', async () => {
       mockPoemStoreState.original = 'Roses are red';
       mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
+      // Wait for lazy-loaded PlaybackContainer to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('pause-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
       fireEvent.click(screen.getByTestId('pause-button'));
       expect(mockMelodyStoreState.pause).toHaveBeenCalled();
     });
 
-    it('calls stop when stop button is clicked', () => {
+    it('calls stop when stop button is clicked', async () => {
       mockPoemStoreState.original = 'Roses are red';
       mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
+      // Wait for lazy-loaded PlaybackContainer to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('stop-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
       fireEvent.click(screen.getByTestId('stop-button'));
       expect(mockMelodyStoreState.stop).toHaveBeenCalled();
     });
   });
 
   describe('recording controls', () => {
-    it('calls startRecording when start button is clicked', () => {
+    it('calls startRecording when start button is clicked', async () => {
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       mockRecordingStoreState.hasPermission = true;
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-recording'));
+      // Wait for lazy-loaded recording components to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('start-recording-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
       fireEvent.click(screen.getByTestId('start-recording-button'));
       expect(mockRecordingStoreState.startRecording).toHaveBeenCalled();
     });
 
-    it('calls stopRecording when stop button is clicked', () => {
+    it('calls stopRecording when stop button is clicked', async () => {
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       mockRecordingStoreState.hasPermission = true;
       mockRecordingStoreState.recordingState = 'recording';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-recording'));
+      // Wait for lazy-loaded recording components to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('stop-recording-button')).toBeInTheDocument();
+      }, { timeout: LAZY_COMPONENT_TIMEOUT });
       fireEvent.click(screen.getByTestId('stop-recording-button'));
       expect(mockRecordingStoreState.stopRecording).toHaveBeenCalled();
     });
