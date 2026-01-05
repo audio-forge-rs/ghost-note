@@ -24,3 +24,17 @@ export {
   type ShortcutCallbacks,
   type KeyboardShortcutsOptions,
 } from './useKeyboardShortcuts';
+
+export {
+  useAnnouncer,
+  cleanupLiveRegions,
+  type AnnouncementPriority,
+  type AnnounceOptions,
+  type AnnouncerReturn,
+} from './useAnnouncer';
+
+export {
+  useFocusTrap,
+  type FocusTrapOptions,
+  type FocusTrapReturn,
+} from './useFocusTrap';

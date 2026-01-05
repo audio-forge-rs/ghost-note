@@ -108,7 +108,7 @@ describe('KeyboardShortcutsDialog', () => {
       const onClose = vi.fn();
       render(<KeyboardShortcutsDialog isOpen={true} onClose={onClose} />);
 
-      fireEvent.click(screen.getByTestId('keyboard-shortcuts-dialog'));
+      fireEvent.click(screen.getByTestId('keyboard-shortcuts-overlay'));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });

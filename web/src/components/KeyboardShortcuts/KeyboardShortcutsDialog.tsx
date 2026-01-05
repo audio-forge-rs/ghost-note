@@ -7,8 +7,8 @@
  * @module components/KeyboardShortcuts/KeyboardShortcutsDialog
  */
 
-import { useEffect, useCallback } from 'react';
-import { getShortcutsByCategory, type ShortcutDefinition } from '@/hooks/useKeyboardShortcuts';
+import { useEffect } from 'react';
+import { getShortcutsByCategory, type ShortcutDefinition, useFocusTrap } from '@/hooks';
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
@@ -95,28 +95,14 @@ export function KeyboardShortcutsDialog({
 }: KeyboardShortcutsDialogProps): React.ReactElement | null {
   log('Rendering dialog:', { isOpen });
 
-  // Handle escape key to close
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        log('Escape pressed, closing dialog');
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    log('Adding escape key listener');
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      log('Removing escape key listener');
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, handleKeyDown]);
+  // Focus trap for modal dialog
+  const { containerRef } = useFocusTrap({
+    enabled: isOpen,
+    autoFocus: true,
+    returnFocus: true,
+    initialFocusSelector: '[data-testid="keyboard-shortcuts-close"]',
+    onEscape: onClose,
+  });
 
   // Prevent body scroll when dialog is open
   useEffect(() => {
@@ -147,12 +133,16 @@ export function KeyboardShortcutsDialog({
     <div
       className="keyboard-shortcuts-overlay"
       onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="keyboard-shortcuts-title"
-      data-testid="keyboard-shortcuts-dialog"
+      data-testid="keyboard-shortcuts-overlay"
     >
-      <div className="keyboard-shortcuts-dialog">
+      <div
+        ref={containerRef as React.RefObject<HTMLDivElement>}
+        className="keyboard-shortcuts-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="keyboard-shortcuts-title"
+        data-testid="keyboard-shortcuts-dialog"
+      >
         {/* Header */}
         <div className="keyboard-shortcuts-header">
           <h2 id="keyboard-shortcuts-title" className="keyboard-shortcuts-title">
