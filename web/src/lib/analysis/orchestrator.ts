@@ -12,6 +12,7 @@
  * 5. Rhyme analysis
  * 6. Singability scoring
  * 7. Emotion analysis
+ * 8. Structure analysis (verse/chorus detection)
  *
  * @module lib/analysis/orchestrator
  */
@@ -67,6 +68,8 @@ import {
 import { analyzeSoundPatterns } from './soundPatterns';
 
 import { analyzeEmotion } from './emotion';
+
+import { analyzeStructure } from './structure';
 
 // =============================================================================
 // Types
@@ -131,8 +134,9 @@ const ANALYSIS_STAGES = [
   { name: 'meter', weight: 15, message: 'Detecting meter...' },
   { name: 'rhyme', weight: 10, message: 'Analyzing rhyme scheme...' },
   { name: 'soundPatterns', weight: 10, message: 'Detecting sound patterns...' },
-  { name: 'singability', weight: 15, message: 'Scoring singability...' },
+  { name: 'singability', weight: 10, message: 'Scoring singability...' },
   { name: 'emotion', weight: 10, message: 'Analyzing emotional content...' },
+  { name: 'structure', weight: 15, message: 'Detecting verse/chorus structure...' },
 ] as const;
 
 // =============================================================================
@@ -626,6 +630,43 @@ function identifyProblems(
   return problems;
 }
 
+/**
+ * Checks if a stanza is at a section transition point.
+ * Section transitions (verse -> chorus, chorus -> bridge, etc.) warrant
+ * stronger phrase breaks in the melody.
+ *
+ * @param songStructure - The structure analysis
+ * @param stanzaIdx - Current stanza index
+ * @returns True if this stanza ends a section and the next starts a different type
+ */
+function isSectionTransition(
+  songStructure: import('./structure').StructureAnalysis,
+  stanzaIdx: number
+): boolean {
+  const { sections } = songStructure;
+
+  // Find section containing current stanza
+  const currentSection = sections.find((s) =>
+    s.stanzaIndices.includes(stanzaIdx)
+  );
+
+  // Find section containing next stanza
+  const nextSection = sections.find((s) =>
+    s.stanzaIndices.includes(stanzaIdx + 1)
+  );
+
+  // If either is not found, or they're the same section, no transition
+  if (!currentSection || !nextSection) {
+    return false;
+  }
+
+  // Transition if section types differ or if they're different section instances
+  return (
+    currentSection.type !== nextSection.type ||
+    currentSection.stanzaIndices !== nextSection.stanzaIndices
+  );
+}
+
 // =============================================================================
 // Main Analysis Function
 // =============================================================================
@@ -758,6 +799,11 @@ export async function analyzePoem(
   const emotionAnalysis = analyzeEmotion(text, preprocessed.stanzas);
   progress.completeStage('emotion');
 
+  // Stage 8: Structure analysis (verse/chorus detection)
+  progress.startStage('structure');
+  const songStructure = analyzeStructure(preprocessed.stanzas);
+  progress.completeStage('structure');
+
   // Build the complete analysis
   const totalWordCount = countWords(preprocessed);
   const totalSyllableCount = analyzedStanzas.reduce(
@@ -770,13 +816,18 @@ export async function analyzePoem(
   const problems = identifyProblems({ stanzas: analyzedStanzas }, meterResult);
 
   // Calculate phrase breaks (line ends within stanzas)
+  // Use structure analysis to inform phrase breaks if available
   const phraseBreaks: number[] = [];
   let lineIndex = 0;
-  for (const stanza of analyzedStanzas) {
+  for (let stanzaIdx = 0; stanzaIdx < analyzedStanzas.length; stanzaIdx++) {
+    const stanza = analyzedStanzas[stanzaIdx];
     for (let i = 0; i < stanza.lines.length; i++) {
       lineIndex++;
       // Mark stanza ends and every 2-4 lines as phrase breaks
-      if (i === stanza.lines.length - 1 || (i + 1) % 2 === 0) {
+      // Also mark section transitions as phrase breaks
+      const isStanzaEnd = i === stanza.lines.length - 1;
+      const isSectionEnd = isStanzaEnd && isSectionTransition(songStructure, stanzaIdx);
+      if (isStanzaEnd || (i + 1) % 2 === 0 || isSectionEnd) {
         phraseBreaks.push(lineIndex - 1);
       }
     }
@@ -808,6 +859,7 @@ export async function analyzePoem(
       mode: emotionAnalysis.suggestedMusicParams.mode,
       phraseBreaks,
     },
+    songStructure,
   };
 
   // Cache the result

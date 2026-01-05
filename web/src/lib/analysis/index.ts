@@ -15,3 +15,4 @@ export * from './singability';
 export * from './soundPatterns';
 export * from './orchestrator';
 export * from './phrases';
+export * from './structure';
