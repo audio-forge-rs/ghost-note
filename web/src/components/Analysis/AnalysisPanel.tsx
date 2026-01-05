@@ -16,6 +16,7 @@ import { RhymeSchemeDisplay } from './RhymeSchemeDisplay';
 import { MeterDisplay } from './MeterDisplay';
 import { SingabilityHeatmap } from './SingabilityHeatmap';
 import { SoundPatternsDisplay } from './SoundPatternsDisplay';
+import { EmotionArcChart } from './EmotionArcChart';
 import './AnalysisPanel.css';
 
 // Logging helper for debugging
@@ -36,6 +37,7 @@ export interface AnalysisToggles {
   meter: boolean;
   soundPatterns: boolean;
   singability: boolean;
+  emotionArc: boolean;
 }
 
 /**
@@ -48,6 +50,7 @@ const DEFAULT_TOGGLES: AnalysisToggles = {
   meter: false,
   soundPatterns: false,
   singability: false,
+  emotionArc: false,
 };
 
 /**
@@ -92,6 +95,11 @@ const TOGGLE_CONFIG: ToggleConfig[] = [
     key: 'singability',
     label: 'Singability',
     tooltip: 'Highlight areas that may be difficult to sing',
+  },
+  {
+    key: 'emotionArc',
+    label: 'Emotion',
+    tooltip: 'Show emotional progression across stanzas',
   },
 ];
 
@@ -165,6 +173,7 @@ export function AnalysisPanel({
         meter: enabled,
         soundPatterns: enabled,
         singability: enabled,
+        emotionArc: enabled,
       };
       setToggles(newToggles);
       onTogglesChange?.(newToggles);
@@ -303,6 +312,12 @@ export function AnalysisPanel({
           <SingabilityHeatmap
             structure={analysis.structure}
             problems={analysis.problems}
+          />
+        )}
+
+        {toggles.emotionArc && (
+          <EmotionArcChart
+            emotion={analysis.emotion}
           />
         )}
       </div>
