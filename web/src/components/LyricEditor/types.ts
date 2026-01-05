@@ -177,6 +177,28 @@ export interface LyricEditorProps {
   testId?: string;
 }
 
+/**
+ * Props for VersionCompareModal component
+ */
+export interface VersionCompareModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Callback when the modal should close */
+  onClose: () => void;
+  /** List of versions to compare */
+  versions: LyricVersion[];
+  /** The original text (for version comparison) */
+  originalText: string;
+  /** Optional initial left version ID (defaults to 'original') */
+  initialLeftVersionId?: string;
+  /** Optional initial right version ID (defaults to latest version) */
+  initialRightVersionId?: string;
+  /** Optional CSS class name */
+  className?: string;
+  /** Test ID for testing */
+  testId?: string;
+}
+
 // =============================================================================
 // Re-export LyricVersion for convenience
 // =============================================================================

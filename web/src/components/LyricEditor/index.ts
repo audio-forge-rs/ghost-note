@@ -14,6 +14,7 @@ export { DiffView } from './DiffView';
 export { InlineDiff } from './InlineDiff';
 export { SuggestionCard } from './SuggestionCard';
 export { VersionList } from './VersionList';
+export { VersionCompareModal } from './VersionCompareModal';
 
 // Types (all props and utility types from types.ts)
 export type {
@@ -28,6 +29,7 @@ export type {
   LyricVersion,
   SuggestionCardProps,
   SuggestionStatus,
+  VersionCompareModalProps,
   VersionListProps,
 } from './types';
 
