@@ -28,6 +28,7 @@ import type {
   AnalyzedLine,
   SingabilityScore,
   Severity,
+  LineSoundPatterns,
 } from '@/types/analysis';
 
 // =============================================================================
@@ -852,4 +853,86 @@ export function collectProblemSpots(
   });
 
   return allProblems;
+}
+
+// =============================================================================
+// Sound Pattern Integration
+// =============================================================================
+
+/**
+ * Adjusts a singability score based on sound patterns in the line.
+ *
+ * Well-placed alliteration and assonance can enhance singability by:
+ * - Creating natural flow and rhythm
+ * - Making lyrics more memorable
+ * - Providing smooth transitions between words
+ *
+ * However, excessive or awkward patterns can hinder singability.
+ *
+ * @param score - The original SingabilityScore
+ * @param patterns - Sound patterns found in the line
+ * @returns Adjusted SingabilityScore with sound pattern impact applied
+ */
+export function adjustSingabilityForSoundPatterns(
+  score: SingabilityScore,
+  patterns: LineSoundPatterns
+): SingabilityScore {
+  log('adjustSingabilityForSoundPatterns input:', {
+    originalScore: score.lineScore,
+    alliterations: patterns.alliterations.length,
+    assonances: patterns.assonances.length,
+    consonances: patterns.consonances.length,
+  });
+
+  let impact = 0;
+
+  // Moderate alliteration is positive (helps memory and flow)
+  const alliterationCount = patterns.alliterations.length;
+  if (alliterationCount === 1 || alliterationCount === 2) {
+    impact += 0.05 * alliterationCount;
+  } else if (alliterationCount > 3) {
+    // Excessive alliteration can feel forced
+    impact -= 0.02 * (alliterationCount - 3);
+  }
+
+  // Assonance is generally positive for singability (vowel harmony)
+  const assonanceCount = patterns.assonances.length;
+  if (assonanceCount >= 1 && assonanceCount <= 3) {
+    impact += 0.04 * assonanceCount;
+  }
+
+  // Strong patterns (high strength) contribute more
+  for (const pattern of patterns.alliterations) {
+    if (pattern.strength > 0.7) {
+      impact += 0.02;
+    }
+  }
+
+  for (const pattern of patterns.assonances) {
+    if (pattern.strength > 0.7) {
+      impact += 0.03;
+    }
+  }
+
+  // Consonance impact is more subtle
+  const consonanceCount = patterns.consonances.length;
+  if (consonanceCount >= 1 && consonanceCount <= 2) {
+    impact += 0.02;
+  }
+
+  // Cap the impact
+  impact = Math.max(-0.2, Math.min(0.2, impact));
+
+  // Apply impact to line score
+  const adjustedLineScore = Math.max(0, Math.min(1, score.lineScore + impact));
+
+  log('adjustSingabilityForSoundPatterns result:', {
+    impact,
+    adjustedLineScore,
+  });
+
+  return {
+    ...score,
+    lineScore: adjustedLineScore,
+  };
 }

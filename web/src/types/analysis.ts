@@ -266,6 +266,77 @@ export interface SingabilityScore {
 }
 
 // =============================================================================
+// Sound Pattern Analysis
+// =============================================================================
+
+/**
+ * Types of sound patterns detected
+ */
+export type SoundPatternType = 'alliteration' | 'assonance' | 'consonance';
+
+/**
+ * A single occurrence of a sound pattern
+ */
+export interface SoundPatternOccurrence {
+  /** Type of sound pattern */
+  type: SoundPatternType;
+  /** The sound (phoneme) that creates the pattern */
+  sound: string;
+  /** Words involved in this pattern */
+  words: string[];
+  /** Character positions of words in the line (start indices) */
+  positions: number[];
+  /** Line number (0-indexed) */
+  lineNumber: number;
+  /** Strength score (0-1) based on number of occurrences and proximity */
+  strength: number;
+}
+
+/**
+ * Sound patterns found in a single line
+ */
+export interface LineSoundPatterns {
+  /** Line number (0-indexed) */
+  lineNumber: number;
+  /** Original line text */
+  text: string;
+  /** Alliteration patterns in this line */
+  alliterations: SoundPatternOccurrence[];
+  /** Assonance patterns in this line */
+  assonances: SoundPatternOccurrence[];
+  /** Consonance patterns in this line */
+  consonances: SoundPatternOccurrence[];
+}
+
+/**
+ * Summary of sound pattern analysis
+ */
+export interface SoundPatternSummary {
+  /** Total alliteration occurrences */
+  alliterationCount: number;
+  /** Total assonance occurrences */
+  assonanceCount: number;
+  /** Total consonance occurrences */
+  consonanceCount: number;
+  /** Overall sound pattern density (0-1) */
+  density: number;
+  /** Most common alliterative sounds */
+  topAlliterativeSounds: string[];
+  /** Most common vowel sounds in assonance */
+  topAssonanceSounds: string[];
+}
+
+/**
+ * Complete sound pattern analysis for a poem
+ */
+export interface SoundPatternAnalysis {
+  /** Sound patterns per line */
+  lines: LineSoundPatterns[];
+  /** Summary statistics */
+  summary: SoundPatternSummary;
+}
+
+// =============================================================================
 // Stage 8: Emotional Analysis
 // =============================================================================
 
@@ -438,6 +509,8 @@ export interface PoemAnalysis {
   structure: StructuredPoem;
   /** Prosodic analysis (meter and rhyme) */
   prosody: ProsodyAnalysis;
+  /** Sound patterns analysis (alliteration, assonance, consonance) */
+  soundPatterns?: SoundPatternAnalysis;
   /** Emotional analysis */
   emotion: EmotionalAnalysis;
   /** List of problems found during analysis */
@@ -597,6 +670,23 @@ export function createDefaultMelodySuggestions(): MelodySuggestions {
     key: 'C',
     mode: 'major',
     phraseBreaks: [],
+  };
+}
+
+/**
+ * Creates an empty/default SoundPatternAnalysis
+ */
+export function createDefaultSoundPatternAnalysis(): SoundPatternAnalysis {
+  return {
+    lines: [],
+    summary: {
+      alliterationCount: 0,
+      assonanceCount: 0,
+      consonanceCount: 0,
+      density: 0,
+      topAlliterativeSounds: [],
+      topAssonanceSounds: [],
+    },
   };
 }
 

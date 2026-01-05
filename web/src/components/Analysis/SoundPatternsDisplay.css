@@ -1,0 +1,461 @@
+/**
+ * SoundPatternsDisplay Component Styles
+ *
+ * Styles for displaying alliteration, assonance, and consonance patterns.
+ */
+
+/* =============================================================================
+   Base Container
+   ============================================================================= */
+
+.sound-patterns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--color-bg-tertiary, #111827);
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-border, #374151);
+}
+
+.sound-patterns--empty {
+  min-height: 100px;
+  justify-content: center;
+  align-items: center;
+}
+
+.sound-patterns__empty-text {
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* =============================================================================
+   Header
+   ============================================================================= */
+
+.sound-patterns__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.sound-patterns__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin: 0;
+}
+
+.sound-patterns__density-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #d1d5db);
+  padding: 0.125rem 0.5rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+/* =============================================================================
+   Legend
+   ============================================================================= */
+
+.sound-patterns__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+.sound-patterns__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+.sound-patterns__legend-color {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.125rem;
+  flex-shrink: 0;
+}
+
+.sound-patterns__legend-label {
+  font-weight: 500;
+}
+
+/* =============================================================================
+   Top Sounds
+   ============================================================================= */
+
+.sound-patterns__top-sounds {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+.sound-patterns__top-sound-group {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sound-patterns__top-sound-label {
+  font-weight: 600;
+}
+
+.sound-patterns__top-sound-list {
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+/* =============================================================================
+   Content
+   ============================================================================= */
+
+.sound-patterns__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* =============================================================================
+   Line Styles
+   ============================================================================= */
+
+.sound-patterns__line {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+}
+
+.sound-patterns__line:hover {
+  background-color: var(--color-bg-hover, rgba(59, 130, 246, 0.1));
+}
+
+.sound-patterns__line--has-patterns {
+  background-color: var(--color-bg-secondary, rgba(31, 41, 55, 0.5));
+}
+
+.sound-patterns__line-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #6b7280);
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+}
+
+.sound-patterns__line-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.sound-patterns__line-text {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #f9fafb);
+  line-height: 1.5;
+}
+
+.sound-patterns__line-patterns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+/* =============================================================================
+   Pattern Badges
+   ============================================================================= */
+
+.sound-patterns__pattern-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #ffffff;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sound-patterns__pattern-more {
+  font-size: 0.625rem;
+  color: var(--color-text-muted, #6b7280);
+  font-style: italic;
+}
+
+/* =============================================================================
+   Tooltip
+   ============================================================================= */
+
+.sound-patterns__tooltip {
+  position: absolute;
+  left: 2.5rem;
+  top: calc(100% + 0.25rem);
+  z-index: 20;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 0.75rem;
+  background-color: var(--color-bg-tooltip, #1f2937);
+  border: 1px solid var(--color-border, #374151);
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.sound-patterns__line:hover .sound-patterns__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sound-patterns__tooltip-header {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #f9fafb);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid var(--color-border, #374151);
+}
+
+.sound-patterns__tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sound-patterns__tooltip-pattern {
+  padding-left: 0.5rem;
+  border-left: 2px solid;
+}
+
+.sound-patterns__tooltip-pattern-type {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #d1d5db);
+}
+
+.sound-patterns__tooltip-pattern-words {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.sound-patterns__tooltip-pattern-strength {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted, #9ca3af);
+  font-style: italic;
+}
+
+/* =============================================================================
+   Summary
+   ============================================================================= */
+
+.sound-patterns__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #374151);
+}
+
+.sound-patterns__stat {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.sound-patterns__stat strong {
+  color: var(--color-text-secondary, #d1d5db);
+  font-weight: 600;
+}
+
+.sound-patterns__stat--density {
+  margin-left: auto;
+}
+
+/* =============================================================================
+   Footer / Info
+   ============================================================================= */
+
+.sound-patterns__footer {
+  padding-top: 0.5rem;
+}
+
+.sound-patterns__info {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.sound-patterns__info-toggle {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text-secondary, #d1d5db);
+  padding: 0.25rem 0;
+}
+
+.sound-patterns__info-toggle:hover {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+.sound-patterns__info-content {
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-radius: 0.25rem;
+}
+
+.sound-patterns__info-content p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.sound-patterns__info-content p:last-child {
+  margin-bottom: 0;
+}
+
+.sound-patterns__info-note {
+  font-style: italic;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* =============================================================================
+   Light Mode
+   ============================================================================= */
+
+:root.light .sound-patterns,
+.light .sound-patterns {
+  background-color: var(--color-bg-tertiary, #ffffff);
+  border-color: var(--color-border, #e5e7eb);
+}
+
+:root.light .sound-patterns__title,
+.light .sound-patterns__title {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .sound-patterns__line-text,
+.light .sound-patterns__line-text {
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .sound-patterns__density-badge,
+.light .sound-patterns__density-badge {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+  color: var(--color-text-primary, #111827);
+}
+
+:root.light .sound-patterns__legend,
+.light .sound-patterns__legend {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .sound-patterns__top-sounds,
+.light .sound-patterns__top-sounds {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+:root.light .sound-patterns__line--has-patterns,
+.light .sound-patterns__line--has-patterns {
+  background-color: rgba(243, 244, 246, 0.5);
+}
+
+:root.light .sound-patterns__info-content,
+.light .sound-patterns__info-content {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .sound-patterns {
+    padding: 0.75rem;
+  }
+
+  .sound-patterns__line-text {
+    font-size: 0.8125rem;
+  }
+
+  .sound-patterns__legend {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .sound-patterns__summary {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .sound-patterns__stat--density {
+    margin-left: 0;
+  }
+
+  .sound-patterns__tooltip {
+    display: none;
+  }
+
+  .sound-patterns__content {
+    max-height: 250px;
+  }
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .sound-patterns__line,
+  .sound-patterns__tooltip {
+    transition: none;
+  }
+}
+
+/* =============================================================================
+   Scrollbar Styling
+   ============================================================================= */
+
+.sound-patterns__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sound-patterns__content::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary, #1f2937);
+  border-radius: 3px;
+}
+
+.sound-patterns__content::-webkit-scrollbar-thumb {
+  background: var(--color-border, #374151);
+  border-radius: 3px;
+}
+
+.sound-patterns__content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted, #6b7280);
+}

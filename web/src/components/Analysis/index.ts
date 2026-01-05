@@ -14,4 +14,5 @@ export { SyllableOverlay, type SyllableOverlayProps } from './SyllableOverlay';
 export { StressVisualization, type StressVisualizationProps } from './StressVisualization';
 export { RhymeSchemeDisplay, type RhymeSchemeDisplayProps } from './RhymeSchemeDisplay';
 export { MeterDisplay, type MeterDisplayProps } from './MeterDisplay';
+export { SoundPatternsDisplay, type SoundPatternsDisplayProps } from './SoundPatternsDisplay';
 export { SingabilityHeatmap, type SingabilityHeatmapProps } from './SingabilityHeatmap';
