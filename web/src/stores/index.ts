@@ -241,6 +241,32 @@ export {
   selectQueueSize,
 } from './useOfflineStore';
 
+// Settings Store
+export { useSettingsStore, VOCAL_RANGE_PRESETS, TEMPO_RANGE, METRONOME_SOUNDS } from './useSettingsStore';
+export type {
+  ThemePreference as SettingsThemePreference,
+  VocalRangePreset,
+  MetronomeSound,
+  VocalRangeConfig,
+  SettingsState,
+  SettingsActions,
+  SettingsStore,
+} from './useSettingsStore';
+export {
+  selectTheme as selectSettingsTheme,
+  selectDefaultTempo,
+  selectVocalRange,
+  selectVocalRangePreset,
+  selectMetronomeSound,
+  selectMetronomeVolume,
+  selectAutoAnalyzeOnPaste,
+  selectKeyboardShortcutsEnabled,
+  selectLastModified,
+  selectIsDarkTheme,
+  selectThemeLabel as selectSettingsThemeLabel,
+  selectVocalRangeLabel,
+} from './useSettingsStore';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -257,6 +283,7 @@ import { useToastStore as toastStore } from './useToastStore';
 import { useUndoStore as undoStore } from './undoMiddleware';
 import { useAnalyticsStore as analyticsStore } from './useAnalyticsStore';
 import { useOfflineStore as offlineStore } from './useOfflineStore';
+import { useSettingsStore as settingsStore } from './useSettingsStore';
 
 /**
  * Reset all stores to their initial state
@@ -274,6 +301,7 @@ export function resetAllStores(): void {
   undoStore.getState().clearHistory();
   analyticsStore.getState().reset();
   offlineStore.getState().reset();
+  settingsStore.getState().reset();
 
   console.log('[Stores] All stores reset');
 }
@@ -292,6 +320,7 @@ export function clearPersistedData(): void {
     localStorage.removeItem('ghost-note-analytics-preferences');
     localStorage.removeItem('ghost-note-analytics-consent');
     localStorage.removeItem('ghost-note-offline-queue');
+    localStorage.removeItem('ghost-note-settings-store');
     console.log('[Stores] All persisted data cleared');
   }
 }
