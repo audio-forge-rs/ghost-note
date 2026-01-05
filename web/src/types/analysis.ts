@@ -517,6 +517,8 @@ export interface PoemAnalysis {
   problems: ProblemReport[];
   /** Suggestions for melody generation */
   melodySuggestions: MelodySuggestions;
+  /** Structure analysis (verse/chorus detection) - optional for backwards compatibility */
+  songStructure?: StructureAnalysis;
 }
 
 // =============================================================================
@@ -818,6 +820,95 @@ export function mergePoemAnalysis(
   }
 
   return cloned;
+}
+
+// =============================================================================
+// Structure Analysis Types
+// =============================================================================
+
+/**
+ * Section type classification for song structure
+ */
+export type SectionType = 'verse' | 'chorus' | 'bridge' | 'refrain' | 'intro' | 'outro';
+
+/**
+ * A detected section in the poem
+ */
+export interface Section {
+  /** The type of section (verse, chorus, etc.) */
+  type: SectionType;
+  /** Stanza indices that belong to this section */
+  stanzaIndices: number[];
+  /** A label for display (e.g., "Verse 1", "Chorus") */
+  label: string;
+  /** Confidence score for the section classification (0-1) */
+  confidence: number;
+  /** If this is a repeat of another section, index of the original */
+  repeatOf?: number;
+}
+
+/**
+ * A refrain occurrence (repeated line)
+ */
+export interface Refrain {
+  /** The text of the refrain line */
+  text: string;
+  /** Locations where this refrain appears [stanzaIdx, lineIdx][] */
+  occurrences: [number, number][];
+  /** Normalized text (lowercase, trimmed) for comparison */
+  normalizedText: string;
+}
+
+/**
+ * Stanza similarity result for comparison
+ */
+export interface StanzaSimilarity {
+  /** First stanza index */
+  stanza1: number;
+  /** Second stanza index */
+  stanza2: number;
+  /** Overall similarity score (0-1) */
+  overallSimilarity: number;
+  /** Text similarity score (0-1) */
+  textSimilarity: number;
+  /** Meter similarity score (0-1) */
+  meterSimilarity: number;
+  /** Line count match */
+  lineCountMatch: boolean;
+  /** Whether they share the same foot type */
+  footTypeMatch: boolean;
+}
+
+/**
+ * Complete structure analysis for a poem
+ */
+export interface StructureAnalysis {
+  /** Detected sections */
+  sections: Section[];
+  /** Detected refrains (repeated lines) */
+  refrains: Refrain[];
+  /** Stanza similarity matrix (sparse representation) */
+  similarities: StanzaSimilarity[];
+  /** Whether the poem has a clear verse/chorus structure */
+  hasVerseChorusStructure: boolean;
+  /** Dominant structure pattern (e.g., "AABA", "ABAB") */
+  structurePattern: string;
+  /** Summary for display */
+  summary: string;
+}
+
+/**
+ * Creates an empty/default StructureAnalysis
+ */
+export function createDefaultStructureAnalysis(): StructureAnalysis {
+  return {
+    sections: [],
+    refrains: [],
+    similarities: [],
+    hasVerseChorusStructure: false,
+    structurePattern: '',
+    summary: 'No structure analyzed',
+  };
 }
 
 // =============================================================================

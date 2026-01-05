@@ -11,3 +11,4 @@ export * from './cadence';
 export * from './contour';
 export * from './orchestrator';
 export * from './variations';
+export * from './sectionMelody';
