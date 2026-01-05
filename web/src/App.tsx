@@ -6,11 +6,20 @@
  * @module App
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { usePoemStore, selectCurrentLyrics, selectHasPoem } from '@/stores/usePoemStore';
+import { useAnalysisStore, selectHasAnalysis, selectIsAnalyzing } from '@/stores/useAnalysisStore';
+import { useMelodyStore, selectHasMelody, selectIsGenerating } from '@/stores/useMelodyStore';
+import { useRecordingStore, selectHasPermission, selectIsRecording } from '@/stores/useRecordingStore';
 import { AppShell, type NavigationView } from '@/components/Layout';
-import { EmptyState } from '@/components/Common';
+import { EmptyState, LoadingSpinner } from '@/components/Common';
 import { PoemInput } from '@/components/PoemInput';
+import { AnalysisPanel } from '@/components/Analysis';
+import { LyricEditor } from '@/components/LyricEditor';
+import { NotationDisplay } from '@/components/Notation';
+import { PlaybackContainer } from '@/components/Playback';
+import { PermissionPrompt, AudioLevelMeter, MicrophoneSelect } from '@/components/Recording';
 import './App.css';
 
 // Logging helper for debugging
@@ -60,7 +69,7 @@ const VIEW_CONFIGS: Record<NavigationView, ViewConfig> = {
 
 /**
  * Renders the appropriate component for each navigation view.
- * Falls back to EmptyState placeholder for views not yet implemented.
+ * Falls back to EmptyState placeholder when required data is not available.
  */
 function ViewContent({
   view,
@@ -71,7 +80,60 @@ function ViewContent({
 }): React.ReactElement {
   const config = VIEW_CONFIGS[view];
 
-  log('Rendering view content for:', view);
+  // Poem store
+  const original = usePoemStore((state) => state.original);
+  const hasPoem = usePoemStore(selectHasPoem);
+  const currentLyrics = usePoemStore(selectCurrentLyrics);
+
+  // Analysis store
+  const analysis = useAnalysisStore((state) => state.analysis);
+  const hasAnalysis = useAnalysisStore(selectHasAnalysis);
+  const isAnalyzing = useAnalysisStore(selectIsAnalyzing);
+  const analyzePoem = useAnalysisStore((state) => state.analyze);
+
+  // Melody store
+  const abcNotation = useMelodyStore((state) => state.abcNotation);
+  const hasMelody = useMelodyStore(selectHasMelody);
+  const isGenerating = useMelodyStore(selectIsGenerating);
+  const playbackState = useMelodyStore((state) => state.playbackState);
+  const currentTime = useMelodyStore((state) => state.currentTime);
+  const duration = useMelodyStore((state) => state.duration);
+  const tempo = useMelodyStore((state) => state.tempo);
+  const keySignature = useMelodyStore((state) => state.key);
+  const loop = useMelodyStore((state) => state.loop);
+  const play = useMelodyStore((state) => state.play);
+  const pause = useMelodyStore((state) => state.pause);
+  const stop = useMelodyStore((state) => state.stop);
+  const seek = useMelodyStore((state) => state.seek);
+  const setTempo = useMelodyStore((state) => state.setTempo);
+  const setKey = useMelodyStore((state) => state.setKey);
+  const toggleLoop = useMelodyStore((state) => state.toggleLoop);
+  const generateMelody = useMelodyStore((state) => state.generateMelody);
+
+  // Recording store
+  const hasPermission = useRecordingStore(selectHasPermission);
+  const isRecording = useRecordingStore(selectIsRecording);
+  const inputLevel = useRecordingStore((state) => state.inputLevel);
+  const startRecording = useRecordingStore((state) => state.startRecording);
+  const stopRecording = useRecordingStore((state) => state.stopRecording);
+
+  // Trigger analysis when navigating to analysis view if poem exists but not analyzed
+  const handleAnalyze = useCallback(() => {
+    if (hasPoem && !hasAnalysis && !isAnalyzing) {
+      log('Auto-triggering analysis for poem');
+      analyzePoem(original);
+    }
+  }, [hasPoem, hasAnalysis, isAnalyzing, analyzePoem, original]);
+
+  // Trigger melody generation when navigating to melody view if analysis exists but no melody
+  const handleGenerateMelody = useCallback(() => {
+    if (hasAnalysis && analysis && !hasMelody && !isGenerating) {
+      log('Auto-triggering melody generation');
+      generateMelody(currentLyrics, analysis);
+    }
+  }, [hasAnalysis, analysis, hasMelody, isGenerating, generateMelody, currentLyrics]);
+
+  log('Rendering view content for:', view, { hasPoem, hasAnalysis, hasMelody });
 
   switch (view) {
     case 'poem-input':
@@ -86,9 +148,194 @@ function ViewContent({
       );
 
     case 'analysis':
+      // Trigger analysis if needed when entering this view
+      if (hasPoem && !hasAnalysis && !isAnalyzing) {
+        // Schedule analysis trigger after render
+        setTimeout(handleAnalyze, 0);
+      }
+
+      // Show loading state while analyzing
+      if (isAnalyzing) {
+        return (
+          <div className="view-loading" data-testid="view-analysis-loading">
+            <LoadingSpinner size="large" />
+            <p>Analyzing poem...</p>
+          </div>
+        );
+      }
+
+      // Show empty state if no poem
+      if (!hasPoem) {
+        return (
+          <EmptyState
+            title={config.title}
+            description={config.description}
+            variant="centered"
+            testId="view-analysis"
+          />
+        );
+      }
+
+      // Show AnalysisPanel with analysis data
+      return (
+        <AnalysisPanel
+          analysis={analysis}
+          poemText={original}
+        />
+      );
+
     case 'lyrics-editor':
+      // Show empty state if no poem
+      if (!hasPoem) {
+        return (
+          <EmptyState
+            title={config.title}
+            description={config.description}
+            variant="centered"
+            testId="view-lyrics-editor"
+          />
+        );
+      }
+
+      // LyricEditor handles its own internal state and hooks
+      return <LyricEditor testId="view-lyrics-editor" />;
+
     case 'melody':
+      // Trigger melody generation if needed when entering this view
+      if (hasAnalysis && analysis && !hasMelody && !isGenerating) {
+        setTimeout(handleGenerateMelody, 0);
+      }
+
+      // Show loading state while generating
+      if (isGenerating) {
+        return (
+          <div className="view-loading" data-testid="view-melody-loading">
+            <LoadingSpinner size="large" />
+            <p>Generating melody...</p>
+          </div>
+        );
+      }
+
+      // Show empty state if no analysis
+      if (!hasAnalysis) {
+        return (
+          <EmptyState
+            title={config.title}
+            description={config.description}
+            variant="centered"
+            testId="view-melody"
+          />
+        );
+      }
+
+      // Show NotationDisplay and PlaybackContainer
+      return (
+        <div className="melody-view" data-testid="view-melody">
+          {hasMelody && abcNotation ? (
+            <>
+              <NotationDisplay
+                abc={abcNotation}
+                responsive
+                className="melody-notation"
+              />
+              <PlaybackContainer
+                playbackState={playbackState}
+                currentTime={currentTime}
+                duration={duration}
+                hasContent={hasMelody}
+                tempo={tempo}
+                onTempoChange={setTempo}
+                keySignature={keySignature}
+                onKeyChange={setKey}
+                loopEnabled={loop}
+                onLoopEnabledChange={() => toggleLoop()}
+                onPlay={play}
+                onPause={pause}
+                onStop={stop}
+                onSeek={seek}
+                layout="vertical"
+                testId="melody-playback"
+              />
+            </>
+          ) : (
+            <EmptyState
+              title="No Melody Generated"
+              description="Click below to generate a melody from your lyrics."
+              variant="centered"
+              testId="view-melody-empty"
+            />
+          )}
+        </div>
+      );
+
     case 'recording':
+      // Show empty state if no melody
+      if (!hasMelody) {
+        return (
+          <EmptyState
+            title={config.title}
+            description={config.description}
+            variant="centered"
+            testId="view-recording"
+          />
+        );
+      }
+
+      // Show recording interface
+      return (
+        <div className="recording-view" data-testid="view-recording">
+          {!hasPermission ? (
+            <PermissionPrompt
+              onPermissionGranted={() => {
+                log('Microphone permission granted');
+              }}
+              onPermissionDenied={(error) => {
+                log('Microphone permission denied:', error);
+              }}
+              variant="card"
+            />
+          ) : (
+            <div className="recording-controls">
+              <h3>Recording Studio</h3>
+              <MicrophoneSelect
+                hasPermission={hasPermission}
+                className="recording-mic-select"
+              />
+              <AudioLevelMeter
+                level={inputLevel}
+                meterStyle="gradient"
+                orientation="horizontal"
+                showPeak
+                width="100%"
+                height="24px"
+                className="recording-level-meter"
+              />
+              <div className="recording-actions">
+                {isRecording ? (
+                  <button
+                    type="button"
+                    className="recording-button recording-button--stop"
+                    onClick={stopRecording}
+                    data-testid="stop-recording-button"
+                  >
+                    Stop Recording
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="recording-button recording-button--start"
+                    onClick={() => startRecording()}
+                    data-testid="start-recording-button"
+                  >
+                    Start Recording
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+
     default:
       return (
         <EmptyState
