@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import App from './App';
+import { createDefaultPoemAnalysis } from './types';
 
 // Mock all the stores
 vi.mock('@/stores/useThemeStore', () => ({
@@ -44,7 +45,20 @@ vi.mock('@/stores/usePoemStore', () => ({
   selectHasPoem: (state: typeof mockPoemStoreState) => state.original.trim().length > 0,
 }));
 
-const mockAnalysisStoreState = {
+const mockAnalysisStoreState: {
+  analysis: import('./types').PoemAnalysis | null;
+  isLoading: boolean;
+  stage: string;
+  progress: number;
+  error: string | null;
+  analyzedVersionId: string | null;
+  analyze: ReturnType<typeof vi.fn>;
+  setAnalysis: ReturnType<typeof vi.fn>;
+  setStage: ReturnType<typeof vi.fn>;
+  setError: ReturnType<typeof vi.fn>;
+  clear: ReturnType<typeof vi.fn>;
+  reset: ReturnType<typeof vi.fn>;
+} = {
   analysis: null,
   isLoading: false,
   stage: 'idle',
@@ -70,10 +84,40 @@ vi.mock('@/stores/useAnalysisStore', () => ({
   selectIsAnalyzing: (state: typeof mockAnalysisStoreState) => state.isLoading,
 }));
 
-const mockMelodyStoreState = {
+const mockMelodyStoreState: {
+  melody: null;
+  abcNotation: string | null;
+  playbackState: 'stopped' | 'playing' | 'paused' | 'loading';
+  currentTime: number;
+  duration: number;
+  tempo: number;
+  volume: number;
+  loop: boolean;
+  key: string;
+  timeSignature: string;
+  isGenerating: boolean;
+  error: string | null;
+  generateMelody: ReturnType<typeof vi.fn>;
+  setMelody: ReturnType<typeof vi.fn>;
+  setAbcNotation: ReturnType<typeof vi.fn>;
+  play: ReturnType<typeof vi.fn>;
+  pause: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+  seek: ReturnType<typeof vi.fn>;
+  setCurrentTime: ReturnType<typeof vi.fn>;
+  setDuration: ReturnType<typeof vi.fn>;
+  setTempo: ReturnType<typeof vi.fn>;
+  setVolume: ReturnType<typeof vi.fn>;
+  toggleLoop: ReturnType<typeof vi.fn>;
+  setKey: ReturnType<typeof vi.fn>;
+  setTimeSignature: ReturnType<typeof vi.fn>;
+  setError: ReturnType<typeof vi.fn>;
+  clear: ReturnType<typeof vi.fn>;
+  reset: ReturnType<typeof vi.fn>;
+} = {
   melody: null,
   abcNotation: null,
-  playbackState: 'stopped' as const,
+  playbackState: 'stopped',
   currentTime: 0,
   duration: 0,
   tempo: 100,
@@ -113,8 +157,30 @@ vi.mock('@/stores/useMelodyStore', () => ({
   selectIsGenerating: (state: typeof mockMelodyStoreState) => state.isGenerating,
 }));
 
-const mockRecordingStoreState = {
-  recordingState: 'idle' as const,
+const mockRecordingStoreState: {
+  recordingState: 'idle' | 'preparing' | 'recording' | 'paused' | 'stopped';
+  takes: never[];
+  selectedTakeId: string | null;
+  recordingDuration: number;
+  hasPermission: boolean;
+  error: string | null;
+  inputLevel: number;
+  requestPermission: ReturnType<typeof vi.fn>;
+  startRecording: ReturnType<typeof vi.fn>;
+  stopRecording: ReturnType<typeof vi.fn>;
+  pauseRecording: ReturnType<typeof vi.fn>;
+  resumeRecording: ReturnType<typeof vi.fn>;
+  addTake: ReturnType<typeof vi.fn>;
+  deleteTake: ReturnType<typeof vi.fn>;
+  selectTake: ReturnType<typeof vi.fn>;
+  renameTake: ReturnType<typeof vi.fn>;
+  setRecordingDuration: ReturnType<typeof vi.fn>;
+  setInputLevel: ReturnType<typeof vi.fn>;
+  setError: ReturnType<typeof vi.fn>;
+  clearTakes: ReturnType<typeof vi.fn>;
+  reset: ReturnType<typeof vi.fn>;
+} = {
+  recordingState: 'idle',
   takes: [],
   selectedTakeId: null,
   recordingDuration: 0,
@@ -416,7 +482,7 @@ describe('App', () => {
 
     it('shows loading state when generating melody', () => {
       mockPoemStoreState.original = 'Roses are red';
-      mockAnalysisStoreState.analysis = { meta: { lineCount: 1 } };
+      mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.isGenerating = true;
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
@@ -426,7 +492,7 @@ describe('App', () => {
 
     it('shows NotationDisplay and PlaybackContainer when melody exists', () => {
       mockPoemStoreState.original = 'Roses are red';
-      mockAnalysisStoreState.analysis = { meta: { lineCount: 1 } };
+      mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
@@ -480,7 +546,7 @@ describe('App', () => {
   describe('playback controls', () => {
     it('calls play when play button is clicked', () => {
       mockPoemStoreState.original = 'Roses are red';
-      mockAnalysisStoreState.analysis = { meta: { lineCount: 1 } };
+      mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
@@ -490,7 +556,7 @@ describe('App', () => {
 
     it('calls pause when pause button is clicked', () => {
       mockPoemStoreState.original = 'Roses are red';
-      mockAnalysisStoreState.analysis = { meta: { lineCount: 1 } };
+      mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
@@ -500,7 +566,7 @@ describe('App', () => {
 
     it('calls stop when stop button is clicked', () => {
       mockPoemStoreState.original = 'Roses are red';
-      mockAnalysisStoreState.analysis = { meta: { lineCount: 1 } };
+      mockAnalysisStoreState.analysis = createDefaultPoemAnalysis();
       mockMelodyStoreState.abcNotation = 'X:1\nT:Test\nM:4/4\nK:C\nCDEF|';
       render(<App />);
       fireEvent.click(screen.getByTestId('nav-melody'));
