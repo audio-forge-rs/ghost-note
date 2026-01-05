@@ -837,3 +837,343 @@ describe('edge cases', () => {
     expect(result).toBe('z4 z4');
   });
 });
+
+// =============================================================================
+// ABC Parsing Validation with abcjs
+// =============================================================================
+
+describe('ABC parsing validation with abcjs', () => {
+  // Dynamic import of abcjs for parsing
+  const parseABC = async (abc: string) => {
+    const abcjs = await import('abcjs');
+    return abcjs.default.parseOnly(abc);
+  };
+
+  describe('generated ABC parses correctly', () => {
+    it('parses simple melody without errors', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Parse Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 120,
+          key: 'C',
+        },
+        measures: [
+          [
+            { pitch: 'C', octave: 0, duration: 2 },
+            { pitch: 'D', octave: 0, duration: 2 },
+            { pitch: 'E', octave: 0, duration: 2 },
+            { pitch: 'F', octave: 0, duration: 2 },
+          ],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Should parse without errors
+      expect(parsed).toBeDefined();
+      expect(parsed.length).toBeGreaterThan(0);
+      expect(parsed[0].lines).toBeDefined();
+    });
+
+    it('extracts correct time signature', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Time Sig Test',
+          timeSignature: '3/4',
+          defaultNoteLength: '1/8',
+          tempo: 100,
+          key: 'G',
+        },
+        measures: [
+          [
+            { pitch: 'G', octave: 0, duration: 2 },
+            { pitch: 'A', octave: 0, duration: 2 },
+            { pitch: 'B', octave: 0, duration: 2 },
+          ],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Extract meter info
+      const meterFraction = parsed[0].getMeterFraction();
+      expect(meterFraction.num).toBe(3);
+      expect(meterFraction.den).toBe(4);
+    });
+
+    it('extracts correct tempo', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Tempo Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 140,
+          key: 'C',
+        },
+        measures: [
+          [{ pitch: 'C', octave: 0, duration: 8 }],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Extract BPM
+      const bpm = parsed[0].getBpm();
+      expect(bpm).toBe(140);
+    });
+
+    it('extracts correct key signature', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Key Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 100,
+          key: 'Am',
+        },
+        measures: [
+          [{ pitch: 'A', octave: 0, duration: 8 }],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Extract key signature
+      const keySig = parsed[0].getKeySignature();
+      expect(keySig).toBeDefined();
+      expect(keySig.root).toBe('A');
+      expect(keySig.mode).toBe('m');
+    });
+
+    it('parses all major keys correctly', async () => {
+      const majorKeys = ['C', 'G', 'D', 'F'] as const;
+
+      for (const key of majorKeys) {
+        const melody: Melody = {
+          params: {
+            title: `${key} Major Test`,
+            timeSignature: '4/4',
+            defaultNoteLength: '1/8',
+            tempo: 100,
+            key,
+          },
+          measures: [[{ pitch: key, octave: 0, duration: 8 }]],
+          lyrics: [],
+        };
+
+        const abc = buildABCString(melody);
+        const parsed = await parseABC(abc);
+
+        expect(parsed[0].getKeySignature().root).toBe(key);
+      }
+    });
+
+    it('parses all minor keys correctly', async () => {
+      const minorKeys = ['Am', 'Em', 'Dm'] as const;
+      const expectedRoots = { Am: 'A', Em: 'E', Dm: 'D' };
+
+      for (const key of minorKeys) {
+        const melody: Melody = {
+          params: {
+            title: `${key} Minor Test`,
+            timeSignature: '4/4',
+            defaultNoteLength: '1/8',
+            tempo: 100,
+            key,
+          },
+          measures: [[{ pitch: expectedRoots[key], octave: 0, duration: 8 }]],
+          lyrics: [],
+        };
+
+        const abc = buildABCString(melody);
+        const parsed = await parseABC(abc);
+
+        expect(parsed[0].getKeySignature().root).toBe(expectedRoots[key]);
+        expect(parsed[0].getKeySignature().mode).toBe('m');
+      }
+    });
+
+    it('parses complex melody with mixed octaves', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Octave Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 100,
+          key: 'C',
+        },
+        measures: [
+          [
+            { pitch: 'C', octave: -1, duration: 2 },
+            { pitch: 'E', octave: 0, duration: 2 },
+            { pitch: 'G', octave: 1, duration: 2 },
+            { pitch: 'C', octave: 2, duration: 2 },
+          ],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Should parse without errors and have notes
+      expect(parsed[0].lines.length).toBeGreaterThan(0);
+    });
+
+    it('parses melody with lyrics correctly', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Lyrics Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 100,
+          key: 'C',
+        },
+        measures: [
+          [
+            { pitch: 'C', octave: 0, duration: 2 },
+            { pitch: 'D', octave: 0, duration: 2 },
+          ],
+        ],
+        lyrics: [['Hel-', 'lo']],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Should parse with lyrics present
+      expect(parsed[0]).toBeDefined();
+    });
+
+    it('parses melody with rests correctly', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Rest Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 100,
+          key: 'C',
+        },
+        measures: [
+          [
+            { pitch: 'C', octave: 0, duration: 2 },
+            { pitch: 'z', octave: 0, duration: 2 },
+            { pitch: 'E', octave: 0, duration: 2 },
+            { pitch: 'z', octave: 0, duration: 2 },
+          ],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      expect(parsed[0].lines.length).toBeGreaterThan(0);
+    });
+
+    it('parses tempo correctly', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Duration Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 120, // 2 beats per second
+          key: 'C',
+        },
+        measures: [
+          [
+            { pitch: 'C', octave: 0, duration: 2 },
+            { pitch: 'D', octave: 0, duration: 2 },
+            { pitch: 'E', octave: 0, duration: 2 },
+            { pitch: 'F', octave: 0, duration: 2 },
+          ],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Should have valid parse result with correct tempo
+      expect(parsed[0]).toBeDefined();
+      expect(parsed[0].getBpm()).toBe(120);
+    });
+  });
+
+  describe('ABC notation correctness', () => {
+    it('produces valid note sequence with proper bar lines', async () => {
+      const melody: Melody = {
+        params: {
+          title: 'Bar Test',
+          timeSignature: '4/4',
+          defaultNoteLength: '1/8',
+          tempo: 100,
+          key: 'C',
+        },
+        measures: [
+          [
+            { pitch: 'C', octave: 0, duration: 2 },
+            { pitch: 'D', octave: 0, duration: 2 },
+            { pitch: 'E', octave: 0, duration: 2 },
+            { pitch: 'F', octave: 0, duration: 2 },
+          ],
+          [
+            { pitch: 'G', octave: 0, duration: 4 },
+            { pitch: 'G', octave: 0, duration: 4 },
+          ],
+        ],
+        lyrics: [],
+      };
+
+      const abc = buildABCString(melody);
+      const parsed = await parseABC(abc);
+
+      // Should have proper structure
+      expect(parsed[0]).toBeDefined();
+      expect(parsed[0].lines).toBeDefined();
+      expect(parsed[0].lines.length).toBeGreaterThan(0);
+    });
+
+    it('generates playable ABC for all time signatures', async () => {
+      const timeSignatures = ['4/4', '3/4', '6/8', '2/4'] as const;
+
+      for (const ts of timeSignatures) {
+        const beatsPerMeasure = getBeatsPerMeasure(ts);
+        const notes: Note[] = [];
+
+        // Create a full measure of quarter notes
+        for (let i = 0; i < beatsPerMeasure; i++) {
+          notes.push({ pitch: 'C', octave: 0, duration: 2 });
+        }
+
+        const melody: Melody = {
+          params: {
+            title: `${ts} Test`,
+            timeSignature: ts,
+            defaultNoteLength: '1/8',
+            tempo: 100,
+            key: 'C',
+          },
+          measures: [notes],
+          lyrics: [],
+        };
+
+        const abc = buildABCString(melody);
+        const parsed = await parseABC(abc);
+
+        expect(parsed[0]).toBeDefined();
+        expect(parsed[0].getMeterFraction()).toBeDefined();
+      }
+    });
+  });
+});

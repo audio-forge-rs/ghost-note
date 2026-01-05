@@ -890,3 +890,292 @@ describe('edge cases', () => {
     });
   });
 });
+
+// =============================================================================
+// Cadence Resolution Verification Tests
+// =============================================================================
+
+describe('Cadence Resolution Verification', () => {
+  describe('harmonic resolution correctness', () => {
+    describe('perfect cadence V→I resolution', () => {
+      it('resolves dominant to tonic in all major keys', () => {
+        const majorKeys: KeySignature[] = ['C', 'G', 'D', 'F'];
+        const expectedResolutions: Record<string, { dominant: string; tonic: string }> = {
+          C: { dominant: 'G', tonic: 'C' },
+          G: { dominant: 'D', tonic: 'G' },
+          D: { dominant: 'A', tonic: 'D' },
+          F: { dominant: 'C', tonic: 'F' },
+        };
+
+        for (const key of majorKeys) {
+          const cadence = generateCadence('perfect', key);
+          const expected = expectedResolutions[key];
+
+          // Second-to-last should be dominant
+          expect(cadence[cadence.length - 2].pitch).toBe(expected.dominant);
+          // Last should be tonic
+          expect(cadence[cadence.length - 1].pitch).toBe(expected.tonic);
+        }
+      });
+
+      it('resolves dominant to tonic in all minor keys', () => {
+        const minorKeys: KeySignature[] = ['Am', 'Em', 'Dm'];
+        const expectedResolutions: Record<string, { dominant: string; tonic: string }> = {
+          Am: { dominant: 'E', tonic: 'A' },
+          Em: { dominant: 'B', tonic: 'E' },
+          Dm: { dominant: 'A', tonic: 'D' },
+        };
+
+        for (const key of minorKeys) {
+          const cadence = generateCadence('perfect', key);
+          const expected = expectedResolutions[key];
+
+          expect(cadence[cadence.length - 2].pitch).toBe(expected.dominant);
+          expect(cadence[cadence.length - 1].pitch).toBe(expected.tonic);
+        }
+      });
+    });
+
+    describe('half cadence resolution to V', () => {
+      it('ends on dominant with proper approach in all keys', () => {
+        const allKeys: KeySignature[] = ['C', 'G', 'D', 'F', 'Am', 'Em', 'Dm'];
+        const expectedDominants: Record<string, string> = {
+          C: 'G', G: 'D', D: 'A', F: 'C',
+          Am: 'E', Em: 'B', Dm: 'A',
+        };
+
+        for (const key of allKeys) {
+          const cadence = generateCadence('half', key);
+          expect(cadence[cadence.length - 1].pitch).toBe(expectedDominants[key]);
+        }
+      });
+    });
+
+    describe('deceptive cadence V→vi resolution', () => {
+      it('creates surprise by resolving to submediant instead of tonic', () => {
+        const majorKeys: KeySignature[] = ['C', 'G', 'D', 'F'];
+        const expectedSubmediant: Record<string, string> = {
+          C: 'A', // vi in C major
+          G: 'E', // vi in G major
+          D: 'B', // vi in D major
+          F: 'D', // vi in F major
+        };
+
+        for (const key of majorKeys) {
+          const cadence = generateCadence('deceptive', key);
+
+          // Should have dominant approach
+          expect(cadence[cadence.length - 2].pitch).toBeDefined();
+
+          // Should end on submediant (surprise!)
+          expect(cadence[cadence.length - 1].pitch).toBe(expectedSubmediant[key]);
+        }
+      });
+    });
+
+    describe('plagal cadence IV→I resolution', () => {
+      it('resolves subdominant to tonic (Amen cadence)', () => {
+        const expectedSubdominants: Record<string, string> = {
+          C: 'F', G: 'C', D: 'G', F: 'B', // B-flat in theory, but we use B for simplicity
+          Am: 'D', Em: 'A', Dm: 'G',
+        };
+        const expectedTonics: Record<string, string> = {
+          C: 'C', G: 'G', D: 'D', F: 'F',
+          Am: 'A', Em: 'E', Dm: 'D',
+        };
+
+        for (const key of ['C', 'G', 'D', 'Am', 'Em', 'Dm'] as KeySignature[]) {
+          const cadence = generateCadence('plagal', key);
+
+          // Penultimate should be subdominant (or close)
+          expect(cadence[cadence.length - 2].pitch).toBe(expectedSubdominants[key]);
+
+          // Final should be tonic
+          expect(cadence[cadence.length - 1].pitch).toBe(expectedTonics[key]);
+        }
+      });
+    });
+  });
+
+  describe('closure strength hierarchy', () => {
+    it('perfect cadence provides strongest closure', () => {
+      // Perfect cadence: V→I is the most conclusive
+      const perfect = generateCadence('perfect', 'C');
+
+      // Ends on tonic
+      expect(perfect[perfect.length - 1].pitch).toBe('C');
+
+      // Has longest final note duration
+      expect(perfect[perfect.length - 1].duration).toBe(4);
+    });
+
+    it('half cadence provides incomplete closure (ends on tension)', () => {
+      const half = generateCadence('half', 'C');
+
+      // Ends on dominant - creates expectation
+      expect(half[half.length - 1].pitch).toBe('G');
+    });
+
+    it('deceptive cadence provides surprise (unexpected resolution)', () => {
+      const perfect = generateCadence('perfect', 'C');
+      const deceptive = generateCadence('deceptive', 'C');
+
+      // Both have same approach (V)
+      expect(perfect[perfect.length - 2].pitch).toBe('G');
+      expect(deceptive[deceptive.length - 2].pitch).toBe('G');
+
+      // But different endings
+      expect(perfect[perfect.length - 1].pitch).toBe('C');    // Expected
+      expect(deceptive[deceptive.length - 1].pitch).toBe('A'); // Surprise!
+    });
+
+    it('plagal cadence provides gentle closure (Amen)', () => {
+      const plagal = generateCadence('plagal', 'C');
+
+      // IV→I motion is softer than V→I
+      expect(plagal[plagal.length - 2].pitch).toBe('F'); // Subdominant
+      expect(plagal[plagal.length - 1].pitch).toBe('C'); // Tonic
+    });
+  });
+
+  describe('voice leading in cadences', () => {
+    it('cadence notes follow melodic logic', () => {
+      const cadence = generateCadence('perfect', 'C');
+
+      // Notes should be in singable progression
+      for (let i = 1; i < cadence.length; i++) {
+        const prev = cadence[i - 1];
+        const curr = cadence[i];
+
+        // Calculate interval in scale degrees (simplified)
+        const pitchOrder = 'CDEFGAB';
+        const prevIndex = pitchOrder.indexOf(prev.pitch);
+        const currIndex = pitchOrder.indexOf(curr.pitch);
+        const octaveDiff = curr.octave - prev.octave;
+
+        // Allow for octave jumps but intervals should be reasonable
+        const interval = Math.abs(currIndex - prevIndex + octaveDiff * 7);
+        expect(interval).toBeLessThanOrEqual(7); // No more than an octave
+      }
+    });
+
+    it('maintains consistent octave in short cadences', () => {
+      const shortCadence = getShortCadence('perfect', 'C');
+
+      // Both notes should be in same octave (or adjacent)
+      const octaveDiff = Math.abs(shortCadence[1].octave - shortCadence[0].octave);
+      expect(octaveDiff).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe('rhythm in cadence resolution', () => {
+    it('final note has longest duration (proper resolution weight)', () => {
+      for (const type of ['perfect', 'half', 'deceptive', 'plagal'] as CadenceType[]) {
+        const cadence = generateCadence(type, 'C');
+        const finalDuration = cadence[cadence.length - 1].duration;
+        const approachDuration = cadence[cadence.length - 2]?.duration ?? 0;
+
+        expect(finalDuration).toBeGreaterThanOrEqual(approachDuration);
+      }
+    });
+
+    it('short cadence maintains 2:4 duration ratio', () => {
+      const short = getShortCadence('perfect', 'C');
+
+      expect(short[0].duration).toBe(2);
+      expect(short[1].duration).toBe(4);
+    });
+  });
+
+  describe('cadence in musical context', () => {
+    it('phrase closure provides proper ending feel', () => {
+      const melody: Note[] = [
+        { pitch: 'C', octave: 0, duration: 2 },
+        { pitch: 'D', octave: 0, duration: 1 },
+        { pitch: 'E', octave: 0, duration: 1 },
+        { pitch: 'F', octave: 0, duration: 2 },
+        { pitch: 'G', octave: 0, duration: 2 },
+      ];
+
+      const closed = applyPhraseClosure(melody, 'perfect', 'C');
+
+      // Phrase should end with perfect cadence on tonic
+      expect(closed[closed.length - 1].pitch).toBe('C');
+
+      // Should include dominant approach
+      const hasDominant = closed.slice(-4).some(n => n.pitch === 'G');
+      expect(hasDominant).toBe(true);
+    });
+
+    it('different cadence types create different emotional effects', () => {
+      const melody: Note[] = [
+        { pitch: 'E', octave: 0, duration: 2 },
+      ];
+
+      const conclusive = applyPhraseClosure(melody, 'perfect', 'C');
+      const suspenseful = applyPhraseClosure(melody, 'half', 'C');
+      const surprising = applyPhraseClosure(melody, 'deceptive', 'C');
+      const peaceful = applyPhraseClosure(melody, 'plagal', 'C');
+
+      // All should end differently (except perfect and plagal both on C)
+      expect(conclusive[conclusive.length - 1].pitch).toBe('C');
+      expect(suspenseful[suspenseful.length - 1].pitch).toBe('G');
+      expect(surprising[surprising.length - 1].pitch).toBe('A');
+      expect(peaceful[peaceful.length - 1].pitch).toBe('C');
+    });
+  });
+
+  describe('stanza structure and cadence flow', () => {
+    it('creates tension-release arc across stanza', () => {
+      // 4-line stanza should build then resolve
+      const lineTypes: CadenceType[] = [];
+      for (let i = 0; i < 4; i++) {
+        lineTypes.push(determineLineEndingCadence({
+          lineIndex: i,
+          totalLines: 4,
+          isStanzaEnd: i === 3,
+          isLastStanza: true,
+        }));
+      }
+
+      // Early lines: incomplete cadences (half, plagal)
+      expect(['half', 'plagal']).toContain(lineTypes[0]);
+      expect(['half', 'plagal']).toContain(lineTypes[1]);
+
+      // Penultimate: tension (deceptive)
+      expect(lineTypes[2]).toBe('deceptive');
+
+      // Final: resolution (perfect)
+      expect(lineTypes[3]).toBe('perfect');
+    });
+
+    it('non-final stanzas also get proper closure', () => {
+      const stanzaEnd = determineLineEndingCadence({
+        lineIndex: 3,
+        totalLines: 4,
+        isStanzaEnd: true,
+        isLastStanza: false, // NOT the final stanza
+      });
+
+      // Should still get strong ending
+      expect(stanzaEnd).toBe('perfect');
+    });
+  });
+
+  describe('key-specific validation', () => {
+    it('all generated cadences pass validation in their key', () => {
+      const keys: KeySignature[] = ['C', 'G', 'D', 'F', 'Am', 'Em', 'Dm'];
+      const types: CadenceType[] = ['perfect', 'half', 'deceptive', 'plagal'];
+
+      for (const key of keys) {
+        for (const type of types) {
+          const cadence = generateCadence(type, key);
+          const result = validateCadence(cadence, type, key);
+
+          expect(result.valid).toBe(true);
+          expect(result.issues.filter(i => !i.includes('duration'))).toHaveLength(0);
+        }
+      }
+    });
+  });
+});
