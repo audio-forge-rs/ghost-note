@@ -143,6 +143,27 @@ function HelpIcon(): ReactElement {
 }
 
 /**
+ * Share/Link icon
+ */
+function ShareIcon(): ReactElement {
+  return (
+    <svg
+      className="header__icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+/**
  * Header component displays the application title and provides
  * access to theme toggle and help functionality.
  *
@@ -181,6 +202,11 @@ export function Header({ className = '' }: HeaderProps): ReactElement {
     openModalDialog('help');
   };
 
+  const handleShareClick = (): void => {
+    log('Opening share modal');
+    openModalDialog('share');
+  };
+
   const handleMenuClick = (): void => {
     log('Toggling sidebar');
     toggleSidebar();
@@ -210,6 +236,18 @@ export function Header({ className = '' }: HeaderProps): ReactElement {
       </div>
 
       <div className="header__right">
+        {/* Share button */}
+        <button
+          type="button"
+          className="header__button header__share-button"
+          onClick={handleShareClick}
+          aria-label="Share poem"
+          title="Share poem"
+          data-testid="share-button"
+        >
+          <ShareIcon />
+        </button>
+
         {/* Theme toggle button */}
         <button
           type="button"
