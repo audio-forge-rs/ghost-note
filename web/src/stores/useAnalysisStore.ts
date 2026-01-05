@@ -10,7 +10,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { AnalysisStore, AnalysisState, AnalysisStage } from './types';
 import type { PoemAnalysis } from '../types';
-import { createDefaultPoemAnalysis } from '../types';
+import { analyzePoem, type AnalysisProgress } from '../lib/analysis/orchestrator';
 
 // =============================================================================
 // Initial State
@@ -42,6 +42,38 @@ const stageProgress: Record<AnalysisStage, number> = {
   complete: 100,
   error: 0,
 };
+
+// =============================================================================
+// Orchestrator Stage Mapping
+// =============================================================================
+
+/**
+ * Maps orchestrator stage names to store AnalysisStage values.
+ * The orchestrator uses slightly different naming.
+ */
+const orchestratorStageMap: Record<string, AnalysisStage> = {
+  preprocess: 'preprocessing',
+  phonetic: 'phonetic',
+  stress: 'syllabifying', // Stress analysis maps to syllabifying stage
+  meter: 'meter',
+  rhyme: 'rhyme',
+  singability: 'singability',
+  emotion: 'emotion',
+  complete: 'complete',
+  cached: 'complete', // Cached results go straight to complete
+};
+
+/**
+ * Converts orchestrator progress to store stage and progress.
+ * @param progress - Progress from orchestrator
+ * @returns Store-compatible stage and progress
+ */
+function mapOrchestratorProgress(progress: AnalysisProgress): { stage: AnalysisStage; progress: number } {
+  const mappedStage = orchestratorStageMap[progress.stage] ?? 'preprocessing';
+  // Use orchestrator's percentage if available, otherwise use our stage mapping
+  const mappedProgress = progress.percent ?? stageProgress[mappedStage];
+  return { stage: mappedStage, progress: mappedProgress };
+}
 
 // =============================================================================
 // Store Implementation
@@ -76,47 +108,35 @@ export const useAnalysisStore = create<AnalysisStore>()(
         );
 
         try {
-          // Simulate analysis pipeline stages
-          // In production, this would call actual analysis functions
-          const stages: AnalysisStage[] = [
-            'preprocessing',
-            'tokenizing',
-            'phonetic',
-            'syllabifying',
-            'meter',
-            'rhyme',
-            'singability',
-            'emotion',
-          ];
-
-          for (const stage of stages) {
+          // Create progress callback to update store state
+          const onProgress = (progress: AnalysisProgress): void => {
+            const { stage: mappedStage, progress: mappedProgress } = mapOrchestratorProgress(progress);
+            console.log(`[AnalysisStore] Progress: ${progress.stage} -> ${mappedStage} (${mappedProgress}%): ${progress.message}`);
             set(
               {
-                stage,
-                progress: stageProgress[stage],
+                stage: mappedStage,
+                progress: mappedProgress,
               },
               false,
-              `analyze/${stage}`
+              `analyze/${mappedStage}`
             );
+          };
 
-            // Simulate processing time (remove in production)
-            await new Promise((resolve) => setTimeout(resolve, 100));
+          // Call the actual orchestrator
+          console.log('[AnalysisStore] Calling analyzePoem orchestrator');
+          const analysis = await analyzePoem(text, {
+            onProgress,
+            useCache: true,
+          });
+
+          // Validate that we got meaningful results
+          if (!analysis) {
+            throw new Error('Analysis returned null or undefined');
           }
 
-          // Create default analysis result
-          // In production, this would be populated by actual analysis
-          const analysis = createDefaultPoemAnalysis();
-
-          // Parse basic metadata from text
-          const lines = text.split('\n').filter((line) => line.trim());
-          const words = text.trim().split(/\s+/).filter((w) => w);
-
-          analysis.meta = {
-            lineCount: lines.length,
-            stanzaCount: text.split(/\n\n+/).filter((s) => s.trim()).length,
-            wordCount: words.length,
-            syllableCount: words.length * 2, // Rough estimate
-          };
+          console.log('[AnalysisStore] Analysis complete, stanzas:', analysis.structure.stanzas.length);
+          console.log('[AnalysisStore] Detected meter:', analysis.prosody.meter.detectedMeter);
+          console.log('[AnalysisStore] Rhyme scheme:', analysis.prosody.rhyme.scheme);
 
           set(
             {
