@@ -129,11 +129,12 @@ describe('VersionList', () => {
       render(<VersionList {...defaultProps} />);
 
       // Should show relative time like "1m ago" or "30s ago"
-      const items = screen.getAllByTestId(/version-list-item-v/);
-      items.forEach((item) => {
-        const timeEl = item.querySelector('.version-list__item-time');
-        expect(timeEl).toBeInTheDocument();
-      });
+      // Check v1 and v2 specifically to avoid matching dialog testIds
+      const v1 = screen.getByTestId('version-list-item-v1');
+      const v2 = screen.getByTestId('version-list-item-v2');
+
+      expect(v1.querySelector('.version-list__item-time')).toBeInTheDocument();
+      expect(v2.querySelector('.version-list__item-time')).toBeInTheDocument();
     });
   });
 
@@ -147,12 +148,50 @@ describe('VersionList', () => {
       expect(onSelectVersion).toHaveBeenCalledWith(0);
     });
 
-    it('calls onSelectVersion with -1 when original is clicked', () => {
+    it('shows confirmation when clicking original while viewing a version', () => {
       const onSelectVersion = vi.fn();
-      render(<VersionList {...defaultProps} onSelectVersion={onSelectVersion} />);
+      render(<VersionList {...defaultProps} onSelectVersion={onSelectVersion} currentVersionIndex={0} />);
 
       fireEvent.click(screen.getByTestId('version-list-item-original'));
 
+      // Should show confirmation dialog
+      expect(screen.getByTestId('version-revert-dialog')).toBeInTheDocument();
+      expect(onSelectVersion).not.toHaveBeenCalled();
+    });
+
+    it('calls onSelectVersion with -1 when revert is confirmed', () => {
+      const onSelectVersion = vi.fn();
+      render(<VersionList {...defaultProps} onSelectVersion={onSelectVersion} currentVersionIndex={0} />);
+
+      // Click original to show dialog
+      fireEvent.click(screen.getByTestId('version-list-item-original'));
+      // Confirm revert
+      fireEvent.click(screen.getByTestId('version-revert-dialog-confirm'));
+
+      expect(onSelectVersion).toHaveBeenCalledWith(-1);
+    });
+
+    it('does not revert when confirmation is cancelled', () => {
+      const onSelectVersion = vi.fn();
+      render(<VersionList {...defaultProps} onSelectVersion={onSelectVersion} currentVersionIndex={0} />);
+
+      // Click original to show dialog
+      fireEvent.click(screen.getByTestId('version-list-item-original'));
+      // Cancel
+      fireEvent.click(screen.getByTestId('version-revert-dialog-cancel'));
+
+      expect(onSelectVersion).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('version-revert-dialog')).not.toBeInTheDocument();
+    });
+
+    it('does not show confirmation when already viewing original', () => {
+      const onSelectVersion = vi.fn();
+      render(<VersionList {...defaultProps} onSelectVersion={onSelectVersion} currentVersionIndex={-1} />);
+
+      fireEvent.click(screen.getByTestId('version-list-item-original'));
+
+      // Should not show dialog, should call directly
+      expect(screen.queryByTestId('version-revert-dialog')).not.toBeInTheDocument();
       expect(onSelectVersion).toHaveBeenCalledWith(-1);
     });
 
@@ -200,13 +239,40 @@ describe('VersionList', () => {
       expect(screen.queryByTestId('version-list-item-original-delete')).not.toBeInTheDocument();
     });
 
-    it('calls onDeleteVersion when delete button is clicked', () => {
+    it('shows confirmation dialog when delete button is clicked', () => {
       const onDeleteVersion = vi.fn();
       render(<VersionList {...defaultProps} onDeleteVersion={onDeleteVersion} />);
 
       fireEvent.click(screen.getByTestId('version-list-item-v1-delete'));
 
+      // Should show confirmation dialog
+      expect(screen.getByTestId('version-delete-dialog')).toBeInTheDocument();
+      expect(onDeleteVersion).not.toHaveBeenCalled();
+    });
+
+    it('calls onDeleteVersion when confirmation is confirmed', () => {
+      const onDeleteVersion = vi.fn();
+      render(<VersionList {...defaultProps} onDeleteVersion={onDeleteVersion} />);
+
+      // Click delete to show dialog
+      fireEvent.click(screen.getByTestId('version-list-item-v1-delete'));
+      // Confirm deletion
+      fireEvent.click(screen.getByTestId('version-delete-dialog-confirm'));
+
       expect(onDeleteVersion).toHaveBeenCalledWith('v1');
+    });
+
+    it('does not delete when confirmation is cancelled', () => {
+      const onDeleteVersion = vi.fn();
+      render(<VersionList {...defaultProps} onDeleteVersion={onDeleteVersion} />);
+
+      // Click delete to show dialog
+      fireEvent.click(screen.getByTestId('version-list-item-v1-delete'));
+      // Cancel
+      fireEvent.click(screen.getByTestId('version-delete-dialog-cancel'));
+
+      expect(onDeleteVersion).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('version-delete-dialog')).not.toBeInTheDocument();
     });
 
     it('does not trigger selection when delete is clicked', () => {
@@ -222,7 +288,8 @@ describe('VersionList', () => {
 
       fireEvent.click(screen.getByTestId('version-list-item-v1-delete'));
 
-      expect(onDeleteVersion).toHaveBeenCalled();
+      // Only dialog opens, neither callback called
+      expect(screen.getByTestId('version-delete-dialog')).toBeInTheDocument();
       expect(onSelectVersion).not.toHaveBeenCalled();
     });
   });

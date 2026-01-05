@@ -6,6 +6,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { RecordingTake } from '@/stores/types';
+import { ConfirmDialog } from '@/components/Common';
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
@@ -109,7 +110,7 @@ export function TakeItem({
 }: TakeItemProps): React.ReactElement {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(take.name || '');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when entering edit mode
@@ -126,7 +127,7 @@ export function TakeItem({
     const rafId = requestAnimationFrame(() => {
       setEditName(take.name || '');
       setIsEditing(false);
-      setShowDeleteConfirm(false);
+      setShowDeleteDialog(false);
     });
     return () => cancelAnimationFrame(rafId);
   }, [take.id, take.name]);
@@ -188,25 +189,29 @@ export function TakeItem({
     [handleSaveEdit, handleCancelEdit]
   );
 
-  // Handle delete
-  const handleDelete = useCallback(
+  // Handle delete - show confirmation dialog
+  const handleDeleteClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!canDelete) return;
-
-      if (showDeleteConfirm) {
-        log('Delete confirmed:', take.id);
-        onDelete?.(take.id);
-        setShowDeleteConfirm(false);
-      } else {
-        log('Show delete confirm:', take.id);
-        setShowDeleteConfirm(true);
-        // Auto-hide confirm after 3 seconds
-        setTimeout(() => setShowDeleteConfirm(false), 3000);
-      }
+      log('Opening delete dialog for take:', take.id);
+      setShowDeleteDialog(true);
     },
-    [take.id, showDeleteConfirm, canDelete, onDelete]
+    [take.id, canDelete]
   );
+
+  // Handle confirm delete
+  const handleConfirmDelete = useCallback(() => {
+    log('Delete confirmed:', take.id);
+    onDelete?.(take.id);
+    setShowDeleteDialog(false);
+  }, [take.id, onDelete]);
+
+  // Handle cancel delete
+  const handleCancelDelete = useCallback(() => {
+    log('Delete cancelled:', take.id);
+    setShowDeleteDialog(false);
+  }, [take.id]);
 
   // Get display name
   const displayName = take.name || `Take ${take.id.slice(-4).toUpperCase()}`;
@@ -402,20 +407,15 @@ export function TakeItem({
         {canDelete && (
           <button
             type="button"
-            onClick={handleDelete}
-            style={{
-              ...actionButtonStyle,
-              color: showDeleteConfirm ? '#ef4444' : 'inherit',
-            }}
+            onClick={handleDeleteClick}
+            style={actionButtonStyle}
             className="take-item__delete-button"
-            aria-label={showDeleteConfirm ? 'Confirm delete' : 'Delete'}
-            title={showDeleteConfirm ? 'Click again to confirm' : 'Delete'}
+            aria-label="Delete"
+            title="Delete"
             data-testid="take-delete-button"
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = '1';
-              e.currentTarget.style.backgroundColor = showDeleteConfirm
-                ? 'rgba(239, 68, 68, 0.1)'
-                : 'rgba(0, 0, 0, 0.1)';
+              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.opacity = '0.6';
@@ -434,16 +434,23 @@ export function TakeItem({
             >
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              {showDeleteConfirm && (
-                <>
-                  <line x1="10" y1="11" x2="10" y2="17" />
-                  <line x1="14" y1="11" x2="14" y2="17" />
-                </>
-              )}
             </svg>
           </button>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Recording"
+        message={`Are you sure you want to delete "${displayName}"? This recording will be permanently removed and cannot be recovered.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        testId="take-delete-dialog"
+      />
 
       {/* CSS for hover states */}
       <style>{`

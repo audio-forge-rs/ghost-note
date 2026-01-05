@@ -74,3 +74,7 @@ export type {
 // Toast components
 export { Toast, ToastContainer } from './Toast';
 export type { ToastProps, ToastContainerProps, ToastData, ToastType } from './Toast';
+
+// Confirm Dialog
+export { ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps, ConfirmDialogVariant } from './ConfirmDialog';

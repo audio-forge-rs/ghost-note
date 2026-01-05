@@ -7,6 +7,7 @@
  */
 
 import { type ReactElement, useState, useCallback, useRef, useEffect } from 'react';
+import { ConfirmDialog } from '@/components/Common';
 import './PoemToolbar.css';
 
 // Logging helper for debugging
@@ -161,6 +162,7 @@ export function PoemToolbar({
 }: PoemToolbarProps): ReactElement {
   const [isPasting, setIsPasting] = useState(false);
   const [pasteError, setPasteError] = useState<string | null>(null);
+  const [showClearDialog, setShowClearDialog] = useState(false);
   const pasteButtonRef = useRef<HTMLButtonElement>(null);
 
   log('Rendering PoemToolbar:', { hasText, canAnalyze, disabled });
@@ -208,11 +210,24 @@ export function PoemToolbar({
     }
   }, [onPaste]);
 
-  // Handle clear with confirmation for long texts
+  // Handle clear - show confirmation dialog
   const handleClearClick = useCallback(() => {
-    log('Clear button clicked');
+    log('Opening clear confirmation dialog');
+    setShowClearDialog(true);
+  }, []);
+
+  // Handle confirm clear
+  const handleConfirmClear = useCallback(() => {
+    log('Clear confirmed');
     onClear();
+    setShowClearDialog(false);
   }, [onClear]);
+
+  // Handle cancel clear
+  const handleCancelClear = useCallback(() => {
+    log('Clear cancelled');
+    setShowClearDialog(false);
+  }, []);
 
   // Handle sample picker
   const handleSampleClick = useCallback(() => {
@@ -298,6 +313,19 @@ export function PoemToolbar({
           <span className="poem-toolbar__button-text">Analyze</span>
         </button>
       </div>
+
+      {/* Clear confirmation dialog */}
+      <ConfirmDialog
+        isOpen={showClearDialog}
+        onClose={handleCancelClear}
+        onConfirm={handleConfirmClear}
+        title="Clear Poem"
+        message="Are you sure you want to clear the poem? All text will be removed and any unsaved analysis will be lost."
+        confirmText="Clear"
+        cancelText="Cancel"
+        variant="warning"
+        testId="clear-poem-dialog"
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TakeItem } from './TakeItem';
 import type { RecordingTake } from '@/stores/types';
 
@@ -211,49 +211,42 @@ describe('TakeItem', () => {
       expect(screen.queryByTestId('take-delete-button')).not.toBeInTheDocument();
     });
 
-    it('should require confirmation before deleting', () => {
+    it('should show confirmation dialog before deleting', () => {
       const handleDelete = vi.fn();
       render(<TakeItem take={mockTake} canDelete onDelete={handleDelete} />);
 
       fireEvent.click(screen.getByTestId('take-delete-button'));
 
-      // First click should show confirm state
+      // Should show confirmation dialog
+      expect(screen.getByTestId('take-delete-dialog')).toBeInTheDocument();
+      expect(screen.getByTestId('take-delete-dialog-title')).toHaveTextContent('Delete Recording');
       expect(handleDelete).not.toHaveBeenCalled();
-      expect(screen.getByTestId('take-delete-button')).toHaveAttribute(
-        'aria-label',
-        'Confirm delete'
-      );
     });
 
-    it('should delete on second click', () => {
+    it('should delete when confirmation is confirmed', () => {
       const handleDelete = vi.fn();
       render(<TakeItem take={mockTake} canDelete onDelete={handleDelete} />);
 
+      // Click delete to show dialog
       fireEvent.click(screen.getByTestId('take-delete-button'));
-      fireEvent.click(screen.getByTestId('take-delete-button'));
+      // Confirm the dialog
+      fireEvent.click(screen.getByTestId('take-delete-dialog-confirm'));
 
       expect(handleDelete).toHaveBeenCalledWith('take-123');
     });
 
-    it('should reset confirm state after timeout', () => {
-      render(<TakeItem take={mockTake} canDelete />);
+    it('should not delete when confirmation is cancelled', () => {
+      const handleDelete = vi.fn();
+      render(<TakeItem take={mockTake} canDelete onDelete={handleDelete} />);
 
+      // Click delete to show dialog
       fireEvent.click(screen.getByTestId('take-delete-button'));
+      // Cancel the dialog
+      fireEvent.click(screen.getByTestId('take-delete-dialog-cancel'));
 
-      expect(screen.getByTestId('take-delete-button')).toHaveAttribute(
-        'aria-label',
-        'Confirm delete'
-      );
-
-      // Use act to properly flush timers - synchronous
-      act(() => {
-        vi.advanceTimersByTime(4000);
-      });
-
-      expect(screen.getByTestId('take-delete-button')).toHaveAttribute(
-        'aria-label',
-        'Delete'
-      );
+      expect(handleDelete).not.toHaveBeenCalled();
+      // Dialog should be closed
+      expect(screen.queryByTestId('take-delete-dialog')).not.toBeInTheDocument();
     });
   });
 
