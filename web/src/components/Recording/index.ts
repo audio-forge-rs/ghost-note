@@ -73,3 +73,9 @@ export type { ClickTrackToggleProps } from './ClickTrackToggle';
 
 export { RecordingStudio } from './RecordingStudio';
 export type { RecordingStudioProps } from './RecordingStudio';
+
+export { WaveformDisplay } from './WaveformDisplay';
+export type {
+  WaveformDisplayProps,
+  WaveformMode,
+} from './WaveformDisplay';
