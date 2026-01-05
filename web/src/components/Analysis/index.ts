@@ -16,3 +16,4 @@ export { RhymeSchemeDisplay, type RhymeSchemeDisplayProps } from './RhymeSchemeD
 export { MeterDisplay, type MeterDisplayProps } from './MeterDisplay';
 export { SoundPatternsDisplay, type SoundPatternsDisplayProps } from './SoundPatternsDisplay';
 export { SingabilityHeatmap, type SingabilityHeatmapProps } from './SingabilityHeatmap';
+export { EmotionArcChart, type EmotionArcChartProps } from './EmotionArcChart';

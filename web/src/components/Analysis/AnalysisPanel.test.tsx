@@ -28,6 +28,10 @@ vi.mock('./SingabilityHeatmap', () => ({
   SingabilityHeatmap: () => <div data-testid="singability-heatmap-mock">SingabilityHeatmap</div>,
 }));
 
+vi.mock('./EmotionArcChart', () => ({
+  EmotionArcChart: () => <div data-testid="emotion-arc-chart-mock">EmotionArcChart</div>,
+}));
+
 describe('AnalysisPanel', () => {
   let mockAnalysis: PoemAnalysis;
 
@@ -76,6 +80,7 @@ describe('AnalysisPanel', () => {
       expect(screen.getByTestId('toggle-rhyme')).toBeInTheDocument();
       expect(screen.getByTestId('toggle-meter')).toBeInTheDocument();
       expect(screen.getByTestId('toggle-singability')).toBeInTheDocument();
+      expect(screen.getByTestId('toggle-emotionArc')).toBeInTheDocument();
     });
 
     it('renders toggle all button', () => {
@@ -125,6 +130,7 @@ describe('AnalysisPanel', () => {
       expect(screen.getByTestId('toggle-rhyme')).toHaveAttribute('aria-pressed', 'true');
       expect(screen.getByTestId('toggle-meter')).toHaveAttribute('aria-pressed', 'true');
       expect(screen.getByTestId('toggle-singability')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByTestId('toggle-emotionArc')).toHaveAttribute('aria-pressed', 'true');
 
       // Disable all
       fireEvent.click(toggleAllButton);
@@ -252,6 +258,17 @@ describe('AnalysisPanel', () => {
       );
 
       expect(screen.getByTestId('singability-heatmap-mock')).toBeInTheDocument();
+    });
+
+    it('renders EmotionArcChart when emotionArc toggle is on', () => {
+      render(
+        <AnalysisPanel
+          analysis={mockAnalysis}
+          initialToggles={{ emotionArc: true }}
+        />
+      );
+
+      expect(screen.getByTestId('emotion-arc-chart-mock')).toBeInTheDocument();
     });
 
     it('renders multiple visualizations when multiple toggles are on', () => {
