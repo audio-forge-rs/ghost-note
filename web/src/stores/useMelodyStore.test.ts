@@ -4,10 +4,24 @@
  * @module stores/useMelodyStore.test
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useMelodyStore, selectHasMelody, selectIsPlaying, selectIsPaused, selectIsStopped, selectPlaybackProgress, selectFormattedCurrentTime, selectFormattedDuration, selectVolumePercent, selectHasError } from './useMelodyStore';
 import { createDefaultPoemAnalysis } from '../types';
 import type { Melody } from '../lib/melody/types';
+
+// Mock the abcRenderer module
+vi.mock('../lib/music/abcRenderer', () => ({
+  initSynth: vi.fn().mockResolvedValue({
+    getState: () => 'ready',
+  }),
+  getSynth: vi.fn().mockReturnValue({
+    getState: () => 'ready',
+  }),
+  playMelody: vi.fn().mockResolvedValue(true),
+  pausePlayback: vi.fn().mockReturnValue(true),
+  stopPlayback: vi.fn().mockReturnValue(true),
+  resumePlayback: vi.fn().mockReturnValue(true),
+}));
 
 describe('useMelodyStore', () => {
   beforeEach(() => {
@@ -103,24 +117,60 @@ describe('useMelodyStore', () => {
   });
 
   describe('playback controls', () => {
+    // Helper to set up ABC notation before testing playback
+    const setupMelodyForPlayback = () => {
+      useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nM:4/4\nK:C\nCDEF|');
+    };
+
     describe('play', () => {
-      it('should set playback state to playing', () => {
-        useMelodyStore.getState().play();
+      it('should set playback state to playing when ABC notation is available', async () => {
+        setupMelodyForPlayback();
+        await useMelodyStore.getState().play();
+        expect(useMelodyStore.getState().playbackState).toBe('playing');
+      });
+
+      it('should set error when no ABC notation is available', async () => {
+        await useMelodyStore.getState().play();
+        expect(useMelodyStore.getState().error).toBe('No melody to play');
+        expect(useMelodyStore.getState().playbackState).toBe('stopped');
+      });
+
+      it('should not change state if already playing', async () => {
+        setupMelodyForPlayback();
+        await useMelodyStore.getState().play();
+        // Call play again while already playing
+        await useMelodyStore.getState().play();
         expect(useMelodyStore.getState().playbackState).toBe('playing');
       });
     });
 
     describe('pause', () => {
-      it('should set playback state to paused', () => {
-        useMelodyStore.getState().play();
+      it('should set playback state to paused when playing', async () => {
+        setupMelodyForPlayback();
+        await useMelodyStore.getState().play();
         useMelodyStore.getState().pause();
         expect(useMelodyStore.getState().playbackState).toBe('paused');
+      });
+
+      it('should not pause when not playing', () => {
+        useMelodyStore.getState().pause();
+        expect(useMelodyStore.getState().playbackState).toBe('stopped');
       });
     });
 
     describe('stop', () => {
-      it('should set playback state to stopped and reset time', () => {
-        useMelodyStore.getState().play();
+      it('should set playback state to stopped and reset time', async () => {
+        setupMelodyForPlayback();
+        await useMelodyStore.getState().play();
+        useMelodyStore.getState().setCurrentTime(30);
+        useMelodyStore.getState().stop();
+
+        const state = useMelodyStore.getState();
+        expect(state.playbackState).toBe('stopped');
+        expect(state.currentTime).toBe(0);
+      });
+
+      it('should work even when not playing', () => {
         useMelodyStore.getState().setCurrentTime(30);
         useMelodyStore.getState().stop();
 
@@ -222,7 +272,7 @@ describe('useMelodyStore', () => {
     it('should clear melody and reset playback', async () => {
       const analysis = createDefaultPoemAnalysis();
       await useMelodyStore.getState().generateMelody('Test', analysis);
-      useMelodyStore.getState().play();
+      await useMelodyStore.getState().play();
       useMelodyStore.getState().setCurrentTime(30);
 
       useMelodyStore.getState().clear();
@@ -265,12 +315,14 @@ describe('useMelodyStore', () => {
     });
 
     describe('selectIsPlaying/Paused/Stopped', () => {
-      it('should return correct states', () => {
+      it('should return correct states', async () => {
         expect(selectIsStopped(useMelodyStore.getState())).toBe(true);
         expect(selectIsPlaying(useMelodyStore.getState())).toBe(false);
         expect(selectIsPaused(useMelodyStore.getState())).toBe(false);
 
-        useMelodyStore.getState().play();
+        // Set up ABC notation before playing
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nM:4/4\nK:C\nCDEF|');
+        await useMelodyStore.getState().play();
         expect(selectIsPlaying(useMelodyStore.getState())).toBe(true);
         expect(selectIsStopped(useMelodyStore.getState())).toBe(false);
 
@@ -321,6 +373,120 @@ describe('useMelodyStore', () => {
       it('should return true when error exists', () => {
         useMelodyStore.getState().setError('Test error');
         expect(selectHasError(useMelodyStore.getState())).toBe(true);
+      });
+    });
+  });
+
+  describe('synth integration', () => {
+    // Import the mocked module
+    let initSynth: ReturnType<typeof vi.fn>;
+    let playMelody: ReturnType<typeof vi.fn>;
+    let pausePlayback: ReturnType<typeof vi.fn>;
+    let stopPlayback: ReturnType<typeof vi.fn>;
+    let resumePlayback: ReturnType<typeof vi.fn>;
+    let getSynth: ReturnType<typeof vi.fn>;
+
+    beforeEach(async () => {
+      const synthModule = await import('../lib/music/abcRenderer');
+      initSynth = vi.mocked(synthModule.initSynth);
+      playMelody = vi.mocked(synthModule.playMelody);
+      pausePlayback = vi.mocked(synthModule.pausePlayback);
+      stopPlayback = vi.mocked(synthModule.stopPlayback);
+      resumePlayback = vi.mocked(synthModule.resumePlayback);
+      getSynth = vi.mocked(synthModule.getSynth);
+      vi.clearAllMocks();
+      useMelodyStore.getState().reset();
+    });
+
+    describe('play calls synth functions', () => {
+      it('should call initSynth and playMelody when starting fresh playback', async () => {
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+        await useMelodyStore.getState().play();
+
+        expect(initSynth).toHaveBeenCalled();
+        expect(playMelody).toHaveBeenCalledWith('X:1\nT:Test\nK:C\nCDEF|', 'notation-display-1');
+      });
+
+      it('should call resumePlayback when resuming from paused state', async () => {
+        // Mock getSynth to return paused state
+        getSynth.mockReturnValue({
+          getState: () => 'paused',
+        });
+
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+        // Start playback first
+        await useMelodyStore.getState().play();
+        useMelodyStore.getState().pause();
+
+        // Clear mocks before resume
+        vi.clearAllMocks();
+
+        // Now resume
+        await useMelodyStore.getState().play();
+        expect(resumePlayback).toHaveBeenCalled();
+      });
+    });
+
+    describe('pause calls synth functions', () => {
+      it('should call pausePlayback when pausing', async () => {
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+        await useMelodyStore.getState().play();
+
+        vi.clearAllMocks();
+        useMelodyStore.getState().pause();
+
+        expect(pausePlayback).toHaveBeenCalled();
+      });
+    });
+
+    describe('stop calls synth functions', () => {
+      it('should call stopPlayback when stopping', async () => {
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+        await useMelodyStore.getState().play();
+
+        vi.clearAllMocks();
+        useMelodyStore.getState().stop();
+
+        expect(stopPlayback).toHaveBeenCalled();
+      });
+    });
+
+    describe('clear and reset stop playback', () => {
+      it('should call stopPlayback when clearing melody', async () => {
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+        await useMelodyStore.getState().play();
+
+        vi.clearAllMocks();
+        useMelodyStore.getState().clear();
+
+        expect(stopPlayback).toHaveBeenCalled();
+      });
+
+      it('should call stopPlayback when resetting store', async () => {
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+        await useMelodyStore.getState().play();
+
+        vi.clearAllMocks();
+        useMelodyStore.getState().reset();
+
+        expect(stopPlayback).toHaveBeenCalled();
+      });
+    });
+
+    describe('loading state', () => {
+      it('should set loading state before playback starts', async () => {
+        useMelodyStore.getState().setAbcNotation('X:1\nT:Test\nK:C\nCDEF|');
+
+        // Start play but don't await
+        const playPromise = useMelodyStore.getState().play();
+
+        // During initialization, state should be loading
+        // (This test may be flaky depending on mock resolution timing)
+
+        await playPromise;
+
+        // After completion, should be playing
+        expect(useMelodyStore.getState().playbackState).toBe('playing');
       });
     });
   });

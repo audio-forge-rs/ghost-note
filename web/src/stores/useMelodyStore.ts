@@ -11,6 +11,25 @@ import { devtools, persist } from 'zustand/middleware';
 import type { MelodyStore, MelodyState } from './types';
 import type { PoemAnalysis } from '../types';
 import type { Melody } from '../lib/melody/types';
+import {
+  initSynth,
+  getSynth,
+  playMelody,
+  pausePlayback,
+  stopPlayback,
+  resumePlayback,
+  type SynthState,
+} from '../lib/music/abcRenderer';
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+/**
+ * Default element ID for the notation display container.
+ * This is used to sync visual highlighting with audio playback.
+ */
+const NOTATION_ELEMENT_ID = 'notation-display-1';
 
 // =============================================================================
 // Initial State
@@ -155,30 +174,203 @@ w: Place-hold-er me-lo-dy here~`;
           );
         },
 
-        play: () => {
-          console.log('[MelodyStore] Play');
+        play: async () => {
+          const state = get();
+          const { abcNotation, playbackState } = state;
+
+          console.log('[MelodyStore] Play requested, current state:', playbackState);
+
+          // Can't play without ABC notation
+          if (!abcNotation) {
+            console.warn('[MelodyStore] Cannot play: no ABC notation available');
+            get().setError('No melody to play');
+            return;
+          }
+
+          // If already playing, ignore
+          if (playbackState === 'playing') {
+            console.log('[MelodyStore] Already playing, ignoring');
+            return;
+          }
+
+          // Set loading state while synth initializes
           set(
             {
-              playbackState: 'playing',
+              playbackState: 'loading',
+              error: null,
             },
             false,
-            'play'
+            'play/loading'
           );
+
+          try {
+            const synth = getSynth();
+
+            // If paused, resume playback
+            if (playbackState === 'paused' && synth && synth.getState() === 'paused') {
+              console.log('[MelodyStore] Resuming from paused state');
+              const resumed = resumePlayback();
+              if (resumed) {
+                set(
+                  {
+                    playbackState: 'playing',
+                  },
+                  false,
+                  'play/resumed'
+                );
+              } else {
+                console.warn('[MelodyStore] Failed to resume playback');
+                set(
+                  {
+                    playbackState: 'paused',
+                    error: 'Failed to resume playback',
+                  },
+                  false,
+                  'play/resume-failed'
+                );
+              }
+              return;
+            }
+
+            // Initialize synth with progress callbacks
+            console.log('[MelodyStore] Initializing synth for fresh playback');
+            await initSynth({
+              onProgress: (currentBeat, totalBeats, totalTime) => {
+                // Convert beat progress to time
+                // totalTime is in milliseconds from abcjs
+                const progress = totalBeats > 0 ? currentBeat / totalBeats : 0;
+                const currentTimeInSeconds = progress * (totalTime / 1000);
+                const durationInSeconds = totalTime / 1000;
+
+                // Update store state
+                const store = useMelodyStore.getState();
+                if (store.playbackState === 'playing') {
+                  store.setCurrentTime(currentTimeInSeconds);
+                  if (store.duration !== durationInSeconds && durationInSeconds > 0) {
+                    store.setDuration(durationInSeconds);
+                  }
+                }
+              },
+              onStateChange: (synthState: SynthState) => {
+                console.log('[MelodyStore] Synth state changed:', synthState);
+                // Handle synth state changes
+                if (synthState === 'stopped') {
+                  const store = useMelodyStore.getState();
+                  // Only reset if we didn't explicitly stop (i.e., playback finished naturally)
+                  if (store.playbackState === 'playing') {
+                    console.log('[MelodyStore] Playback finished naturally');
+                    // Check if loop is enabled
+                    if (store.loop && store.abcNotation) {
+                      console.log('[MelodyStore] Loop enabled, restarting playback');
+                      // Restart playback
+                      setTimeout(() => {
+                        store.play();
+                      }, 100);
+                    } else {
+                      set(
+                        {
+                          playbackState: 'stopped',
+                          currentTime: 0,
+                        },
+                        false,
+                        'play/finished'
+                      );
+                    }
+                  }
+                }
+              },
+            });
+
+            // Start playback using playMelody helper
+            // This handles rendering, loading, and playing in one call
+            console.log('[MelodyStore] Starting playMelody with notation');
+            const success = await playMelody(abcNotation, NOTATION_ELEMENT_ID);
+
+            if (success) {
+              console.log('[MelodyStore] Playback started successfully');
+              set(
+                {
+                  playbackState: 'playing',
+                },
+                false,
+                'play/started'
+              );
+            } else {
+              console.error('[MelodyStore] playMelody returned false');
+              set(
+                {
+                  playbackState: 'stopped',
+                  error: 'Failed to start playback',
+                },
+                false,
+                'play/failed'
+              );
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown playback error';
+            console.error('[MelodyStore] Play error:', errorMessage);
+            set(
+              {
+                playbackState: 'stopped',
+                error: errorMessage,
+              },
+              false,
+              'play/error'
+            );
+          }
         },
 
         pause: () => {
-          console.log('[MelodyStore] Pause');
-          set(
-            {
-              playbackState: 'paused',
-            },
-            false,
-            'pause'
-          );
+          const state = get();
+          console.log('[MelodyStore] Pause requested, current state:', state.playbackState);
+
+          // Can only pause if playing
+          if (state.playbackState !== 'playing') {
+            console.log('[MelodyStore] Not playing, ignoring pause');
+            return;
+          }
+
+          // Call the actual synth pause
+          const paused = pausePlayback();
+
+          if (paused) {
+            console.log('[MelodyStore] Paused successfully');
+            set(
+              {
+                playbackState: 'paused',
+              },
+              false,
+              'pause'
+            );
+          } else {
+            console.warn('[MelodyStore] Failed to pause, synth may not be active');
+            // Still update the state since the user expects it to be paused
+            set(
+              {
+                playbackState: 'paused',
+              },
+              false,
+              'pause/fallback'
+            );
+          }
         },
 
         stop: () => {
-          console.log('[MelodyStore] Stop');
+          const state = get();
+          console.log('[MelodyStore] Stop requested, current state:', state.playbackState);
+
+          // Call the actual synth stop if we have a synth
+          const synth = getSynth();
+          if (synth) {
+            const stopped = stopPlayback();
+            if (stopped) {
+              console.log('[MelodyStore] Stopped synth successfully');
+            } else {
+              console.log('[MelodyStore] Synth stop returned false (may already be stopped)');
+            }
+          }
+
+          // Always update the state
           set(
             {
               playbackState: 'stopped',
@@ -187,6 +379,7 @@ w: Place-hold-er me-lo-dy here~`;
             false,
             'stop'
           );
+          console.log('[MelodyStore] Playback stopped and time reset');
         },
 
         seek: (time: number) => {
@@ -298,6 +491,13 @@ w: Place-hold-er me-lo-dy here~`;
 
         clear: () => {
           console.log('[MelodyStore] Clearing melody');
+
+          // Stop any active playback
+          const synth = getSynth();
+          if (synth) {
+            stopPlayback();
+          }
+
           set(
             {
               melody: null,
@@ -315,6 +515,13 @@ w: Place-hold-er me-lo-dy here~`;
 
         reset: () => {
           console.log('[MelodyStore] Resetting store');
+
+          // Stop any active playback
+          const synth = getSynth();
+          if (synth) {
+            stopPlayback();
+          }
+
           set(initialState, false, 'reset');
         },
       }),
