@@ -44,6 +44,7 @@ import {
   selectShouldShowTutorial,
 } from '@/stores/useTutorialStore';
 import { ShareDialog } from '@/components/Share';
+import { HelpPanel } from '@/components/Help';
 import { useKeyboardShortcuts } from '@/hooks';
 import './App.css';
 
@@ -525,9 +526,11 @@ function App(): React.ReactElement {
   const analysis = useAnalysisStore((state) => state.analysis);
   const currentLyrics = usePoemStore(selectCurrentLyrics);
 
-  // UI store for notifications and export dialog
+  // UI store for notifications, modals, and help panel
   const showNotification = useUIStore((state) => state.showNotification);
   const openModalDialog = useUIStore((state) => state.openModalDialog);
+  const openModal = useUIStore((state) => state.openModal);
+  const closeModal = useUIStore((state) => state.closeModal);
 
   // Undo store for undo/redo functionality
   const canUndo = useUndoStore(selectCanUndo);
@@ -539,10 +542,6 @@ function App(): React.ReactElement {
 
   // Poem store for setting lyrics after undo/redo
   const updateCurrentVersion = usePoemStore((state) => state.updateCurrentVersion);
-
-  // UI store for share dialog
-  const openModal = useUIStore((state) => state.openModal);
-  const closeModal = useUIStore((state) => state.closeModal);
 
   // Toast store for notifications
   const addToast = useToastStore((state) => state.addToast);
@@ -924,6 +923,10 @@ function App(): React.ReactElement {
       />
       <ShareDialog
         isOpen={openModal === 'share'}
+        onClose={closeModal}
+      />
+      <HelpPanel
+        isOpen={openModal === 'help'}
         onClose={closeModal}
       />
       <ToastContainer position="top-right" />
