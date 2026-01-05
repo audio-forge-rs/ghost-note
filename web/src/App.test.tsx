@@ -155,6 +155,7 @@ vi.mock('@/stores/useMelodyStore', () => ({
   }),
   selectHasMelody: (state: typeof mockMelodyStoreState) => state.abcNotation !== null,
   selectIsGenerating: (state: typeof mockMelodyStoreState) => state.isGenerating,
+  selectIsPlaying: (state: typeof mockMelodyStoreState) => state.playbackState === 'playing',
 }));
 
 const mockRecordingStoreState: {

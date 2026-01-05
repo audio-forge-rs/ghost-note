@@ -10,13 +10,19 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { usePoemStore, selectCurrentLyrics, selectHasPoem } from '@/stores/usePoemStore';
 import { useAnalysisStore, selectHasAnalysis, selectIsAnalyzing } from '@/stores/useAnalysisStore';
-import { useMelodyStore, selectHasMelody, selectIsGenerating } from '@/stores/useMelodyStore';
+import {
+  useMelodyStore,
+  selectHasMelody,
+  selectIsGenerating,
+  selectIsPlaying,
+} from '@/stores/useMelodyStore';
 import { useRecordingStore, selectHasPermission, selectIsRecording } from '@/stores/useRecordingStore';
 import {
   useSuggestionStore,
   selectHasSuggestions,
   selectIsLoading as selectSuggestionsLoading,
 } from '@/stores/useSuggestionStore';
+import { useUIStore } from '@/stores/useUIStore';
 import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
@@ -27,6 +33,8 @@ import { LyricEditor } from '@/components/LyricEditor';
 import { NotationDisplay } from '@/components/Notation';
 import { PlaybackContainer } from '@/components/Playback';
 import { PermissionPrompt, AudioLevelMeter, MicrophoneSelect } from '@/components/Recording';
+import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcuts';
+import { useKeyboardShortcuts } from '@/hooks';
 import './App.css';
 
 // Logging helper for debugging
@@ -459,14 +467,56 @@ function ViewContent({
 }
 
 /**
+ * Navigation order for Tab navigation
+ */
+const NAVIGATION_ORDER: NavigationView[] = [
+  'poem-input',
+  'analysis',
+  'lyrics-editor',
+  'melody',
+  'recording',
+];
+
+/**
  * Main Application component.
  *
  * Sets up the app shell with navigation and manages the active view state.
+ * Integrates keyboard shortcuts for playback, navigation, and recording.
  */
 function App(): React.ReactElement {
   const [activeView, setActiveView] = useState<NavigationView>('poem-input');
+  const [showShortcutsDialog, setShowShortcutsDialog] = useState(false);
 
   log('App rendering with activeView:', activeView);
+
+  // Melody store for playback shortcuts
+  const hasMelody = useMelodyStore(selectHasMelody);
+  const isPlaying = useMelodyStore(selectIsPlaying);
+  const isGenerating = useMelodyStore(selectIsGenerating);
+  const play = useMelodyStore((state) => state.play);
+  const pause = useMelodyStore((state) => state.pause);
+  const stop = useMelodyStore((state) => state.stop);
+  const generateMelody = useMelodyStore((state) => state.generateMelody);
+
+  // Recording store for recording shortcuts
+  const isRecording = useRecordingStore(selectIsRecording);
+  const hasPermission = useRecordingStore(selectHasPermission);
+  const startRecording = useRecordingStore((state) => state.startRecording);
+  const stopRecording = useRecordingStore((state) => state.stopRecording);
+
+  // Poem and analysis stores for melody generation
+  const hasAnalysis = useAnalysisStore(selectHasAnalysis);
+  const analysis = useAnalysisStore((state) => state.analysis);
+  const currentLyrics = usePoemStore(selectCurrentLyrics);
+
+  // UI store for notifications and export dialog
+  const showNotification = useUIStore((state) => state.showNotification);
+  const openModalDialog = useUIStore((state) => state.openModalDialog);
+
+  // Poem store for undo/redo
+  const versions = usePoemStore((state) => state.versions);
+  const currentVersionIndex = usePoemStore((state) => state.currentVersionIndex);
+  const revertToVersion = usePoemStore((state) => state.revertToVersion);
 
   // Initialize theme on mount - only runs once
   useEffect(() => {
@@ -478,15 +528,151 @@ function App(): React.ReactElement {
     }
   }, []);
 
-  const handleNavigate = (view: NavigationView): void => {
+  const handleNavigate = useCallback((view: NavigationView): void => {
     log('Navigating to:', view);
     setActiveView(view);
-  };
+  }, []);
+
+  // Keyboard shortcut handlers
+  const handlePlayPause = useCallback(() => {
+    if (!hasMelody) {
+      log('No melody available, ignoring play/pause');
+      return;
+    }
+
+    if (isPlaying) {
+      log('Pausing playback via keyboard shortcut');
+      pause();
+    } else {
+      log('Playing via keyboard shortcut');
+      play();
+    }
+  }, [hasMelody, isPlaying, play, pause]);
+
+  const handleStop = useCallback(() => {
+    if (!hasMelody) {
+      log('No melody available, ignoring stop');
+      return;
+    }
+    log('Stopping playback via keyboard shortcut');
+    stop();
+  }, [hasMelody, stop]);
+
+  const handleGenerateMelody = useCallback(() => {
+    if (!hasAnalysis || !analysis || !currentLyrics) {
+      log('Cannot generate melody: missing analysis or lyrics');
+      showNotification('Please analyze your poem first', 'warning');
+      return;
+    }
+    if (isGenerating) {
+      log('Already generating melody');
+      return;
+    }
+    log('Generating melody via keyboard shortcut');
+    generateMelody(currentLyrics, analysis);
+    // Navigate to melody view
+    handleNavigate('melody');
+  }, [hasAnalysis, analysis, currentLyrics, isGenerating, generateMelody, showNotification, handleNavigate]);
+
+  const handleUndo = useCallback(() => {
+    if (versions.length === 0 || currentVersionIndex < 0) {
+      log('Nothing to undo');
+      return;
+    }
+    log('Undo via keyboard shortcut');
+    revertToVersion(currentVersionIndex - 1);
+  }, [versions.length, currentVersionIndex, revertToVersion]);
+
+  const handleRedo = useCallback(() => {
+    if (currentVersionIndex >= versions.length - 1) {
+      log('Nothing to redo');
+      return;
+    }
+    log('Redo via keyboard shortcut');
+    revertToVersion(currentVersionIndex + 1);
+  }, [versions.length, currentVersionIndex, revertToVersion]);
+
+  const handleSave = useCallback(() => {
+    log('Save/Export via keyboard shortcut');
+    openModalDialog('export');
+    showNotification('Export dialog opened', 'info');
+  }, [openModalDialog, showNotification]);
+
+  const handleToggleRecording = useCallback(() => {
+    if (!hasMelody) {
+      log('No melody available, cannot record');
+      showNotification('Please generate a melody first', 'warning');
+      return;
+    }
+
+    if (isRecording) {
+      log('Stopping recording via keyboard shortcut');
+      stopRecording();
+    } else {
+      log('Starting recording via keyboard shortcut');
+      if (!hasPermission) {
+        showNotification('Please grant microphone permission first', 'warning');
+        handleNavigate('recording');
+        return;
+      }
+      startRecording();
+    }
+  }, [hasMelody, isRecording, hasPermission, startRecording, stopRecording, showNotification, handleNavigate]);
+
+  const handleNavigateNext = useCallback(() => {
+    const currentIndex = NAVIGATION_ORDER.indexOf(activeView);
+    if (currentIndex < NAVIGATION_ORDER.length - 1) {
+      const nextView = NAVIGATION_ORDER[currentIndex + 1];
+      log('Navigating to next section:', nextView);
+      handleNavigate(nextView);
+    }
+  }, [activeView, handleNavigate]);
+
+  const handleNavigatePrev = useCallback(() => {
+    const currentIndex = NAVIGATION_ORDER.indexOf(activeView);
+    if (currentIndex > 0) {
+      const prevView = NAVIGATION_ORDER[currentIndex - 1];
+      log('Navigating to previous section:', prevView);
+      handleNavigate(prevView);
+    }
+  }, [activeView, handleNavigate]);
+
+  const handleShowHelp = useCallback(() => {
+    log('Showing keyboard shortcuts dialog');
+    setShowShortcutsDialog(true);
+  }, []);
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts(
+    {
+      onPlayPause: handlePlayPause,
+      onStop: handleStop,
+      onGenerateMelody: handleGenerateMelody,
+      onUndo: handleUndo,
+      onRedo: handleRedo,
+      onSave: handleSave,
+      onToggleRecording: handleToggleRecording,
+      onNavigateNext: handleNavigateNext,
+      onNavigatePrev: handleNavigatePrev,
+      onShowHelp: handleShowHelp,
+    },
+    {
+      enabled: true,
+      disableInTextInput: true,
+    }
+  );
 
   return (
-    <AppShell activeView={activeView} onNavigate={handleNavigate}>
-      <ViewContent view={activeView} onNavigate={handleNavigate} />
-    </AppShell>
+    <>
+      <AppShell activeView={activeView} onNavigate={handleNavigate}>
+        <ViewContent view={activeView} onNavigate={handleNavigate} />
+      </AppShell>
+
+      <KeyboardShortcutsDialog
+        isOpen={showShortcutsDialog}
+        onClose={() => setShowShortcutsDialog(false)}
+      />
+    </>
   );
 }
 
