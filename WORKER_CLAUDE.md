@@ -39,7 +39,7 @@ Your GitHub issue contains:
 4. Understand existing code before changing
 5. Implement the feature FULLY
 6. Write tests that verify behavior
-7. Run linter: npm run lint
+7. Run check: npm run check (runs lint + typecheck)
 8. Run tests: npm test
 9. Commit with descriptive message
 10. Push branch
@@ -71,7 +71,7 @@ Brief description of what was implemented.
 
 ## Testing
 - [ ] Unit tests pass (`npm test`)
-- [ ] Linter passes (`npm run lint`)
+- [ ] Check passes (`npm run check`)
 - [ ] Manual testing performed
 
 ## Notes
@@ -87,7 +87,8 @@ Closes #{issue_number}
 npm install              # Install dependencies (first time)
 npm run dev              # Start dev server (uses PORT from worker-config.json)
 npm run build            # Production build
-npm run lint             # Run linter
+npm run check            # Run lint + typecheck
+npm run lint             # Run linter only
 npm test                 # Run tests
 npm run test:watch       # Run tests in watch mode
 
