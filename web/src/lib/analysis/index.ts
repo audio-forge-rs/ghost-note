@@ -16,3 +16,4 @@ export * from './soundPatterns';
 export * from './orchestrator';
 export * from './phrases';
 export * from './structure';
+export * from './formDetection';

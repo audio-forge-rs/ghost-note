@@ -126,6 +126,22 @@ function createTestAnalysis(options: {
         register: 'middle',
       },
     },
+    form: {
+      formType: 'quatrain',
+      formName: 'Quatrain',
+      category: 'stanzaic',
+      confidence: 0.7,
+      evidence: {
+        lineCountMatch: true,
+        stanzaStructureMatch: true,
+        meterMatch: true,
+        rhymeSchemeMatch: true,
+        syllablePatternMatch: false,
+        notes: [],
+      },
+      alternatives: [],
+      description: 'A poem composed of four-line stanzas.',
+    },
     problems: [],
     melodySuggestions: {
       timeSignature,

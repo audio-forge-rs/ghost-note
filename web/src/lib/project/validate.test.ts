@@ -96,6 +96,22 @@ describe('validateProjectData', () => {
           emotionalArc: [],
           suggestedMusicParams: { mode: 'major', tempoRange: [80, 120], register: 'middle' },
         },
+        form: {
+          formType: 'couplet',
+          formName: 'Couplet',
+          category: 'stanzaic',
+          confidence: 0.6,
+          evidence: {
+            lineCountMatch: true,
+            stanzaStructureMatch: false,
+            meterMatch: true,
+            rhymeSchemeMatch: true,
+            syllablePatternMatch: false,
+            notes: [],
+          },
+          alternatives: [],
+          description: 'A poem composed of rhyming pairs of lines.',
+        },
         problems: [],
         melodySuggestions: {
           timeSignature: '4/4',

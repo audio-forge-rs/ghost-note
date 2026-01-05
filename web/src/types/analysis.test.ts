@@ -371,6 +371,7 @@ describe('Serialization Helpers', () => {
         structure: {},
         prosody: {},
         emotion: {},
+        form: {},
         problems: [],
         melodySuggestions: {},
       };
@@ -380,6 +381,7 @@ describe('Serialization Helpers', () => {
         'structure',
         'prosody',
         'emotion',
+        'form',
         'problems',
         'melodySuggestions',
       ];
@@ -826,6 +828,22 @@ describe('Complete PoemAnalysis Construction', () => {
           tempoRange: [100, 120],
           register: 'middle',
         },
+      },
+      form: {
+        formType: 'quatrain',
+        formName: 'Quatrain',
+        category: 'stanzaic',
+        confidence: 0.75,
+        evidence: {
+          lineCountMatch: true,
+          stanzaStructureMatch: true,
+          meterMatch: true,
+          rhymeSchemeMatch: true,
+          syllablePatternMatch: false,
+          notes: ['Has 4 lines', 'Has ABAB rhyme pattern'],
+        },
+        alternatives: [],
+        description: 'A poem composed of four-line stanzas.',
       },
       problems: [],
       melodySuggestions: {
