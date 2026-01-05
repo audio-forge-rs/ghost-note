@@ -23,6 +23,7 @@ import {
   selectIsLoading as selectSuggestionsLoading,
 } from '@/stores/useSuggestionStore';
 import { useUIStore } from '@/stores/useUIStore';
+import { useUndoStore, selectCanUndo, selectCanRedo } from '@/stores/undoMiddleware';
 import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
@@ -513,10 +514,16 @@ function App(): React.ReactElement {
   const showNotification = useUIStore((state) => state.showNotification);
   const openModalDialog = useUIStore((state) => state.openModalDialog);
 
-  // Poem store for undo/redo
-  const versions = usePoemStore((state) => state.versions);
-  const currentVersionIndex = usePoemStore((state) => state.currentVersionIndex);
-  const revertToVersion = usePoemStore((state) => state.revertToVersion);
+  // Undo store for undo/redo functionality
+  const canUndo = useUndoStore(selectCanUndo);
+  const canRedo = useUndoStore(selectCanRedo);
+  const undoAction = useUndoStore((state) => state.undo);
+  const redoAction = useUndoStore((state) => state.redo);
+  const recordState = useUndoStore((state) => state.recordState);
+  const clearHistory = useUndoStore((state) => state.clearHistory);
+
+  // Poem store for setting lyrics after undo/redo
+  const updateCurrentVersion = usePoemStore((state) => state.updateCurrentVersion);
 
   // Initialize theme on mount - only runs once
   useEffect(() => {
@@ -527,6 +534,88 @@ function App(): React.ReactElement {
       useThemeStore.getState().setTheme(currentTheme);
     }
   }, []);
+
+  // Track if we're in the middle of an undo/redo operation
+  const isUndoRedoInProgress = useRef(false);
+
+  // Set up undo integration - subscribe to poem store changes
+  useEffect(() => {
+    let lastLyrics: string | null = null;
+
+    // Helper to get current lyrics from poem state
+    const getCurrentLyrics = (state: {
+      original: string;
+      versions: Array<{ lyrics: string; description?: string }>;
+      currentVersionIndex: number;
+    }): string => {
+      if (state.currentVersionIndex >= 0 && state.versions[state.currentVersionIndex]) {
+        return state.versions[state.currentVersionIndex].lyrics;
+      }
+      return state.original;
+    };
+
+    // Subscribe to poem store changes
+    const unsubscribe = usePoemStore.subscribe((state, prevState) => {
+      // Skip if undo/redo is in progress
+      if (isUndoRedoInProgress.current) {
+        log('Skipping undo record: undo/redo in progress');
+        return;
+      }
+
+      // Check if this is a new poem (original changed and versions reset)
+      if (
+        state.original !== prevState.original &&
+        state.versions.length === 0 &&
+        prevState.versions.length >= 0
+      ) {
+        log('New poem detected, clearing undo history');
+        clearHistory();
+        lastLyrics = null;
+
+        // Record the new original as initial state
+        if (state.original) {
+          recordState(state.original, 'New poem');
+          lastLyrics = state.original;
+        }
+        return;
+      }
+
+      const currentLyrics = getCurrentLyrics(state);
+      const prevLyrics = getCurrentLyrics(prevState);
+
+      // Check if lyrics actually changed
+      if (currentLyrics !== prevLyrics && currentLyrics !== lastLyrics) {
+        // Determine description
+        let description: string | undefined;
+        if (state.versions.length > prevState.versions.length) {
+          // A new version was added
+          const newVersion = state.versions[state.versions.length - 1];
+          description = newVersion?.description || 'Edit';
+        } else if (state.currentVersionIndex !== prevState.currentVersionIndex) {
+          // Version index changed (revert)
+          description = 'Reverted to version';
+        } else {
+          description = 'Edit';
+        }
+
+        log('Recording lyric change for undo:', description);
+        recordState(currentLyrics, description);
+        lastLyrics = currentLyrics;
+      }
+    });
+
+    // Initialize with current lyrics if present
+    const initialState = usePoemStore.getState();
+    const initialLyrics = getCurrentLyrics(initialState);
+    if (initialLyrics) {
+      recordState(initialLyrics, 'Initial');
+      lastLyrics = initialLyrics;
+    }
+
+    return () => {
+      unsubscribe();
+    };
+  }, [recordState, clearHistory]);
 
   const handleNavigate = useCallback((view: NavigationView): void => {
     log('Navigating to:', view);
@@ -575,22 +664,46 @@ function App(): React.ReactElement {
   }, [hasAnalysis, analysis, currentLyrics, isGenerating, generateMelody, showNotification, handleNavigate]);
 
   const handleUndo = useCallback(() => {
-    if (versions.length === 0 || currentVersionIndex < 0) {
+    if (!canUndo) {
       log('Nothing to undo');
       return;
     }
     log('Undo via keyboard shortcut');
-    revertToVersion(currentVersionIndex - 1);
-  }, [versions.length, currentVersionIndex, revertToVersion]);
+
+    // Set flag to prevent recording this change in undo history
+    isUndoRedoInProgress.current = true;
+    try {
+      const restoredLyrics = undoAction();
+      if (restoredLyrics !== null) {
+        // Update the poem store with restored lyrics
+        updateCurrentVersion(restoredLyrics);
+        showNotification('Undone', 'info');
+      }
+    } finally {
+      isUndoRedoInProgress.current = false;
+    }
+  }, [canUndo, undoAction, updateCurrentVersion, showNotification]);
 
   const handleRedo = useCallback(() => {
-    if (currentVersionIndex >= versions.length - 1) {
+    if (!canRedo) {
       log('Nothing to redo');
       return;
     }
     log('Redo via keyboard shortcut');
-    revertToVersion(currentVersionIndex + 1);
-  }, [versions.length, currentVersionIndex, revertToVersion]);
+
+    // Set flag to prevent recording this change in undo history
+    isUndoRedoInProgress.current = true;
+    try {
+      const restoredLyrics = redoAction();
+      if (restoredLyrics !== null) {
+        // Update the poem store with restored lyrics
+        updateCurrentVersion(restoredLyrics);
+        showNotification('Redone', 'info');
+      }
+    } finally {
+      isUndoRedoInProgress.current = false;
+    }
+  }, [canRedo, redoAction, updateCurrentVersion, showNotification]);
 
   const handleSave = useCallback(() => {
     log('Save/Export via keyboard shortcut');

@@ -35,12 +35,18 @@ const mockPoemStoreState = {
 };
 
 vi.mock('@/stores/usePoemStore', () => ({
-  usePoemStore: vi.fn((selector) => {
-    if (typeof selector === 'function') {
-      return selector(mockPoemStoreState);
+  usePoemStore: Object.assign(
+    vi.fn((selector) => {
+      if (typeof selector === 'function') {
+        return selector(mockPoemStoreState);
+      }
+      return mockPoemStoreState;
+    }),
+    {
+      subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
+      getState: vi.fn(() => mockPoemStoreState),
     }
-    return mockPoemStoreState;
-  }),
+  ),
   selectCurrentLyrics: (state: typeof mockPoemStoreState) => state.original,
   selectHasPoem: (state: typeof mockPoemStoreState) => state.original.trim().length > 0,
 }));
@@ -213,6 +219,32 @@ vi.mock('@/stores/useRecordingStore', () => ({
   }),
   selectHasPermission: (state: typeof mockRecordingStoreState) => state.hasPermission,
   selectIsRecording: (state: typeof mockRecordingStoreState) => state.recordingState === 'recording',
+}));
+
+const mockUndoStoreState = {
+  past: [],
+  present: null,
+  future: [],
+  undo: vi.fn(() => null),
+  redo: vi.fn(() => null),
+  canUndo: vi.fn(() => false),
+  canRedo: vi.fn(() => false),
+  undoCount: vi.fn(() => 0),
+  redoCount: vi.fn(() => 0),
+  clearHistory: vi.fn(),
+  recordState: vi.fn(),
+  getHistoryState: vi.fn(() => ({ past: [], present: null, future: [] })),
+};
+
+vi.mock('@/stores/undoMiddleware', () => ({
+  useUndoStore: vi.fn((selector) => {
+    if (typeof selector === 'function') {
+      return selector(mockUndoStoreState);
+    }
+    return mockUndoStoreState;
+  }),
+  selectCanUndo: (state: typeof mockUndoStoreState) => state.past.length > 0,
+  selectCanRedo: (state: typeof mockUndoStoreState) => state.future.length > 0,
 }));
 
 // Mock Layout components
