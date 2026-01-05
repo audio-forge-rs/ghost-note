@@ -1,6 +1,11 @@
 # Ghost Note
 
+[![CI](https://github.com/audio-forge-rs/ghost-note/actions/workflows/ci.yml/badge.svg)](https://github.com/audio-forge-rs/ghost-note/actions/workflows/ci.yml)
+[![Deploy](https://github.com/audio-forge-rs/ghost-note/actions/workflows/deploy.yml/badge.svg)](https://github.com/audio-forge-rs/ghost-note/actions/workflows/deploy.yml)
+
 Transform poems into songs. Adjust lyrics for singability, generate vocal melodies, record your performance.
+
+**Live Demo**: [https://audio-forge-rs.github.io/ghost-note/](https://audio-forge-rs.github.io/ghost-note/)
 
 ## Overview
 
