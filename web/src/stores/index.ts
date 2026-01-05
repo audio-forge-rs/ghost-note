@@ -183,6 +183,26 @@ export {
   selectSuccessCount,
 } from './useToastStore';
 
+// Undo Store
+export { useUndoStore, setupUndoIntegration } from './undoMiddleware';
+export type {
+  UndoState,
+  UndoConfig,
+  UndoHistoryState,
+  UndoActions,
+  UndoStore,
+} from './undoMiddleware';
+export {
+  selectCanUndo,
+  selectCanRedo,
+  selectUndoCount,
+  selectRedoCount,
+  selectPresentState,
+  selectHistorySize,
+  selectPastDescriptions,
+  selectFutureDescriptions,
+} from './undoMiddleware';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -196,6 +216,7 @@ import { useUIStore as uiStore } from './useUIStore';
 import { useThemeStore as themeStore } from './useThemeStore';
 import { useSuggestionStore as suggestionStore } from './useSuggestionStore';
 import { useToastStore as toastStore } from './useToastStore';
+import { useUndoStore as undoStore } from './undoMiddleware';
 
 /**
  * Reset all stores to their initial state
@@ -210,6 +231,7 @@ export function resetAllStores(): void {
   themeStore.getState().reset();
   suggestionStore.getState().reset();
   toastStore.getState().reset();
+  undoStore.getState().clearHistory();
 
   console.log('[Stores] All stores reset');
 }
