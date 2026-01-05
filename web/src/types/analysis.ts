@@ -475,6 +475,97 @@ export interface ProblemReport {
 }
 
 // =============================================================================
+// Form Detection
+// =============================================================================
+
+/**
+ * Known poem form types
+ */
+export type PoemFormType =
+  | 'shakespearean_sonnet'
+  | 'petrarchan_sonnet'
+  | 'spenserian_sonnet'
+  | 'sonnet'
+  | 'haiku'
+  | 'tanka'
+  | 'limerick'
+  | 'ballad'
+  | 'common_meter'
+  | 'villanelle'
+  | 'sestina'
+  | 'ode'
+  | 'heroic_couplet'
+  | 'couplet'
+  | 'terza_rima'
+  | 'tercet'
+  | 'quatrain'
+  | 'cinquain'
+  | 'blank_verse'
+  | 'free_verse'
+  | 'unknown';
+
+/**
+ * Categories of poem forms
+ */
+export type FormCategory =
+  | 'fixed_form'
+  | 'syllabic'
+  | 'stanzaic'
+  | 'metrical'
+  | 'free'
+  | 'unknown';
+
+/**
+ * Evidence supporting a form classification
+ */
+export interface FormEvidence {
+  /** Whether line count matches expected */
+  lineCountMatch: boolean;
+  /** Whether stanza structure matches expected */
+  stanzaStructureMatch: boolean;
+  /** Whether meter matches expected */
+  meterMatch: boolean;
+  /** Whether rhyme scheme matches expected */
+  rhymeSchemeMatch: boolean;
+  /** Whether syllable pattern matches expected */
+  syllablePatternMatch: boolean;
+  /** Specific notes about the match */
+  notes: string[];
+}
+
+/**
+ * An alternative form classification
+ */
+export interface AlternativeForm {
+  /** The alternative form type */
+  formType: PoemFormType;
+  /** Human-readable name */
+  formName: string;
+  /** Confidence score for this alternative */
+  confidence: number;
+}
+
+/**
+ * Result of poem form detection
+ */
+export interface FormDetectionResult {
+  /** The detected form type */
+  formType: PoemFormType;
+  /** Human-readable name of the form */
+  formName: string;
+  /** Category of the poem form */
+  category: FormCategory;
+  /** Confidence score (0.0 to 1.0) */
+  confidence: number;
+  /** Detailed evidence that supports this classification */
+  evidence: FormEvidence;
+  /** Alternative forms that could match */
+  alternatives: AlternativeForm[];
+  /** Description of the poem form */
+  description: string;
+}
+
+// =============================================================================
 // Melody Suggestions
 // =============================================================================
 
@@ -513,6 +604,8 @@ export interface PoemAnalysis {
   soundPatterns?: SoundPatternAnalysis;
   /** Emotional analysis */
   emotion: EmotionalAnalysis;
+  /** Detected poem form */
+  form: FormDetectionResult;
   /** List of problems found during analysis */
   problems: ProblemReport[];
   /** Suggestions for melody generation */
@@ -693,6 +786,35 @@ export function createDefaultSoundPatternAnalysis(): SoundPatternAnalysis {
 }
 
 /**
+ * Creates an empty/default FormEvidence
+ */
+export function createDefaultFormEvidence(): FormEvidence {
+  return {
+    lineCountMatch: false,
+    stanzaStructureMatch: false,
+    meterMatch: false,
+    rhymeSchemeMatch: false,
+    syllablePatternMatch: false,
+    notes: [],
+  };
+}
+
+/**
+ * Creates an empty/default FormDetectionResult
+ */
+export function createDefaultFormDetectionResult(): FormDetectionResult {
+  return {
+    formType: 'unknown',
+    formName: 'Unknown',
+    category: 'unknown',
+    confidence: 0,
+    evidence: createDefaultFormEvidence(),
+    alternatives: [],
+    description: '',
+  };
+}
+
+/**
  * Creates an empty/default PoemAnalysis
  */
 export function createDefaultPoemAnalysis(): PoemAnalysis {
@@ -701,6 +823,7 @@ export function createDefaultPoemAnalysis(): PoemAnalysis {
     structure: createDefaultStructuredPoem(),
     prosody: createDefaultProsodyAnalysis(),
     emotion: createDefaultEmotionalAnalysis(),
+    form: createDefaultFormDetectionResult(),
     problems: [],
     melodySuggestions: createDefaultMelodySuggestions(),
   };
@@ -738,6 +861,7 @@ export function deserializePoemAnalysis(json: string): PoemAnalysis {
     'structure',
     'prosody',
     'emotion',
+    'form',
     'problems',
     'melodySuggestions',
   ];
@@ -772,6 +896,8 @@ export function isPoemAnalysis(obj: unknown): obj is PoemAnalysis {
     analysis.prosody !== null &&
     typeof analysis.emotion === 'object' &&
     analysis.emotion !== null &&
+    typeof analysis.form === 'object' &&
+    analysis.form !== null &&
     Array.isArray(analysis.problems) &&
     typeof analysis.melodySuggestions === 'object' &&
     analysis.melodySuggestions !== null
@@ -811,6 +937,9 @@ export function mergePoemAnalysis(
   }
   if (partial.emotion) {
     cloned.emotion = { ...cloned.emotion, ...partial.emotion };
+  }
+  if (partial.form) {
+    cloned.form = { ...cloned.form, ...partial.form };
   }
   if (partial.problems) {
     cloned.problems = partial.problems;

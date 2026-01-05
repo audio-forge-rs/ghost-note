@@ -71,6 +71,11 @@ import { analyzeEmotion } from './emotion';
 
 import { analyzeStructure } from './structure';
 
+import {
+  detectPoemForm,
+  createFormDetectionInput,
+} from './formDetection';
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -129,11 +134,12 @@ const DEBUG = process.env.NODE_ENV === 'development';
  */
 const ANALYSIS_STAGES = [
   { name: 'preprocess', weight: 5, message: 'Preprocessing poem text...' },
-  { name: 'phonetic', weight: 20, message: 'Looking up phonetics...' },
-  { name: 'stress', weight: 15, message: 'Analyzing stress patterns...' },
-  { name: 'meter', weight: 15, message: 'Detecting meter...' },
+  { name: 'phonetic', weight: 15, message: 'Looking up phonetics...' },
+  { name: 'stress', weight: 10, message: 'Analyzing stress patterns...' },
+  { name: 'meter', weight: 10, message: 'Detecting meter...' },
   { name: 'rhyme', weight: 10, message: 'Analyzing rhyme scheme...' },
   { name: 'soundPatterns', weight: 10, message: 'Detecting sound patterns...' },
+  { name: 'form', weight: 10, message: 'Detecting poem form...' },
   { name: 'singability', weight: 10, message: 'Scoring singability...' },
   { name: 'emotion', weight: 10, message: 'Analyzing emotional content...' },
   { name: 'structure', weight: 15, message: 'Detecting verse/chorus structure...' },
@@ -789,6 +795,35 @@ export async function analyzePoem(
   log('Sound patterns detected:', soundPatternsAnalysis.summary);
   progress.completeStage('soundPatterns');
 
+  // Stage 7: Form detection
+  progress.startStage('form');
+  // Collect syllable counts per line
+  const syllablesPerLine: number[] = [];
+  for (const stanza of analyzedStanzas) {
+    for (const line of stanza.lines) {
+      syllablesPerLine.push(line.syllableCount);
+    }
+  }
+
+  // Get lines per stanza
+  const linesPerStanza = preprocessed.stanzas.map((stanza) => stanza.length);
+
+  // Create form detection input and detect form
+  const formInput = createFormDetectionInput(
+    preprocessed.lineCount,
+    preprocessed.stanzaCount,
+    linesPerStanza,
+    meterAnalysis.footType,
+    meterAnalysis.meterName,
+    meterAnalysis.confidence,
+    rhymeAnalysis.scheme,
+    syllablesPerLine,
+    meterAnalysis.regularity
+  );
+  const formResult = detectPoemForm(formInput);
+  log('Form detection result:', formResult.formType, 'confidence:', formResult.confidence);
+  progress.completeStage('form');
+
   // Stage 7: Singability is already done per-line in Stage 2
   progress.startStage('singability');
   // Just a placeholder - singability was calculated during line analysis
@@ -851,6 +886,7 @@ export async function analyzePoem(
     },
     soundPatterns: soundPatternsAnalysis,
     emotion: emotionAnalysis,
+    form: formResult,
     problems,
     melodySuggestions: {
       timeSignature: determineTimeSignature(meterResult),
