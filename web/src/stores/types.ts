@@ -230,7 +230,7 @@ export interface MelodyActions {
   /** Set ABC notation */
   setAbcNotation: (abc: string) => void;
   /** Play/resume playback */
-  play: () => void;
+  play: () => Promise<void> | void;
   /** Pause playback */
   pause: () => void;
   /** Stop playback */
