@@ -35,6 +35,12 @@ import { NotationDisplay } from '@/components/Notation';
 import { PlaybackContainer } from '@/components/Playback';
 import { PermissionPrompt, AudioLevelMeter, MicrophoneSelect } from '@/components/Recording';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcuts';
+import { TutorialDialog } from '@/components/Tutorial';
+import {
+  useTutorialStore,
+  selectIsTutorialActive,
+  selectShouldShowTutorial,
+} from '@/stores/useTutorialStore';
 import { useKeyboardShortcuts } from '@/hooks';
 import './App.css';
 
@@ -488,6 +494,12 @@ function App(): React.ReactElement {
   const [activeView, setActiveView] = useState<NavigationView>('poem-input');
   const [showShortcutsDialog, setShowShortcutsDialog] = useState(false);
 
+  // Tutorial state
+  const isTutorialActive = useTutorialStore(selectIsTutorialActive);
+  const shouldShowTutorial = useTutorialStore(selectShouldShowTutorial);
+  const startTutorial = useTutorialStore((state) => state.startTutorial);
+  const skipTutorial = useTutorialStore((state) => state.skipTutorial);
+
   log('App rendering with activeView:', activeView);
 
   // Melody store for playback shortcuts
@@ -532,6 +544,47 @@ function App(): React.ReactElement {
     if (currentTheme) {
       log('Initializing theme:', currentTheme);
       useThemeStore.getState().setTheme(currentTheme);
+    }
+  }, []);
+
+  // Auto-show tutorial on first visit
+  useEffect(() => {
+    if (shouldShowTutorial) {
+      log('First visit detected, showing tutorial');
+      // Small delay to ensure app is fully rendered
+      const timeoutId = setTimeout(() => {
+        startTutorial();
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldShowTutorial, startTutorial]);
+
+  // Handle tutorial close
+  const handleTutorialClose = useCallback(() => {
+    log('Tutorial closed');
+    skipTutorial();
+  }, [skipTutorial]);
+
+  // Handle tutorial complete
+  const handleTutorialComplete = useCallback(() => {
+    log('Tutorial completed');
+    showNotification('Tutorial completed! Start by entering your poem.', 'success');
+  }, [showNotification]);
+
+  // Handle tutorial navigation to view
+  const handleTutorialNavigate = useCallback((view: string) => {
+    log('Tutorial navigating to view:', view);
+    // Map tutorial view names to NavigationView
+    const viewMap: Record<string, NavigationView> = {
+      'poem-input': 'poem-input',
+      'analysis': 'analysis',
+      'lyrics-editor': 'lyrics-editor',
+      'melody': 'melody',
+      'recording': 'recording',
+    };
+    const navView = viewMap[view];
+    if (navView) {
+      setActiveView(navView);
     }
   }, []);
 
@@ -790,6 +843,13 @@ function App(): React.ReactElement {
       <KeyboardShortcutsDialog
         isOpen={showShortcutsDialog}
         onClose={() => setShowShortcutsDialog(false)}
+      />
+      <TutorialDialog
+        isOpen={isTutorialActive}
+        onClose={handleTutorialClose}
+        onComplete={handleTutorialComplete}
+        onNavigate={handleTutorialNavigate}
+        testId="app-tutorial"
       />
       <ToastContainer position="top-right" />
     </>
