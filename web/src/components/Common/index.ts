@@ -82,3 +82,16 @@ export type { ConfirmDialogProps, ConfirmDialogVariant } from './ConfirmDialog';
 // Accessibility components
 export { SkipLinks } from './SkipLinks';
 export type { SkipLinksProps, SkipLinkConfig } from './SkipLinks';
+
+// Offline components
+export {
+  OfflineIndicator,
+  OfflineBanner,
+  UpdatePrompt,
+  OfflineReadyNotification,
+} from './OfflineIndicator';
+export type {
+  OfflineIndicatorProps,
+  OfflineBannerProps,
+  UpdatePromptProps,
+} from './OfflineIndicator';

@@ -90,6 +90,21 @@ vi.mock('@/stores/useAnalysisStore', () => ({
   selectIsAnalyzing: (state: typeof mockAnalysisStoreState) => state.isLoading,
 }));
 
+// Mock the useOfflineStatus hook used by OfflineIndicator
+vi.mock('@/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: vi.fn(() => ({
+    isOnline: true,
+    isOfflineReady: false,
+    needsUpdate: false,
+    isServiceWorkerActive: false,
+    serviceWorkerError: null,
+    updateApp: vi.fn(),
+    dismissUpdate: vi.fn(),
+    checkOnlineStatus: vi.fn(() => true),
+  })),
+  useNetworkStatus: vi.fn(() => true),
+}));
+
 const mockMelodyStoreState: {
   melody: null;
   abcNotation: string | null;
@@ -287,6 +302,9 @@ vi.mock('@/components/Common', () => ({
         <a key={link.targetId} href={`#${link.targetId}`}>{link.label}</a>
       ))}
     </nav>
+  ),
+  OfflineIndicator: ({ position }: { position?: string }) => (
+    <div data-testid="offline-indicator" data-position={position}>Offline Indicator</div>
   ),
 }));
 
