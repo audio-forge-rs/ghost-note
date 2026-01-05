@@ -163,6 +163,26 @@ export {
   selectSuggestionsForLine,
 } from './useSuggestionStore';
 
+// Toast Store
+export { useToastStore } from './useToastStore';
+export type {
+  ToastType,
+  Toast,
+  ToastOptions,
+  ToastState,
+  ToastActions,
+  ToastStore,
+} from './useToastStore';
+export {
+  selectHasToasts,
+  selectToastCount,
+  selectToastsByType,
+  selectLatestToast,
+  selectToastExists,
+  selectErrorCount,
+  selectSuccessCount,
+} from './useToastStore';
+
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -175,6 +195,7 @@ import { useRecordingStore as recordingStore } from './useRecordingStore';
 import { useUIStore as uiStore } from './useUIStore';
 import { useThemeStore as themeStore } from './useThemeStore';
 import { useSuggestionStore as suggestionStore } from './useSuggestionStore';
+import { useToastStore as toastStore } from './useToastStore';
 
 /**
  * Reset all stores to their initial state
@@ -188,6 +209,7 @@ export function resetAllStores(): void {
   uiStore.getState().reset();
   themeStore.getState().reset();
   suggestionStore.getState().reset();
+  toastStore.getState().reset();
 
   console.log('[Stores] All stores reset');
 }
