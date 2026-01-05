@@ -83,12 +83,18 @@ describe('SettingsPanel', () => {
     vi.clearAllMocks();
 
     // Set up default mock implementations
-    (useSettingsStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector) => {
+    const mockStore = (selector: unknown) => {
       if (typeof selector === 'function') {
-        return selector(defaultSettingsState);
+        return (selector as (state: typeof defaultSettingsState) => unknown)(defaultSettingsState);
       }
       return defaultSettingsState;
-    });
+    };
+    // Add getState method for direct state access
+    mockStore.getState = () => defaultSettingsState;
+
+    (useSettingsStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(mockStore);
+    // Also attach getState to the mock function itself
+    (useSettingsStore as unknown as { getState: () => typeof defaultSettingsState }).getState = () => defaultSettingsState;
 
     (useThemeStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector) => {
       if (typeof selector === 'function') {
