@@ -48,3 +48,16 @@ export type {
   TakesListProps,
   TakesSortOrder,
 } from './TakesList';
+
+export { ExportButton } from './ExportButton';
+export type {
+  ExportButtonProps,
+  ExportButtonSize,
+} from './ExportButton';
+
+export { ExportDialog } from './ExportDialog';
+export type {
+  ExportDialogProps,
+  ExportDialogResult,
+  ExportMode,
+} from './ExportDialog';

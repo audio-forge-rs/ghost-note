@@ -1,7 +1,7 @@
 /**
  * Audio Module
  *
- * Re-exports microphone access, audio analysis, and recording utilities.
+ * Re-exports microphone access, audio analysis, recording, and export utilities.
  *
  * @module lib/audio
  */
@@ -11,3 +11,6 @@ export { default as microphone } from './microphone';
 
 export * from './recorder';
 export { default as recorder } from './recorder';
+
+export * from './export';
+export { default as audioExport } from './export';
