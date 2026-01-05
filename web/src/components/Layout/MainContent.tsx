@@ -60,10 +60,12 @@ export function MainContent({
 
   return (
     <main
+      id="main-content"
       className={containerClass}
       data-testid={testId}
       role="main"
       aria-label="Main content"
+      tabIndex={-1}
     >
       <div className="main-content__inner">
         {children}

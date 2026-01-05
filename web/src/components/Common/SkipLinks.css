@@ -1,0 +1,111 @@
+/**
+ * SkipLinks Component Styles
+ *
+ * Styles for accessible skip navigation links.
+ * Links are visually hidden until focused, then appear prominently.
+ */
+
+.skip-links {
+  position: relative;
+  z-index: 9999;
+}
+
+.skip-links__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.skip-links__item {
+  margin: 0;
+  padding: 0;
+}
+
+.skip-links__link {
+  /* Visually hidden by default */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+
+  /* Link appearance */
+  background-color: var(--accent-primary, #3b82f6);
+  color: var(--accent-text, #ffffff);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 0.5rem 0;
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+  transition: none; /* Disable transitions for skip links */
+}
+
+/* Visible when focused */
+.skip-links__link:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.25rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: nowrap;
+  z-index: 10000;
+
+  /* High contrast focus outline */
+  outline: 3px solid var(--text-primary, #f8fafc);
+  outline-offset: -3px;
+}
+
+.skip-links__link:hover {
+  background-color: var(--accent-hover, #2563eb);
+}
+
+/* Stack multiple skip links when multiple are focused */
+.skip-links__item:nth-child(2) .skip-links__link:focus {
+  top: 3rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.skip-links__item:nth-child(3) .skip-links__link:focus {
+  top: 6rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Light theme adjustments */
+html.light .skip-links__link {
+  background-color: var(--accent-primary, #3b82f6);
+  color: var(--accent-text, #ffffff);
+}
+
+html.light .skip-links__link:focus {
+  outline-color: var(--text-primary, #0f172a);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .skip-links__link {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  .skip-links__link:focus {
+    outline: 3px solid CanvasText;
+    background-color: Canvas;
+    color: CanvasText;
+  }
+}

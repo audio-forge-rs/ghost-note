@@ -243,10 +243,12 @@ export function Sidebar({
 
   return (
     <aside
+      id="sidebar-navigation"
       className={containerClass}
       data-testid="sidebar"
       role="navigation"
       aria-label="Main navigation"
+      tabIndex={-1}
     >
       <nav className="sidebar__nav">
         <ul className="sidebar__list" role="list">

@@ -78,3 +78,7 @@ export type { ToastProps, ToastContainerProps, ToastData, ToastType } from './To
 // Confirm Dialog
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps, ConfirmDialogVariant } from './ConfirmDialog';
+
+// Accessibility components
+export { SkipLinks } from './SkipLinks';
+export type { SkipLinksProps, SkipLinkConfig } from './SkipLinks';

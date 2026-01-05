@@ -281,6 +281,13 @@ vi.mock('@/components/Common', () => ({
   ToastContainer: ({ position, testId }: { position?: string; testId?: string }) => (
     <div data-testid={testId ?? 'toast-container'} data-position={position}>Toast Container</div>
   ),
+  SkipLinks: ({ links }: { links?: Array<{ targetId: string; label: string }> }) => (
+    <nav data-testid="skip-links" aria-label="Skip links">
+      {links?.map(link => (
+        <a key={link.targetId} href={`#${link.targetId}`}>{link.label}</a>
+      ))}
+    </nav>
+  ),
 }));
 
 // Mock PoemInput component
