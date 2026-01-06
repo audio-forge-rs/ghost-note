@@ -123,11 +123,12 @@ function LoadingIcon({ size = 20 }: { size?: number }): ReactElement {
 
 /**
  * Size configurations
+ * Note: Minimum 44px touch target for WCAG 2.5.5 compliance on mobile
  */
 const SIZES = {
-  small: { button: 32, icon: 16, gap: 4 },
-  medium: { button: 40, icon: 20, gap: 8 },
-  large: { button: 48, icon: 24, gap: 12 },
+  small: { button: 44, icon: 18, gap: 6 },
+  medium: { button: 48, icon: 22, gap: 8 },
+  large: { button: 56, icon: 28, gap: 12 },
 };
 
 /**

@@ -1,11 +1,15 @@
 # Deploy Workflow - Deploys to GitHub Pages after CI passes
-# Triggers on push to main branch only
-# Depends on CI workflow completing successfully
+# Triggers after CI workflow completes successfully on main branch
+# Uses workflow_run to avoid race conditions with CI checks
 
 name: Deploy
 
 on:
-  push:
+  # Trigger after CI workflow completes on main branch
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches: [main]
   # Allow manual deployment
   workflow_dispatch:
@@ -23,24 +27,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Wait for CI to pass first
-  wait-for-ci:
-    name: Wait for CI
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for CI workflow
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.sha }}
-          check-name: 'Build'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
   # Check if web directory exists (same as CI)
   check-web:
     name: Check if web/ exists
     runs-on: ubuntu-latest
-    needs: wait-for-ci
+    # Only run if CI workflow succeeded (or if manually triggered)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     outputs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
