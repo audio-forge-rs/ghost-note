@@ -5,6 +5,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'path'
 
+// Base URL for GitHub Pages deployment (or '/' for local development)
+const base = process.env.VITE_BASE_URL || '/'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -21,8 +24,8 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        scope: base,
+        start_url: base,
         icons: [
           {
             src: 'pwa-192x192.svg',
@@ -111,7 +114,7 @@ export default defineConfig({
   ].filter(Boolean),
   // Set base path for GitHub Pages deployment
   // VITE_BASE_URL is set during CI/CD, defaults to '/' for local development
-  base: process.env.VITE_BASE_URL || '/',
+  base,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
