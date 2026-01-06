@@ -32,7 +32,10 @@ This project is designed to be used with:
 git clone https://github.com/yourusername/ghost-note.git
 cd ghost-note
 
-# Install dependencies (once web app is set up)
+# Navigate to web app directory
+cd web
+
+# Install dependencies
 npm install
 
 # Start development server
@@ -56,7 +59,7 @@ ghost-note/
 │       ├── generate-melody.md
 │       ├── suggest-changes.md
 │       └── status.md
-├── web/                   # Frontend application (coming soon)
+├── web/                   # Frontend application (React + Vite)
 └── lib/                   # Shared libraries (coming soon)
 ```
 
@@ -98,7 +101,7 @@ claude
 
 ### With Chrome Extension
 
-1. Run `npm run dev` to start local server
+1. Run `cd web && npm run dev` to start local server
 2. Open localhost in browser
 3. Connect Claude Chrome Extension
 4. Use for testing and debugging UI
