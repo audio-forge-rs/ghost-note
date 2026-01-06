@@ -4,7 +4,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { RecordingTimer, formatDuration } from './RecordingTimer';
+import { RecordingTimer } from './RecordingTimer';
+import { formatDuration } from './timerUtils';
 
 describe('RecordingTimer', () => {
   describe('Rendering', () => {

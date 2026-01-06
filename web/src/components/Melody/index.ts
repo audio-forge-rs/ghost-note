@@ -10,17 +10,19 @@
 // Main container
 export {
   MelodyParametersPanel,
-  DEFAULT_PARAMETERS,
   type MelodyParametersPanelProps,
-  type MelodyParameters,
 } from './MelodyParametersPanel';
+
+// Constants and types from separate files
+export { DEFAULT_PARAMETERS, type MelodyParameters } from './melodyParametersConstants';
+export { KEYS, type KeyInfo } from './keyConstants';
+export { VOCAL_RANGE_PRESETS, type NotePosition, type VocalRangePreset } from './rangeConstants';
+export { DEFAULT_TEMPO_PRESETS, type TempoPreset } from './tempoConstants';
 
 // Individual components
 export {
   KeySelect,
-  KEYS,
   type KeySelectProps,
-  type KeyInfo,
 } from './KeySelect';
 
 export {
@@ -30,17 +32,12 @@ export {
 
 export {
   TempoInput,
-  DEFAULT_TEMPO_PRESETS,
   type TempoInputProps,
-  type TempoPreset,
 } from './TempoInput';
 
 export {
   RangeSelector,
-  VOCAL_RANGE_PRESETS,
   type RangeSelectorProps,
-  type NotePosition,
-  type VocalRangePreset,
 } from './RangeSelector';
 
 export {

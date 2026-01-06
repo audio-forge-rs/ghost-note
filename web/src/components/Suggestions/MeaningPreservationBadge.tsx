@@ -9,6 +9,7 @@
 
 import type { ReactElement } from 'react';
 import type { MeaningPreservation } from '../../lib/claude/types';
+import { getPreservationConfig } from './meaningPreservationUtils';
 import './MeaningPreservationBadge.css';
 
 // Logging helper for debugging
@@ -34,37 +35,6 @@ export interface MeaningPreservationBadgeProps {
   /** Data test ID for testing */
   testId?: string;
 }
-
-/**
- * Configuration for each preservation level
- */
-interface PreservationConfig {
-  label: string;
-  shortLabel: string;
-  description: string;
-  icon: string;
-}
-
-const PRESERVATION_CONFIG: Record<MeaningPreservation, PreservationConfig> = {
-  yes: {
-    label: 'Preserves Meaning',
-    shortLabel: 'Preserves',
-    description: 'This suggestion maintains the original meaning of the text',
-    icon: '✓',
-  },
-  partial: {
-    label: 'Partial Preservation',
-    shortLabel: 'Partial',
-    description: 'This suggestion partially preserves the original meaning',
-    icon: '~',
-  },
-  no: {
-    label: 'Changes Meaning',
-    shortLabel: 'Changes',
-    description: 'This suggestion significantly changes the original meaning',
-    icon: '!',
-  },
-};
 
 /**
  * MeaningPreservationBadge component displays the meaning preservation level
@@ -95,7 +65,7 @@ export function MeaningPreservationBadge({
   className = '',
   testId = 'meaning-preservation-badge',
 }: MeaningPreservationBadgeProps): ReactElement {
-  const config = PRESERVATION_CONFIG[preservation];
+  const config = getPreservationConfig(preservation);
 
   log('Rendering badge:', { preservation, showLabel, size });
 
@@ -127,20 +97,6 @@ export function MeaningPreservationBadge({
       )}
     </span>
   );
-}
-
-/**
- * Get the preservation level configuration
- */
-export function getPreservationConfig(preservation: MeaningPreservation): PreservationConfig {
-  return PRESERVATION_CONFIG[preservation];
-}
-
-/**
- * Get all preservation levels in order of preference (best to worst)
- */
-export function getPreservationLevels(): MeaningPreservation[] {
-  return ['yes', 'partial', 'no'];
 }
 
 export default MeaningPreservationBadge;

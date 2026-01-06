@@ -6,11 +6,8 @@
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import {
-  TooltipProvider,
-  Tooltip,
-  useTooltip,
-} from './TooltipProvider';
+import { TooltipProvider, Tooltip } from './TooltipProvider';
+import { useTooltip } from './tooltipUtils';
 
 // Helper component to access tooltip context
 function TestTooltipConsumer(): React.ReactElement {

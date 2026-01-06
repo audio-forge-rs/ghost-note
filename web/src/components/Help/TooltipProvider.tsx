@@ -8,8 +8,6 @@
  */
 
 import {
-  createContext,
-  useContext,
   useState,
   useCallback,
   useRef,
@@ -18,7 +16,14 @@ import {
   type ReactNode,
   type ReactElement,
 } from 'react';
-import { getTopicById, type HelpTopic } from './helpContent';
+import { getTopicById } from './helpContent';
+import {
+  TooltipContext,
+  useTooltip,
+  type TooltipPosition,
+  type TooltipConfig,
+  type ActiveTooltip,
+} from './tooltipUtils';
 import './TooltipProvider.css';
 
 // Logging helper for debugging
@@ -28,62 +33,6 @@ const log = (message: string, ...args: unknown[]): void => {
     console.log(`[TooltipProvider] ${message}`, ...args);
   }
 };
-
-/**
- * Tooltip position options
- */
-export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
-
-/**
- * Tooltip configuration
- */
-export interface TooltipConfig {
-  /** Unique identifier */
-  id: string;
-  /** Tooltip content text */
-  content: string;
-  /** Preferred position */
-  position?: TooltipPosition;
-  /** Delay before showing (ms) */
-  delay?: number;
-  /** Optional help topic ID to link to */
-  helpTopicId?: string;
-  /** Optional aria-describedby target */
-  describedBy?: string;
-}
-
-/**
- * Active tooltip state
- */
-interface ActiveTooltip {
-  config: TooltipConfig;
-  rect: DOMRect;
-  helpTopic?: HelpTopic;
-}
-
-/**
- * Tooltip context type
- */
-interface TooltipContextType {
-  /** Register a tooltip with its target element */
-  showTooltip: (config: TooltipConfig, element: HTMLElement) => void;
-  /** Hide the currently shown tooltip */
-  hideTooltip: (id: string) => void;
-  /** Check if a tooltip is currently shown */
-  isShown: (id: string) => boolean;
-  /** Open the help panel to a specific topic */
-  onOpenHelp?: (topicId: string) => void;
-}
-
-/**
- * Default context values
- */
-const TooltipContext = createContext<TooltipContextType>({
-  showTooltip: () => {},
-  hideTooltip: () => {},
-  isShown: () => false,
-  onOpenHelp: undefined,
-});
 
 /**
  * Props for TooltipProvider
@@ -336,13 +285,6 @@ export function TooltipProvider({
       )}
     </TooltipContext.Provider>
   );
-}
-
-/**
- * Hook to access tooltip context
- */
-export function useTooltip(): TooltipContextType {
-  return useContext(TooltipContext);
 }
 
 /**

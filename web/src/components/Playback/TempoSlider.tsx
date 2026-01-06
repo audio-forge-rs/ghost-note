@@ -9,6 +9,7 @@
 
 import { useCallback, useMemo } from 'react';
 import type { ReactElement, CSSProperties, ChangeEvent } from 'react';
+import { DEFAULT_TEMPO_PRESETS, type TempoPreset } from './tempoSliderConstants';
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
@@ -17,26 +18,6 @@ const log = (message: string, ...args: unknown[]): void => {
     console.log(`[TempoSlider] ${message}`, ...args);
   }
 };
-
-/**
- * Tempo preset configuration
- */
-export interface TempoPreset {
-  /** Label for the preset button */
-  label: string;
-  /** BPM value */
-  value: number;
-}
-
-/**
- * Default tempo presets
- */
-export const DEFAULT_TEMPO_PRESETS: TempoPreset[] = [
-  { label: 'Slow', value: 60 },
-  { label: 'Medium', value: 100 },
-  { label: 'Fast', value: 140 },
-  { label: 'Very Fast', value: 180 },
-];
 
 /**
  * Props for TempoSlider component

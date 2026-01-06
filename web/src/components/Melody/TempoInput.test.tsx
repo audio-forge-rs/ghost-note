@@ -4,7 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { TempoInput, DEFAULT_TEMPO_PRESETS, type TempoInputProps } from './TempoInput';
+import { TempoInput, type TempoInputProps } from './TempoInput';
+import { DEFAULT_TEMPO_PRESETS } from './tempoConstants';
 
 describe('TempoInput', () => {
   const defaultProps: TempoInputProps = {

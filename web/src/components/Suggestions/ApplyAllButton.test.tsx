@@ -4,7 +4,8 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
-import { ApplyAllButton, getOperationConfig, type ApplyAllButtonProps } from './ApplyAllButton';
+import { ApplyAllButton, type ApplyAllButtonProps } from './ApplyAllButton';
+import { getOperationConfig } from './applyAllUtils';
 
 describe('ApplyAllButton', () => {
   const defaultProps: ApplyAllButtonProps = {

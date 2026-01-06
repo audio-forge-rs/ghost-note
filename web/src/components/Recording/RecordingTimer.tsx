@@ -5,19 +5,7 @@
  */
 
 import { useMemo } from 'react';
-
-// Logging helper for debugging
-const DEBUG = import.meta.env?.DEV ?? false;
-const log = (message: string, ...args: unknown[]): void => {
-  if (DEBUG) {
-    console.log(`[RecordingTimer] ${message}`, ...args);
-  }
-};
-
-/**
- * Timer display format options
- */
-export type TimerFormat = 'compact' | 'full' | 'minimal';
+import { formatDuration, type TimerFormat } from './timerUtils';
 
 /**
  * Timer size options
@@ -46,46 +34,13 @@ export interface RecordingTimerProps {
   'aria-label'?: string;
 }
 
-/**
- * Format duration to time string based on format type
- */
-function formatDuration(seconds: number, format: TimerFormat): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  switch (format) {
-    case 'full':
-      // Always show HH:MM:SS
-      return [
-        hours.toString().padStart(2, '0'),
-        minutes.toString().padStart(2, '0'),
-        secs.toString().padStart(2, '0'),
-      ].join(':');
-
-    case 'minimal':
-      // Show M:SS or MM:SS (no hours unless needed)
-      if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      }
-      return `${minutes}:${secs.toString().padStart(2, '0')}`;
-
-    case 'compact':
-    default:
-      // Show MM:SS, add hours if over 60 minutes
-      if (hours > 0) {
-        return [
-          hours.toString().padStart(2, '0'),
-          minutes.toString().padStart(2, '0'),
-          secs.toString().padStart(2, '0'),
-        ].join(':');
-      }
-      return [
-        minutes.toString().padStart(2, '0'),
-        secs.toString().padStart(2, '0'),
-      ].join(':');
+// Logging helper for debugging
+const DEBUG = import.meta.env?.DEV ?? false;
+const log = (message: string, ...args: unknown[]): void => {
+  if (DEBUG) {
+    console.log(`[RecordingTimer] ${message}`, ...args);
   }
-}
+};
 
 /**
  * Size configurations
@@ -245,10 +200,5 @@ export function RecordingTimer({
     </div>
   );
 }
-
-/**
- * Utility function to format seconds to readable string (exported for use elsewhere)
- */
-export { formatDuration };
 
 export default RecordingTimer;

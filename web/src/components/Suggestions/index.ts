@@ -16,13 +16,11 @@ export { SuggestionItem } from './SuggestionItem';
 export type { SuggestionItemProps } from './SuggestionItem';
 
 // Meaning preservation badge
-export {
-  MeaningPreservationBadge,
-  getPreservationConfig,
-  getPreservationLevels,
-} from './MeaningPreservationBadge';
+export { MeaningPreservationBadge } from './MeaningPreservationBadge';
 export type { MeaningPreservationBadgeProps } from './MeaningPreservationBadge';
+export { getPreservationConfig, getPreservationLevels } from './meaningPreservationUtils';
 
 // Batch operation button
-export { ApplyAllButton, getOperationConfig } from './ApplyAllButton';
-export type { ApplyAllButtonProps, BatchOperationType } from './ApplyAllButton';
+export { ApplyAllButton } from './ApplyAllButton';
+export type { ApplyAllButtonProps } from './ApplyAllButton';
+export { getOperationConfig, type BatchOperationType } from './applyAllUtils';

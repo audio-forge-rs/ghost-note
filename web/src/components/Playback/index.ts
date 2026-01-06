@@ -19,19 +19,11 @@ export {
   type PlaybackState,
 } from './PlaybackControls';
 
-export {
-  TempoSlider,
-  type TempoSliderProps,
-  type TempoPreset,
-  DEFAULT_TEMPO_PRESETS,
-} from './TempoSlider';
+export { TempoSlider, type TempoSliderProps } from './TempoSlider';
+export { type TempoPreset, DEFAULT_TEMPO_PRESETS } from './tempoSliderConstants';
 
-export {
-  TransposeControl,
-  type TransposeControlProps,
-  type KeyInfo,
-  KEYS,
-} from './TransposeControl';
+export { TransposeControl, type TransposeControlProps } from './TransposeControl';
+export { type KeyInfo, KEYS } from './transposeConstants';
 
 export {
   LoopSelector,

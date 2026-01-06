@@ -30,12 +30,8 @@ export type {
 } from './RecordButton';
 
 export { RecordingTimer } from './RecordingTimer';
-export type {
-  RecordingTimerProps,
-  TimerFormat,
-  TimerSize,
-} from './RecordingTimer';
-export { formatDuration } from './RecordingTimer';
+export type { RecordingTimerProps, TimerSize } from './RecordingTimer';
+export { formatDuration, type TimerFormat } from './timerUtils';
 
 export { CountdownOverlay } from './CountdownOverlay';
 export type { CountdownOverlayProps } from './CountdownOverlay';

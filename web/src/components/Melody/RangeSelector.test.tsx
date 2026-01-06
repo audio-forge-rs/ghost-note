@@ -4,11 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import {
-  RangeSelector,
-  VOCAL_RANGE_PRESETS,
-  type RangeSelectorProps,
-} from './RangeSelector';
+import { RangeSelector, type RangeSelectorProps } from './RangeSelector';
+import { VOCAL_RANGE_PRESETS } from './rangeConstants';
 
 describe('RangeSelector', () => {
   const defaultProps: RangeSelectorProps = {
