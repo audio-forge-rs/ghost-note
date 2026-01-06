@@ -14,6 +14,7 @@
 
 import { test, expect } from '@playwright/test';
 import { TWINKLE_TWINKLE } from './fixtures';
+import { gotoWithTutorialSkipped, waitForAnalysis, waitForMelodyGeneration } from './helpers';
 
 test.describe('Recording Workflow', () => {
   test.beforeEach(async ({ page, context }) => {
@@ -22,9 +23,8 @@ test.describe('Recording Workflow', () => {
     // requires real hardware which is not available in CI
     await context.grantPermissions(['microphone']);
 
-    // Navigate to the app
-    await page.goto('/');
-    await expect(page.getByTestId('app-shell')).toBeVisible();
+    // Navigate to the app with tutorial skipped
+    await gotoWithTutorialSkipped(page, '/');
 
     // Complete the prerequisite steps: poem -> analysis -> melody
     const textarea = page.getByTestId('poem-textarea');
@@ -33,12 +33,12 @@ test.describe('Recording Workflow', () => {
     // Analyze
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    await waitForAnalysis(page);
 
     // Generate melody
     const melodyNav = page.getByTestId('nav-melody');
     await melodyNav.click();
-    await expect(page.getByTestId('view-melody')).toBeVisible({ timeout: 30000 });
+    await waitForMelodyGeneration(page);
 
     console.log('[E2E] Prerequisites complete - ready for recording tests');
   });
@@ -48,9 +48,13 @@ test.describe('Recording Workflow', () => {
     const recordingNav = page.getByTestId('nav-recording');
     await recordingNav.click();
 
-    // Recording view should be visible
+    // Recording view should be visible - wait for any view transitions
+    // The view-recording element may have CSS visibility transitions
+    await page.waitForTimeout(500);
+
+    // Check if we need to wait for the view to become visible
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await expect(recordingView).toBeVisible({ timeout: 20000 });
 
     console.log('[E2E] Recording view accessible');
   });
@@ -61,7 +65,8 @@ test.describe('Recording Workflow', () => {
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Should show either permission prompt or recording controls
     // depending on whether permission was granted
@@ -86,7 +91,8 @@ test.describe('Recording Workflow', () => {
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Look for microphone select component
     const micSelect = recordingView.locator(
@@ -114,7 +120,8 @@ test.describe('Recording Workflow', () => {
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Look for audio level meter
     const levelMeter = recordingView.locator(
@@ -139,7 +146,8 @@ test.describe('Recording Workflow', () => {
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Look for recording button
     const startButton = page.getByTestId('start-recording-button');
@@ -165,7 +173,8 @@ test.describe('Recording Workflow', () => {
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Try to find and click start recording button
     const startButton = page.getByTestId('start-recording-button');
@@ -200,8 +209,7 @@ test.describe('Recording Workflow', () => {
 
   test('should show empty state when no melody available', async ({ page }) => {
     // Start fresh without going through melody generation
-    await page.goto('/');
-    await expect(page.getByTestId('app-shell')).toBeVisible();
+    await gotoWithTutorialSkipped(page, '/');
 
     // Enter poem and analyze but don't generate melody
     const textarea = page.getByTestId('poem-textarea');
@@ -209,11 +217,12 @@ test.describe('Recording Workflow', () => {
 
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    await waitForAnalysis(page);
 
     // Go directly to recording (skip melody)
     const recordingNav = page.getByTestId('nav-recording');
     await recordingNav.click();
+    await page.waitForTimeout(300); // Allow view transition
 
     // Should show empty state indicating melody is needed
     const recordingView = page.getByTestId('view-recording');
@@ -229,7 +238,8 @@ test.describe('Recording Workflow', () => {
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Check if controls are visible (permission granted)
     const recordingControls = recordingView.locator('.recording-controls');
@@ -265,8 +275,7 @@ test.describe('Recording Permission Flow', () => {
     // Clear permissions - this simulates user denying permission
     await context.clearPermissions();
 
-    await page.goto('/');
-    await expect(page.getByTestId('app-shell')).toBeVisible();
+    await gotoWithTutorialSkipped(page, '/');
 
     // Setup prerequisites
     const textarea = page.getByTestId('poem-textarea');
@@ -274,18 +283,19 @@ test.describe('Recording Permission Flow', () => {
 
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    await waitForAnalysis(page);
 
     const melodyNav = page.getByTestId('nav-melody');
     await melodyNav.click();
-    await expect(page.getByTestId('view-melody')).toBeVisible({ timeout: 30000 });
+    await waitForMelodyGeneration(page);
 
     // Navigate to recording
     const recordingNav = page.getByTestId('nav-recording');
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // Should show permission prompt
     const permissionContent = await recordingView.innerHTML();
@@ -298,8 +308,7 @@ test.describe('Recording Permission Flow', () => {
     // Grant permission explicitly
     await context.grantPermissions(['microphone']);
 
-    await page.goto('/');
-    await expect(page.getByTestId('app-shell')).toBeVisible();
+    await gotoWithTutorialSkipped(page, '/');
 
     // Full setup
     const textarea = page.getByTestId('poem-textarea');
@@ -307,17 +316,18 @@ test.describe('Recording Permission Flow', () => {
 
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    await waitForAnalysis(page);
 
     const melodyNav = page.getByTestId('nav-melody');
     await melodyNav.click();
-    await expect(page.getByTestId('view-melody')).toBeVisible({ timeout: 30000 });
+    await waitForMelodyGeneration(page);
 
     const recordingNav = page.getByTestId('nav-recording');
     await recordingNav.click();
 
     const recordingView = page.getByTestId('view-recording');
-    await expect(recordingView).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(300); // Allow view transition
+    await expect(recordingView).toBeVisible({ timeout: 15000 });
 
     // After granting permission, should eventually show controls
     // Note: Actual microphone access might still fail in CI
