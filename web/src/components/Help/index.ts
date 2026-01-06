@@ -19,13 +19,10 @@ export { FAQ } from './FAQ';
 export type { FAQProps } from './FAQ';
 
 // Tooltip system
-export { TooltipProvider, Tooltip, useTooltip } from './TooltipProvider';
-export type {
-  TooltipProviderProps,
-  TooltipProps,
-  TooltipPosition,
-  TooltipConfig,
-} from './TooltipProvider';
+export { TooltipProvider, Tooltip } from './TooltipProvider';
+export type { TooltipProviderProps, TooltipProps } from './TooltipProvider';
+export { useTooltip } from './tooltipUtils';
+export type { TooltipPosition, TooltipConfig } from './tooltipUtils';
 
 // Help content data
 export {
