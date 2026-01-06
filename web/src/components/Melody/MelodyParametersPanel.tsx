@@ -10,15 +10,17 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type { ReactElement, CSSProperties } from 'react';
-import type { KeySignature, TimeSignature } from '@/lib/melody/types';
+import type { KeySignature } from '@/lib/melody/types';
 import type { MusicalMode } from '@/types/analysis';
 import { KeySelect } from './KeySelect';
 import { ModeToggle } from './ModeToggle';
 import { TempoInput } from './TempoInput';
-import { RangeSelector, type NotePosition } from './RangeSelector';
+import { RangeSelector } from './RangeSelector';
 import { StylePresetSelect } from './StylePresetSelect';
 import { RegenerateButton } from './RegenerateButton';
 import { getPresetByName } from '@/lib/melody/variations';
+import { type NotePosition } from './rangeConstants';
+import { type MelodyParameters } from './melodyParametersConstants';
 
 // Logging helper for debugging
 const DEBUG = import.meta.env?.DEV ?? false;
@@ -26,39 +28,6 @@ const log = (message: string, ...args: unknown[]): void => {
   if (DEBUG) {
     console.log(`[MelodyParametersPanel] ${message}`, ...args);
   }
-};
-
-/**
- * Complete melody parameters state
- */
-export interface MelodyParameters {
-  /** Key signature */
-  key: KeySignature;
-  /** Musical mode (major/minor) */
-  mode: MusicalMode;
-  /** Tempo in BPM */
-  tempo: number;
-  /** Time signature */
-  timeSignature: TimeSignature;
-  /** Low vocal range limit */
-  rangeLow: NotePosition;
-  /** High vocal range limit */
-  rangeHigh: NotePosition;
-  /** Style preset name (or null for custom) */
-  stylePreset: string | null;
-}
-
-/**
- * Default parameters
- */
-export const DEFAULT_PARAMETERS: MelodyParameters = {
-  key: 'C',
-  mode: 'major',
-  tempo: 100,
-  timeSignature: '4/4',
-  rangeLow: { note: 'C', octave: 0 },
-  rangeHigh: { note: 'C', octave: 1 },
-  stylePreset: null,
 };
 
 /**

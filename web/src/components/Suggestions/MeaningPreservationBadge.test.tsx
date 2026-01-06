@@ -6,10 +6,9 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import {
   MeaningPreservationBadge,
-  getPreservationConfig,
-  getPreservationLevels,
   type MeaningPreservationBadgeProps,
 } from './MeaningPreservationBadge';
+import { getPreservationConfig, getPreservationLevels } from './meaningPreservationUtils';
 
 describe('MeaningPreservationBadge', () => {
   const defaultProps: MeaningPreservationBadgeProps = {

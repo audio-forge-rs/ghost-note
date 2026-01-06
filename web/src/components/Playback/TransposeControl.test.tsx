@@ -4,7 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { TransposeControl, KEYS, type TransposeControlProps } from './TransposeControl';
+import { TransposeControl, type TransposeControlProps } from './TransposeControl';
+import { KEYS } from './transposeConstants';
 
 describe('TransposeControl', () => {
   const defaultProps: TransposeControlProps = {

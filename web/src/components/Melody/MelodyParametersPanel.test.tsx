@@ -4,11 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import {
-  MelodyParametersPanel,
-  DEFAULT_PARAMETERS,
-  type MelodyParametersPanelProps,
-} from './MelodyParametersPanel';
+import { MelodyParametersPanel, type MelodyParametersPanelProps } from './MelodyParametersPanel';
+import { DEFAULT_PARAMETERS } from './melodyParametersConstants';
 
 describe('MelodyParametersPanel', () => {
   const defaultProps: MelodyParametersPanelProps = {

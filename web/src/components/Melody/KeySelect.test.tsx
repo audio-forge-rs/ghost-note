@@ -4,7 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { KeySelect, KEYS, type KeySelectProps } from './KeySelect';
+import { KeySelect, type KeySelectProps } from './KeySelect';
+import { KEYS } from './keyConstants';
 
 describe('KeySelect', () => {
   const defaultProps: KeySelectProps = {
