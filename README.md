@@ -7,6 +7,8 @@ Transform poems into songs. Adjust lyrics for singability, generate vocal melodi
 
 **Live Demo**: [https://audio-forge-rs.github.io/ghost-note/](https://audio-forge-rs.github.io/ghost-note/)
 
+> **Note**: The app is deployed from the `audio-forge-rs/ghost-note` repository. GitHub Pages serves it at `audio-forge-rs.github.io/ghost-note`.
+
 ## Overview
 
 Ghost Note helps poets and songwriters:
