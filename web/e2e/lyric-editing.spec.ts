@@ -10,12 +10,12 @@
 
 import { test, expect } from '@playwright/test';
 import { SIMPLE_TEST_POEM, PROBLEMATIC_POEM } from './fixtures';
+import { gotoWithTutorialSkipped, waitForAnalysis } from './helpers';
 
 test.describe('Lyric Editing Workflow', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to the app
-    await page.goto('/');
-    await expect(page.getByTestId('app-shell')).toBeVisible();
+    // Navigate to the app with tutorial skipped to prevent blocking
+    await gotoWithTutorialSkipped(page, '/');
 
     // Enter a poem and navigate to lyrics editor
     const textarea = page.getByTestId('poem-textarea');
@@ -25,8 +25,8 @@ test.describe('Lyric Editing Workflow', () => {
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
 
-    // Wait for analysis to complete
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    // Wait for analysis to complete with improved stability
+    await waitForAnalysis(page);
 
     // Navigate to lyrics editor
     const lyricsNav = page.getByTestId('nav-lyrics-editor');
@@ -304,9 +304,8 @@ test.describe('Lyric Editing Workflow', () => {
 
 test.describe('Lyric Suggestions Workflow', () => {
   test('should display and interact with suggestions for problematic poem', async ({ page }) => {
-    // Navigate to the app
-    await page.goto('/');
-    await expect(page.getByTestId('app-shell')).toBeVisible();
+    // Navigate to the app with tutorial skipped
+    await gotoWithTutorialSkipped(page, '/');
 
     // Enter a problematic poem that should generate suggestions
     const textarea = page.getByTestId('poem-textarea');
@@ -316,8 +315,8 @@ test.describe('Lyric Suggestions Workflow', () => {
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
 
-    // Wait for analysis
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    // Wait for analysis with improved stability
+    await waitForAnalysis(page);
 
     // Navigate to lyrics editor
     const lyricsNav = page.getByTestId('nav-lyrics-editor');
@@ -366,14 +365,14 @@ test.describe('Lyric Suggestions Workflow', () => {
   });
 
   test('should reject suggestions and mark them appropriately', async ({ page }) => {
-    // Navigate and setup
-    await page.goto('/');
+    // Navigate and setup with tutorial skipped
+    await gotoWithTutorialSkipped(page, '/');
     const textarea = page.getByTestId('poem-textarea');
     await textarea.fill(PROBLEMATIC_POEM.text);
 
     const analyzeButton = page.getByRole('button', { name: /analyze/i });
     await analyzeButton.click();
-    await expect(page.locator('.analysis-panel')).toBeVisible({ timeout: 15000 });
+    await waitForAnalysis(page);
 
     const lyricsNav = page.getByTestId('nav-lyrics-editor');
     await lyricsNav.click();
