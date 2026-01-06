@@ -13,7 +13,7 @@
 
 import { test, expect } from '@playwright/test';
 import { TWINKLE_TWINKLE, SIMPLE_TEST_POEM } from './fixtures';
-import { gotoWithTutorialSkipped, waitForAnalysis, waitForMelodyGeneration } from './helpers';
+import { gotoWithTutorialSkipped, waitForAnalysis } from './helpers';
 
 // Skip timing-dependent tests in CI
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
