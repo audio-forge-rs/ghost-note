@@ -29,7 +29,19 @@ import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
 import { parseAndImportShareDataFromUrl, hasShareDataInUrl } from '@/lib/share';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
-import { EmptyState, LoadingSpinner, ToastContainer, SkipLinks, OfflineIndicator } from '@/components/Common';
+import {
+  EmptyState,
+  LoadingSpinner,
+  ToastContainer,
+  SkipLinks,
+  OfflineIndicator,
+} from '@/components/Common';
+import {
+  AnalysisPanelSkeleton,
+  LyricEditorSkeleton,
+  MelodySkeleton,
+  RecordingSkeleton,
+} from '@/components/Common/ViewSkeletons';
 import { PoemInput } from '@/components/PoemInput';
 // Lazy-loaded components for code splitting
 // These components import heavy libraries (abcjs ~500KB, Recording components)
@@ -53,15 +65,32 @@ import { useKeyboardShortcuts } from '@/hooks';
 import './App.css';
 
 /**
- * Loading fallback component for lazy-loaded sections
+ * Loading fallback types for different views
  */
-function SectionLoadingFallback(): React.ReactElement {
-  return (
-    <div className="section-loading" data-testid="section-loading">
-      <LoadingSpinner size="large" />
-      <p>Loading...</p>
-    </div>
-  );
+type LoadingFallbackVariant = 'analysis' | 'editor' | 'melody' | 'recording' | 'generic';
+
+/**
+ * Loading fallback component for lazy-loaded sections.
+ * Uses content-aware skeletons to improve perceived performance.
+ */
+function SectionLoadingFallback({ variant = 'generic' }: { variant?: LoadingFallbackVariant }): React.ReactElement {
+  switch (variant) {
+    case 'analysis':
+      return <AnalysisPanelSkeleton />;
+    case 'editor':
+      return <LyricEditorSkeleton />;
+    case 'melody':
+      return <MelodySkeleton />;
+    case 'recording':
+      return <RecordingSkeleton />;
+    default:
+      return (
+        <div className="section-loading" data-testid="section-loading">
+          <LoadingSpinner size="large" />
+          <p>Loading...</p>
+        </div>
+      );
+  }
 }
 
 // Logging helper for debugging
@@ -317,7 +346,7 @@ function ViewContent({
 
       // Show AnalysisPanel with analysis data
       return (
-        <Suspense fallback={<SectionLoadingFallback />}>
+        <Suspense fallback={<SectionLoadingFallback variant="analysis" />}>
           <AnalysisPanel
             analysis={analysis}
             poemText={original}
@@ -340,7 +369,7 @@ function ViewContent({
 
       // LyricEditor handles its own internal state and hooks
       return (
-        <Suspense fallback={<SectionLoadingFallback />}>
+        <Suspense fallback={<SectionLoadingFallback variant="editor" />}>
           <LyricEditorWithSuggestions
             hasAnalysis={hasAnalysis}
             analysis={analysis}
@@ -381,7 +410,7 @@ function ViewContent({
 
       // Show NotationDisplay and PlaybackContainer
       return (
-        <Suspense fallback={<SectionLoadingFallback />}>
+        <Suspense fallback={<SectionLoadingFallback variant="melody" />}>
           <div className="melody-view" data-testid="view-melody">
             {hasMelody && abcNotation ? (
               <>
@@ -436,7 +465,7 @@ function ViewContent({
 
       // Show recording interface
       return (
-        <Suspense fallback={<SectionLoadingFallback />}>
+        <Suspense fallback={<SectionLoadingFallback variant="recording" />}>
           <div className="recording-view" data-testid="view-recording">
             {!hasPermission ? (
               <PermissionPrompt
