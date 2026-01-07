@@ -271,7 +271,7 @@ export function SamplePoems({
                 role="option"
                 aria-selected={selectedIndex === index}
                 className={`sample-poems-item ${selectedIndex === index ? 'selected' : ''}`}
-                onClick={() => handleSelectPoem(poem)}
+                onClick={() => setSelectedIndex(index)}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 data-testid={`sample-poem-${poem.id}`}

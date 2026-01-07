@@ -179,18 +179,20 @@ describe('SamplePoems', () => {
   });
 
   describe('selection', () => {
-    it('calls onSelect when poem is clicked', async () => {
+    it('clicking poem item selects it for preview without calling onSelect', async () => {
       const onSelect = vi.fn();
       const user = userEvent.setup();
       render(<SamplePoems {...defaultProps} onSelect={onSelect} />);
 
-      const firstPoem = samplePoems[0];
-      const firstItem = screen.getByTestId(`sample-poem-${firstPoem.id}`);
+      const secondPoem = samplePoems[1];
+      const secondItem = screen.getByTestId(`sample-poem-${secondPoem.id}`);
 
-      await user.click(firstItem);
+      await user.click(secondItem);
 
-      expect(onSelect).toHaveBeenCalledTimes(1);
-      expect(onSelect).toHaveBeenCalledWith(firstPoem);
+      // Clicking a poem item should NOT call onSelect - only preview it
+      expect(onSelect).not.toHaveBeenCalled();
+      // The clicked item should now be selected (has aria-selected)
+      expect(secondItem).toHaveAttribute('aria-selected', 'true');
     });
 
     it('calls onSelect when "Use This Poem" button is clicked', async () => {
