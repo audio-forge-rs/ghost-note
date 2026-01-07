@@ -74,14 +74,14 @@ describe('Sidebar', () => {
       expect(screen.getByText('Recording')).toBeInTheDocument();
     });
 
-    it('renders step numbers', () => {
+    it('renders step numbers for primary workflow items', () => {
       render(<Sidebar activeView="poem-input" onNavigate={mockOnNavigate} />);
 
+      // Primary workflow items have step numbers 1-3
       expect(screen.getByText('1')).toBeInTheDocument();
       expect(screen.getByText('2')).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument();
-      expect(screen.getByText('4')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
+      // Secondary items (Analysis, Recording) don't have step numbers
     });
 
     it('renders workflow hint in footer', () => {

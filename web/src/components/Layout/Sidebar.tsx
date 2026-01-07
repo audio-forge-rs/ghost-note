@@ -147,20 +147,14 @@ function RecordingIcon(): ReactElement {
 }
 
 /**
- * Navigation items configuration
+ * Primary workflow items - the main creative flow
  */
-const NAVIGATION_ITEMS: NavigationItem[] = [
+const PRIMARY_NAV_ITEMS: NavigationItem[] = [
   {
     id: 'poem-input',
     label: 'Poem Input',
     icon: <PoemIcon />,
     description: 'Enter or paste your poem',
-  },
-  {
-    id: 'analysis',
-    label: 'Analysis',
-    icon: <AnalysisIcon />,
-    description: 'View poem structure and metrics',
   },
   {
     id: 'lyrics-editor',
@@ -173,6 +167,18 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     label: 'Melody',
     icon: <MelodyIcon />,
     description: 'Generate and play melody',
+  },
+];
+
+/**
+ * Secondary items - utilities and tools
+ */
+const SECONDARY_NAV_ITEMS: NavigationItem[] = [
+  {
+    id: 'analysis',
+    label: 'Analysis',
+    icon: <AnalysisIcon />,
+    description: 'View poem structure and metrics',
   },
   {
     id: 'recording',
@@ -252,7 +258,7 @@ export function Sidebar({
     >
       <nav className="sidebar__nav">
         <ul className="sidebar__list" role="list">
-          {NAVIGATION_ITEMS.map((item, index) => (
+          {PRIMARY_NAV_ITEMS.map((item, index) => (
             <li key={item.id} className="sidebar__item">
               <button
                 type="button"
@@ -265,6 +271,25 @@ export function Sidebar({
                 <span className="sidebar__step-number" aria-hidden="true">
                   {index + 1}
                 </span>
+                {item.icon}
+                <span className="sidebar__label">{item.label}</span>
+              </button>
+              <span id={`nav-desc-${item.id}`} className="visually-hidden">
+                {item.description}
+              </span>
+            </li>
+          ))}
+          <li className="sidebar__divider" role="separator" aria-hidden="true" />
+          {SECONDARY_NAV_ITEMS.map((item) => (
+            <li key={item.id} className="sidebar__item sidebar__item--secondary">
+              <button
+                type="button"
+                className={`sidebar__link ${activeView === item.id ? 'sidebar__link--active' : ''}`}
+                onClick={() => handleNavClick(item.id)}
+                aria-current={activeView === item.id ? 'page' : undefined}
+                aria-describedby={`nav-desc-${item.id}`}
+                data-testid={`nav-${item.id}`}
+              >
                 {item.icon}
                 <span className="sidebar__label">{item.label}</span>
               </button>

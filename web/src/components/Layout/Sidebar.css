@@ -57,6 +57,16 @@
   margin-bottom: 0.25rem;
 }
 
+.sidebar__item--secondary {
+  opacity: 0.8;
+}
+
+.sidebar__divider {
+  height: 1px;
+  margin: 0.75rem 1rem;
+  background-color: var(--border-color);
+}
+
 /* =============================================================================
    Navigation Links
    ============================================================================= */
