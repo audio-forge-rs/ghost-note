@@ -196,17 +196,92 @@ Required APIs:
 - MediaRecorder API
 - localStorage / IndexedDB
 
+## Deployment Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        GitHub Pages                              │
+│                     (Static Frontend)                            │
+│                                                                  │
+│  React + TypeScript + Vite                                       │
+│  - Poem Input                                                    │
+│  - Lyrics Editor                                                 │
+│  - Melody View                                                   │
+│  - Recording Studio                                              │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTPS
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   Supabase Edge Functions                        │
+│                      (Deno Runtime)                              │
+│                                                                  │
+│  POST /functions/v1/groq-chat                                    │
+│  - Proxies requests to Groq API                                  │
+│  - Keeps GROQ_API_KEY secure (server-side secret)               │
+│  - CORS configured for GitHub Pages origin                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTPS
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        Groq Cloud                                │
+│                    (LLM Inference)                               │
+│                                                                  │
+│  Model: llama-3.3-70b-versatile                                  │
+│  - Generates first draft song lyrics from poems                  │
+│  - Handles revision requests                                     │
+│  - Future: Melody generation                                     │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ (Future)
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Supabase Postgres                             │
+│                      (Database)                                  │
+│                                                                  │
+│  Future features:                                                │
+│  - User accounts                                                 │
+│  - Saved projects                                                │
+│  - Usage analytics                                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Why This Architecture
+
+| Component | Choice | Reason |
+|-----------|--------|--------|
+| Frontend Hosting | GitHub Pages | Free, automatic deploys from repo, reliable CDN |
+| API Proxy | Supabase Edge Functions | Free tier (500K/mo), keeps secrets secure, Deno runtime |
+| LLM | Groq Cloud | Fast inference, competitive pricing, good model selection |
+| Database | Supabase Postgres | Same platform as functions, free tier, future-ready |
+
+### Environment Configuration
+
+**Frontend (`web/.env`):**
+```bash
+VITE_SUPABASE_URL=https://<project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<public-anon-key>
+```
+
+**Supabase Secrets (server-side):**
+```bash
+supabase secrets set GROQ_API_KEY=gsk_...
+```
+
 ## Security Considerations
 
-1. **No server storage by default**: Poems stay in browser
-2. **HTTPS required**: For microphone access
+1. **API keys server-side**: GROQ_API_KEY stored as Supabase secret, never exposed to frontend
+2. **HTTPS required**: For microphone access and secure API calls
 3. **User consent**: Clear prompts before recording
-4. **No external API calls**: All processing client-side
+4. **CORS restricted**: Edge functions only accept requests from our origin
+5. **Local-first**: Poems stay in browser localStorage until explicitly sent to AI
 
 ## Future Extensions
 
-1. **Cloud sync**: Optional account for cross-device access
-2. **Collaboration**: Share and co-edit songs
-3. **AI enhancement**: Use Claude API for smarter suggestions
-4. **Export formats**: PDF sheet music, full audio files
-5. **Mobile app**: React Native version
+1. **User accounts**: Supabase Auth for login
+2. **Cloud sync**: Save projects to Supabase Postgres
+3. **Collaboration**: Share and co-edit songs
+4. **AI melody**: Use Groq for melody generation
+5. **Export formats**: PDF sheet music, full audio files
+6. **Mobile app**: React Native version

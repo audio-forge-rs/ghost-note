@@ -140,16 +140,63 @@ Standard code quality tools with TypeScript support.
 
 Testing framework that works natively with Vite.
 
-## Deployment Options (Free Tier)
+## Deployment Stack
 
-| Service | Pros | Cons |
-|---------|------|------|
-| Vercel | Easy, fast, great DX | Usage limits |
-| Netlify | Similar to Vercel | Similar limits |
-| Cloudflare Pages | Unlimited bandwidth | Slightly more complex |
-| GitHub Pages | Free, simple | No server functions |
+### Frontend: GitHub Pages
 
-**Recommendation**: Start with GitHub Pages or Cloudflare Pages for static hosting.
+**Why GitHub Pages**:
+- Free hosting with automatic deploys
+- Reliable global CDN
+- Simple integration with repo
+- Custom domain support
+
+### Backend: Supabase
+
+**Why Supabase**:
+- Generous free tier (500K edge function invocations/month)
+- Edge Functions for API proxy (Deno runtime)
+- Postgres database for future features
+- All services on one platform
+
+**Edge Functions** (`supabase/functions/`):
+```typescript
+// groq-chat/index.ts - Proxies to Groq API
+Deno.serve(async (req) => {
+  const { messages } = await req.json();
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages }),
+  });
+  return new Response(await response.text(), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+});
+```
+
+### LLM: Groq Cloud
+
+**Why Groq**:
+- Fast inference (LPU architecture)
+- Competitive pricing
+- Good model selection (Llama, Mixtral)
+- OpenAI-compatible API
+
+**Models used**:
+- `llama-3.3-70b-versatile` - Primary model for lyric generation
+
+### Architecture Summary
+
+```
+GitHub Pages ──▶ Supabase Edge Functions ──▶ Groq Cloud
+   (React)           (Deno proxy)            (LLM)
+                          │
+                          ▼ (future)
+                   Supabase Postgres
+```
 
 ## Package Summary
 

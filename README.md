@@ -76,13 +76,21 @@ Custom slash commands for common workflows:
 
 ## Tech Stack
 
-- **Frontend**: React + TypeScript + Vite
-- **Music**: abcjs (ABC notation rendering + MIDI playback)
-- **Audio**: Web Audio API + MediaRecorder
-- **Styling**: Tailwind CSS
-- **State**: Zustand with persistence
+**Frontend** (GitHub Pages):
+- React + TypeScript + Vite
+- abcjs (ABC notation rendering + MIDI playback)
+- Web Audio API + MediaRecorder
+- Tailwind CSS
+- Zustand with persistence
 
-All dependencies are free and open source.
+**Backend** (Supabase):
+- Edge Functions (Deno) - API proxy
+- Postgres (future) - User data
+
+**AI** (Groq Cloud):
+- llama-3.3-70b-versatile - Lyric generation
+
+All dependencies are free tier eligible.
 
 ## Development
 
