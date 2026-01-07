@@ -179,20 +179,29 @@ describe('SamplePoems', () => {
   });
 
   describe('selection', () => {
-    it('clicking poem item selects it for preview without calling onSelect', async () => {
+    it('clicking poem item shows preview without visual selection state', async () => {
       const onSelect = vi.fn();
       const user = userEvent.setup();
       render(<SamplePoems {...defaultProps} onSelect={onSelect} />);
 
       const secondPoem = samplePoems[1];
       const secondItem = screen.getByTestId(`sample-poem-${secondPoem.id}`);
+      const firstItem = screen.getByTestId(`sample-poem-${samplePoems[0].id}`);
 
       await user.click(secondItem);
 
       // Clicking a poem item should NOT call onSelect - only preview it
       expect(onSelect).not.toHaveBeenCalled();
-      // The clicked item should now be selected (has aria-selected)
+      // The clicked item should have aria-selected for accessibility
       expect(secondItem).toHaveAttribute('aria-selected', 'true');
+      // But the clicked item should NOT have the visual "selected" class
+      // (selected class is only for keyboard navigation focus)
+      expect(secondItem).not.toHaveClass('selected');
+      // First item also loses its visual selection since we clicked
+      expect(firstItem).not.toHaveClass('selected');
+      // The preview should show the clicked poem
+      const preview = screen.getByTestId('sample-poems-preview');
+      expect(preview).toHaveTextContent(secondPoem.title);
     });
 
     it('calls onSelect when "Use This Poem" button is clicked', async () => {
@@ -205,6 +214,24 @@ describe('SamplePoems', () => {
 
       expect(onSelect).toHaveBeenCalledTimes(1);
       expect(onSelect).toHaveBeenCalledWith(samplePoems[0]);
+    });
+
+    it('calls onSelect with clicked poem when "Use This Poem" button is clicked after clicking a poem', async () => {
+      const onSelect = vi.fn();
+      const user = userEvent.setup();
+      render(<SamplePoems {...defaultProps} onSelect={onSelect} />);
+
+      // Click a different poem to preview it
+      const thirdPoem = samplePoems[2];
+      const thirdItem = screen.getByTestId(`sample-poem-${thirdPoem.id}`);
+      await user.click(thirdItem);
+
+      // Now click "Use This Poem"
+      const selectButton = screen.getByTestId('sample-poems-select');
+      await user.click(selectButton);
+
+      expect(onSelect).toHaveBeenCalledTimes(1);
+      expect(onSelect).toHaveBeenCalledWith(thirdPoem);
     });
   });
 
@@ -401,11 +428,30 @@ describe('SamplePoems', () => {
       expect(options.length).toBe(samplePoems.length);
     });
 
-    it('sets aria-selected on selected item', () => {
+    it('sets aria-selected on displayed/previewed item', () => {
       render(<SamplePoems {...defaultProps} />);
 
       const firstItem = screen.getByTestId(`sample-poem-${samplePoems[0].id}`);
       expect(firstItem).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('updates aria-selected when clicking different poem', async () => {
+      const user = userEvent.setup();
+      render(<SamplePoems {...defaultProps} />);
+
+      const firstItem = screen.getByTestId(`sample-poem-${samplePoems[0].id}`);
+      const secondItem = screen.getByTestId(`sample-poem-${samplePoems[1].id}`);
+
+      // Initially first item has aria-selected
+      expect(firstItem).toHaveAttribute('aria-selected', 'true');
+      expect(secondItem).toHaveAttribute('aria-selected', 'false');
+
+      // Click second item
+      await user.click(secondItem);
+
+      // Now second item has aria-selected
+      expect(firstItem).toHaveAttribute('aria-selected', 'false');
+      expect(secondItem).toHaveAttribute('aria-selected', 'true');
     });
 
     it('close button has aria-label', () => {

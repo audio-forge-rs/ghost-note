@@ -105,14 +105,16 @@ export function SamplePoems({
   // This avoids the need for useEffect with setState
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  // Separate preview state from selection - clicking previews without "selecting"
+  const [clickedPreviewIndex, setClickedPreviewIndex] = useState<number | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Get the poem to preview
-  const previewIndex = hoveredIndex ?? selectedIndex;
-  const previewPoem = samplePoems[previewIndex];
+  // Get the poem to preview - priority: hover > clicked preview > keyboard selection
+  const displayIndex = hoveredIndex ?? clickedPreviewIndex ?? selectedIndex;
+  const previewPoem = samplePoems[displayIndex];
 
-  log('Rendering SamplePoems:', { isOpen, selectedIndex, previewIndex });
+  log('Rendering SamplePoems:', { isOpen, selectedIndex, clickedPreviewIndex, displayIndex });
 
   // Handle escape key to close
   useEffect(() => {
@@ -168,25 +170,32 @@ export function SamplePoems({
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
+          // Clear clicked preview when using keyboard nav
+          setClickedPreviewIndex(null);
           setSelectedIndex((prev) =>
             prev < samplePoems.length - 1 ? prev + 1 : prev
           );
           break;
         case 'ArrowUp':
           e.preventDefault();
+          // Clear clicked preview when using keyboard nav
+          setClickedPreviewIndex(null);
           setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
           break;
         case 'Enter':
         case ' ':
           e.preventDefault();
-          handleSelectPoem(samplePoems[selectedIndex]);
+          // Use displayIndex to select the currently previewed poem
+          handleSelectPoem(samplePoems[displayIndex]);
           break;
         case 'Home':
           e.preventDefault();
+          setClickedPreviewIndex(null);
           setSelectedIndex(0);
           break;
         case 'End':
           e.preventDefault();
+          setClickedPreviewIndex(null);
           setSelectedIndex(samplePoems.length - 1);
           break;
       }
@@ -198,7 +207,7 @@ export function SamplePoems({
     return () => {
       currentRef.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, selectedIndex, handleSelectPoem]);
+  }, [isOpen, selectedIndex, displayIndex, handleSelectPoem]);
 
   // Scroll selected item into view
   useEffect(() => {
@@ -269,9 +278,9 @@ export function SamplePoems({
               <div
                 key={poem.id}
                 role="option"
-                aria-selected={selectedIndex === index}
-                className={`sample-poems-item ${selectedIndex === index ? 'selected' : ''}`}
-                onClick={() => setSelectedIndex(index)}
+                aria-selected={displayIndex === index}
+                className={`sample-poems-item ${selectedIndex === index && clickedPreviewIndex === null ? 'selected' : ''}`}
+                onClick={() => setClickedPreviewIndex(index)}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 data-testid={`sample-poem-${poem.id}`}
