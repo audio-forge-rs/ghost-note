@@ -196,7 +196,7 @@ export function PoemInput({
       <div className="poem-input__header">
         <h2 className="poem-input__title">Enter Your Poem</h2>
         <p className="poem-input__subtitle">
-          Paste or type your poem below to analyze its structure and generate a melody.
+          Paste or type your poem below to create song lyrics and melody.
         </p>
       </div>
 

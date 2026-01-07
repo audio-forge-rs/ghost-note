@@ -279,8 +279,8 @@ function ViewContent({
       return (
         <PoemInput
           onAnalyze={() => {
-            log('Analyze triggered, navigating to analysis view');
-            onNavigate('analysis');
+            log('Edit Lyrics triggered, navigating to lyrics-editor view');
+            onNavigate('lyrics-editor');
           }}
           showStats
         />

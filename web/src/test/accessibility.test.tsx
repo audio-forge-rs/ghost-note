@@ -55,7 +55,7 @@ describe('Accessibility Tests', () => {
       expect(screen.getByLabelText('Paste from clipboard')).toBeInTheDocument();
       expect(screen.getByLabelText('Choose a sample poem')).toBeInTheDocument();
       expect(screen.getByLabelText('Clear poem text')).toBeInTheDocument();
-      expect(screen.getByLabelText('Analyze poem')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit lyrics')).toBeInTheDocument();
     });
   });
 

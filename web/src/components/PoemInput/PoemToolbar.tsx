@@ -305,12 +305,12 @@ export function PoemToolbar({
           className="poem-toolbar__button poem-toolbar__button--primary"
           onClick={handleAnalyzeClick}
           disabled={disabled || !canAnalyze}
-          aria-label="Analyze poem"
-          title="Analyze poem"
+          aria-label="Edit lyrics"
+          title="Edit lyrics"
           data-testid="analyze-button"
         >
           <AnalyzeIcon />
-          <span className="poem-toolbar__button-text">Analyze</span>
+          <span className="poem-toolbar__button-text">Edit Lyrics</span>
         </button>
       </div>
 
