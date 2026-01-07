@@ -99,8 +99,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
-        type: 'module',
+        enabled: false,
       },
     }),
     // Bundle analyzer - generates stats.html after build (only when ANALYZE=true)
