@@ -61,7 +61,7 @@ describe('PoemToolbar', () => {
 
       const analyzeButton = screen.getByTestId('analyze-button');
       expect(analyzeButton).toBeInTheDocument();
-      expect(analyzeButton).toHaveTextContent('Analyze');
+      expect(analyzeButton).toHaveTextContent('Edit Lyrics');
     });
 
     it('has proper toolbar role', () => {
@@ -272,7 +272,7 @@ describe('PoemToolbar', () => {
       render(<PoemToolbar {...defaultProps} />);
 
       const analyzeButton = screen.getByTestId('analyze-button');
-      expect(analyzeButton).toHaveAttribute('aria-label', 'Analyze poem');
+      expect(analyzeButton).toHaveAttribute('aria-label', 'Edit lyrics');
     });
 
     it('has primary styling class', () => {
@@ -378,7 +378,7 @@ describe('PoemToolbar', () => {
       expect(screen.getByRole('button', { name: /paste from clipboard/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /choose a sample poem/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /clear poem text/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /analyze poem/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /edit lyrics/i })).toBeInTheDocument();
     });
 
     it('buttons have title attributes for tooltips', () => {
@@ -387,7 +387,7 @@ describe('PoemToolbar', () => {
       expect(screen.getByTestId('paste-button')).toHaveAttribute('title', 'Paste from clipboard');
       expect(screen.getByTestId('sample-button')).toHaveAttribute('title', 'Choose a sample poem');
       expect(screen.getByTestId('clear-button')).toHaveAttribute('title', 'Clear poem text');
-      expect(screen.getByTestId('analyze-button')).toHaveAttribute('title', 'Analyze poem');
+      expect(screen.getByTestId('analyze-button')).toHaveAttribute('title', 'Edit lyrics');
     });
   });
 

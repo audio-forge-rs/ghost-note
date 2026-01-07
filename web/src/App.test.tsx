@@ -577,10 +577,10 @@ describe('App', () => {
       expect(screen.getByTestId('poem-input-component')).toBeInTheDocument();
     });
 
-    it('navigates to analysis view when analyze button is clicked', () => {
+    it('navigates to lyrics-editor view when analyze button is clicked', () => {
       render(<App />);
       fireEvent.click(screen.getByTestId('analyze-button'));
-      expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'analysis');
+      expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'lyrics-editor');
     });
   });
 
