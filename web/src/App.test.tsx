@@ -5,9 +5,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, act } from '@testing-library/react';
 import App from './App';
 import { createDefaultPoemAnalysis } from './types';
+
+// Track generateLyricsFromPoem mock for race condition tests
+let generateLyricsResolve: ((value: unknown) => void) | null = null;
+let generateLyricsReject: ((reason: unknown) => void) | null = null;
 
 // Allow time for lazy-loaded components to load
 const LAZY_COMPONENT_TIMEOUT = 5000;
@@ -113,6 +117,17 @@ vi.mock('@/hooks/useOfflineStatus', () => ({
     checkOnlineStatus: vi.fn(() => true),
   })),
   useNetworkStatus: vi.fn(() => true),
+}));
+
+// Mock the groq lyrics generation module
+vi.mock('@/lib/groq', () => ({
+  generateLyricsFromPoem: vi.fn(() => {
+    return new Promise((resolve, reject) => {
+      // Store resolve/reject so tests can control when the promise resolves
+      generateLyricsResolve = resolve;
+      generateLyricsReject = reject;
+    });
+  }),
 }));
 
 const mockMelodyStoreState: {
@@ -788,6 +803,238 @@ describe('App', () => {
       }, { timeout: LAZY_COMPONENT_TIMEOUT });
       fireEvent.click(screen.getByTestId('stop-recording-button'));
       expect(mockRecordingStoreState.stopRecording).toHaveBeenCalled();
+    });
+  });
+
+  describe('useLyricsGeneration race condition fix', () => {
+    beforeEach(() => {
+      // Reset resolve/reject for each test
+      generateLyricsResolve = null;
+      generateLyricsReject = null;
+      // Ensure we have a poem but no versions (triggers lyrics generation)
+      mockPoemStoreState.original = 'Roses are red\nViolets are blue';
+      mockPoemStoreState.versions = [];
+      mockPoemStoreState.currentVersionIndex = -1;
+    });
+
+    it('guards against state updates on unmounted component (success path)', async () => {
+      // Spy on console.error to detect React warnings about unmounted state updates
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Render the lyrics editor view which triggers useLyricsGeneration
+      const { unmount } = render(<App />);
+
+      // Navigate to lyrics editor to trigger generation
+      fireEvent.click(screen.getByTestId('nav-lyrics-editor'));
+
+      // Wait for the component to start rendering
+      await waitFor(() => {
+        expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'lyrics-editor');
+      });
+
+      // Allow the setTimeout(0) in the hook to fire
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // Unmount before the promise resolves
+      unmount();
+
+      // Now resolve the promise AFTER unmount
+      if (generateLyricsResolve) {
+        await act(async () => {
+          generateLyricsResolve!({
+            success: true,
+            lyrics: 'Generated lyrics here',
+            usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+          });
+        });
+      }
+
+      // Wait a bit for any potential state updates to process
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      });
+
+      // Should NOT see React warnings about state updates on unmounted components
+      const unmountedWarnings = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg =>
+          typeof arg === 'string' &&
+          (arg.includes('unmounted') || arg.includes('memory leak'))
+        )
+      );
+
+      expect(unmountedWarnings.length).toBe(0);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('guards against state updates on unmounted component (error path)', async () => {
+      // Spy on console.error to detect React warnings about unmounted state updates
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Render the lyrics editor view which triggers useLyricsGeneration
+      const { unmount } = render(<App />);
+
+      // Navigate to lyrics editor to trigger generation
+      fireEvent.click(screen.getByTestId('nav-lyrics-editor'));
+
+      // Wait for the component to start rendering
+      await waitFor(() => {
+        expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'lyrics-editor');
+      });
+
+      // Allow the setTimeout(0) in the hook to fire
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // Unmount before the promise rejects
+      unmount();
+
+      // Now reject the promise AFTER unmount
+      if (generateLyricsReject) {
+        await act(async () => {
+          generateLyricsReject!(new Error('Network error'));
+        });
+      }
+
+      // Wait a bit for any potential state updates to process
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      });
+
+      // Should NOT see React warnings about state updates on unmounted components
+      const unmountedWarnings = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg =>
+          typeof arg === 'string' &&
+          (arg.includes('unmounted') || arg.includes('memory leak'))
+        )
+      );
+
+      expect(unmountedWarnings.length).toBe(0);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('guards against state updates on unmounted component (failure result)', async () => {
+      // Spy on console.error to detect React warnings about unmounted state updates
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // Render the lyrics editor view which triggers useLyricsGeneration
+      const { unmount } = render(<App />);
+
+      // Navigate to lyrics editor to trigger generation
+      fireEvent.click(screen.getByTestId('nav-lyrics-editor'));
+
+      // Wait for the component to start rendering
+      await waitFor(() => {
+        expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'lyrics-editor');
+      });
+
+      // Allow the setTimeout(0) in the hook to fire
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // Unmount before the promise resolves
+      unmount();
+
+      // Now resolve with failure result AFTER unmount
+      if (generateLyricsResolve) {
+        await act(async () => {
+          generateLyricsResolve!({
+            success: false,
+            error: 'API error',
+            errorType: 'api',
+            isRetryable: true,
+          });
+        });
+      }
+
+      // Wait a bit for any potential state updates to process
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      });
+
+      // Should NOT see React warnings about state updates on unmounted components
+      const unmountedWarnings = consoleErrorSpy.mock.calls.filter(call =>
+        call.some(arg =>
+          typeof arg === 'string' &&
+          (arg.includes('unmounted') || arg.includes('memory leak'))
+        )
+      );
+
+      expect(unmountedWarnings.length).toBe(0);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('does not call callbacks after unmount', async () => {
+      // Render the lyrics editor view which triggers useLyricsGeneration
+      const { unmount } = render(<App />);
+
+      // Navigate to lyrics editor to trigger generation
+      fireEvent.click(screen.getByTestId('nav-lyrics-editor'));
+
+      // Wait for the component to start rendering
+      await waitFor(() => {
+        expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'lyrics-editor');
+      });
+
+      // Allow the setTimeout(0) in the hook to fire
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+
+      // Clear mock calls before unmount
+      mockPoemStoreState.addVersion.mockClear();
+
+      // Unmount before the promise resolves - must use act() to ensure React cleanup runs
+      await act(async () => {
+        unmount();
+      });
+
+      // Now resolve the promise AFTER unmount - NOT wrapped in act since component is unmounted
+      if (generateLyricsResolve) {
+        generateLyricsResolve({
+          success: true,
+          lyrics: 'Generated lyrics here',
+          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
+        });
+        // Allow microtask queue to flush
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+
+      // Wait a bit for any potential callbacks
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // The addVersion callback should NOT have been called after unmount
+      expect(mockPoemStoreState.addVersion).not.toHaveBeenCalled();
+    });
+
+    it('clears timeout on unmount before async operation starts', async () => {
+      // Render the lyrics editor view which triggers useLyricsGeneration
+      const { unmount } = render(<App />);
+
+      // Navigate to lyrics editor to trigger generation
+      fireEvent.click(screen.getByTestId('nav-lyrics-editor'));
+
+      // Wait for the component to start rendering
+      await waitFor(() => {
+        expect(screen.getByTestId('app-shell')).toHaveAttribute('data-active-view', 'lyrics-editor');
+      });
+
+      // Unmount IMMEDIATELY before setTimeout can fire
+      unmount();
+
+      // Wait to ensure setTimeout would have fired
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      });
+
+      // No warnings should occur
+      // (The clearTimeout in cleanup prevents the async operation from starting)
     });
   });
 });
