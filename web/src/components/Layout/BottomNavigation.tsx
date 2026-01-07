@@ -140,18 +140,13 @@ function RecordingIcon(): ReactElement {
 }
 
 /**
- * Navigation items for bottom navigation
+ * Navigation items for bottom navigation - primary workflow first
  */
-const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
+const PRIMARY_NAV_ITEMS: BottomNavItem[] = [
   {
     id: 'poem-input',
     label: 'Poem',
     icon: <PoemIcon />,
-  },
-  {
-    id: 'analysis',
-    label: 'Analysis',
-    icon: <AnalysisIcon />,
   },
   {
     id: 'lyrics-editor',
@@ -162,6 +157,17 @@ const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
     id: 'melody',
     label: 'Melody',
     icon: <MelodyIcon />,
+  },
+];
+
+/**
+ * Secondary navigation items - analysis and recording
+ */
+const SECONDARY_NAV_ITEMS: BottomNavItem[] = [
+  {
+    id: 'analysis',
+    label: 'Analysis',
+    icon: <AnalysisIcon />,
   },
   {
     id: 'recording',
@@ -214,6 +220,22 @@ export function BottomNavigation({
 
   const containerClass = ['bottom-nav', className].filter(Boolean).join(' ').trim();
 
+  const renderNavItem = (item: BottomNavItem): ReactElement => (
+    <li key={item.id} className="bottom-nav__item">
+      <button
+        type="button"
+        className={`bottom-nav__button ${activeView === item.id ? 'bottom-nav__button--active' : ''}`}
+        onClick={() => handleNavClick(item.id)}
+        aria-current={activeView === item.id ? 'page' : undefined}
+        aria-label={item.label}
+        data-testid={`bottom-nav-${item.id}`}
+      >
+        {item.icon}
+        <span className="bottom-nav__label">{item.label}</span>
+      </button>
+    </li>
+  );
+
   return (
     <nav
       className={containerClass}
@@ -222,21 +244,9 @@ export function BottomNavigation({
       aria-label="Quick navigation"
     >
       <ul className="bottom-nav__list" role="list">
-        {BOTTOM_NAV_ITEMS.map((item) => (
-          <li key={item.id} className="bottom-nav__item">
-            <button
-              type="button"
-              className={`bottom-nav__button ${activeView === item.id ? 'bottom-nav__button--active' : ''}`}
-              onClick={() => handleNavClick(item.id)}
-              aria-current={activeView === item.id ? 'page' : undefined}
-              aria-label={item.label}
-              data-testid={`bottom-nav-${item.id}`}
-            >
-              {item.icon}
-              <span className="bottom-nav__label">{item.label}</span>
-            </button>
-          </li>
-        ))}
+        {PRIMARY_NAV_ITEMS.map(renderNavItem)}
+        <li className="bottom-nav__divider" role="separator" aria-hidden="true" />
+        {SECONDARY_NAV_ITEMS.map(renderNavItem)}
       </ul>
     </nav>
   );
