@@ -52,6 +52,7 @@ vi.mock('@/stores/usePoemStore', () => ({
   ),
   selectCurrentLyrics: (state: typeof mockPoemStoreState) => state.original,
   selectHasPoem: (state: typeof mockPoemStoreState) => state.original.trim().length > 0,
+  selectHasVersions: (state: typeof mockPoemStoreState) => state.versions.length > 0,
   selectCurrentVersion: (state: typeof mockPoemStoreState) => {
     if (state.currentVersionIndex >= 0 && state.versions[state.currentVersionIndex]) {
       return state.versions[state.currentVersionIndex];

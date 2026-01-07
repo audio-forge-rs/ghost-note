@@ -121,3 +121,19 @@ export {
   success,
   failure,
 } from './types';
+
+// =============================================================================
+// Lyrics Generation Exports
+// =============================================================================
+
+export {
+  generateLyricsFromPoem,
+  validatePoemForLyrics,
+} from './lyricsGeneration';
+
+export type {
+  LyricsGenerationResult,
+  LyricsGenerationError,
+  LyricsGenerationOutcome,
+  LyricsGenerationOptions,
+} from './lyricsGeneration';
