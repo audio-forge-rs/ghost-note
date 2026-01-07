@@ -95,6 +95,16 @@ function useLyricsGeneration(
 ): { isGenerating: boolean } {
   const [isGenerating, setIsGenerating] = useState(false);
   const attemptedPoemsRef = useRef<Set<string>>(new Set());
+  const isMountedRef = useRef(true);
+
+  // Track mount state in a separate effect with no dependencies
+  // This ensures isMountedRef is only set to false on actual unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []); // Empty deps - only runs on mount/unmount
 
   useEffect(() => {
     // Skip if already have versions or currently generating
@@ -124,6 +134,11 @@ function useLyricsGeneration(
 
       generateLyricsFromPoem(originalPoem)
         .then((result) => {
+          // Guard against state updates on unmounted component
+          if (!isMountedRef.current) {
+            log('Component unmounted, skipping lyrics generation success callback');
+            return;
+          }
           if (result.success) {
             log('First draft lyrics generated successfully', {
               lyricsLength: result.lyrics.length,
@@ -143,11 +158,21 @@ function useLyricsGeneration(
           }
         })
         .catch((error) => {
+          // Guard against state updates on unmounted component
+          if (!isMountedRef.current) {
+            log('Component unmounted, skipping lyrics generation error callback');
+            return;
+          }
           log('Unexpected error generating lyrics:', error);
           onShowNotification('Could not generate lyrics. You can edit the original poem.', 'warning');
         })
         .finally(() => {
-          setIsGenerating(false);
+          // Guard against state updates on unmounted component
+          if (isMountedRef.current) {
+            setIsGenerating(false);
+          } else {
+            log('Component unmounted, skipping setIsGenerating(false)');
+          }
         });
     }, 0);
 
