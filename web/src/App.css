@@ -11,3 +11,27 @@
   flex-direction: column;
   min-height: 100vh;
 }
+
+/* View loading state styles */
+.view-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.view-loading p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.view-loading__subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+  opacity: 0.8;
+}

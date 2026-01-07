@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { usePoemStore, selectCurrentLyrics, selectHasPoem } from '@/stores/usePoemStore';
+import { usePoemStore, selectCurrentLyrics, selectHasPoem, selectHasVersions } from '@/stores/usePoemStore';
 import { useAnalysisStore, selectHasAnalysis, selectIsAnalyzing } from '@/stores/useAnalysisStore';
 import {
   useMelodyStore,
@@ -27,6 +27,7 @@ import { useUndoStore, selectCanUndo, selectCanRedo } from '@/stores/undoMiddlew
 import { useToastStore } from '@/stores/useToastStore';
 import { generateSuggestionsFromAnalysis } from '@/lib/suggestions';
 import { parseAndImportShareDataFromUrl, hasShareDataInUrl } from '@/lib/share';
+import { generateLyricsFromPoem } from '@/lib/groq';
 import type { PoemAnalysis } from '@/types';
 import { AppShell, type NavigationView } from '@/components/Layout';
 import { EmptyState, LoadingSpinner, ToastContainer, SkipLinks, OfflineIndicator } from '@/components/Common';
@@ -82,7 +83,86 @@ interface ViewConfig {
 }
 
 /**
- * Wrapper component for LyricEditor that triggers suggestion generation via effect.
+ * Custom hook to generate first draft lyrics from a poem.
+ * Encapsulates the async generation logic and state management.
+ * Uses setTimeout to defer state updates and avoid React strict mode warnings.
+ */
+function useLyricsGeneration(
+  originalPoem: string,
+  hasVersions: boolean,
+  onAddVersion: (lyrics: string, description: string) => void,
+  onShowNotification: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void
+): { isGenerating: boolean } {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const attemptedPoemsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Skip if already have versions or currently generating
+    if (hasVersions || isGenerating) {
+      return;
+    }
+
+    // Skip if no poem
+    const trimmedPoem = originalPoem.trim();
+    if (!trimmedPoem) {
+      return;
+    }
+
+    // Skip if already attempted this poem
+    if (attemptedPoemsRef.current.has(trimmedPoem)) {
+      return;
+    }
+
+    // Mark this poem as attempted
+    attemptedPoemsRef.current.add(trimmedPoem);
+
+    // Use setTimeout to defer state update (avoids lint warning about cascading renders)
+    const timeoutId = setTimeout(() => {
+      setIsGenerating(true);
+
+      log('Generating first draft lyrics from poem');
+
+      generateLyricsFromPoem(originalPoem)
+        .then((result) => {
+          if (result.success) {
+            log('First draft lyrics generated successfully', {
+              lyricsLength: result.lyrics.length,
+              tokensUsed: result.usage.totalTokens,
+            });
+            onAddVersion(result.lyrics, 'AI-generated first draft');
+            onShowNotification('First draft lyrics generated!', 'success');
+          } else {
+            log('Failed to generate lyrics:', result.error);
+            // Show notification but don't block - user can still edit original
+            onShowNotification(
+              result.isRetryable
+                ? 'Could not generate lyrics. You can edit the original poem.'
+                : 'AI service unavailable. You can edit the original poem.',
+              'warning'
+            );
+          }
+        })
+        .catch((error) => {
+          log('Unexpected error generating lyrics:', error);
+          onShowNotification('Could not generate lyrics. You can edit the original poem.', 'warning');
+        })
+        .finally(() => {
+          setIsGenerating(false);
+        });
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [originalPoem, hasVersions, isGenerating, onAddVersion, onShowNotification]);
+
+  return { isGenerating };
+}
+
+/**
+ * Wrapper component for LyricEditor that handles:
+ * 1. AI-powered first draft lyrics generation when entering the editor
+ * 2. Suggestion generation from analysis
  * This avoids triggering effects during render which violates React rules.
  */
 function LyricEditorWithSuggestions({
@@ -91,13 +171,29 @@ function LyricEditorWithSuggestions({
   hasSuggestions,
   suggestionsLoading,
   onGenerateSuggestions,
+  originalPoem,
+  hasVersions,
+  onAddVersion,
+  onShowNotification,
 }: {
   hasAnalysis: boolean;
   analysis: PoemAnalysis | null;
   hasSuggestions: boolean;
   suggestionsLoading: boolean;
   onGenerateSuggestions: () => void;
+  originalPoem: string;
+  hasVersions: boolean;
+  onAddVersion: (lyrics: string, description: string) => void;
+  onShowNotification: (message: string, type: 'info' | 'success' | 'warning' | 'error') => void;
 }): React.ReactElement {
+  // Use custom hook for lyrics generation
+  const { isGenerating } = useLyricsGeneration(
+    originalPoem,
+    hasVersions,
+    onAddVersion,
+    onShowNotification
+  );
+
   // Trigger suggestion generation when entering this view with analysis
   useEffect(() => {
     if (hasAnalysis && analysis && !hasSuggestions && !suggestionsLoading) {
@@ -105,6 +201,17 @@ function LyricEditorWithSuggestions({
       onGenerateSuggestions();
     }
   }, [hasAnalysis, analysis, hasSuggestions, suggestionsLoading, onGenerateSuggestions]);
+
+  // Show loading state while generating lyrics
+  if (isGenerating) {
+    return (
+      <div className="view-loading" data-testid="view-lyrics-generating">
+        <LoadingSpinner size="large" label="Generating first draft lyrics..." />
+        <p>Generating first draft lyrics...</p>
+        <p className="view-loading__subtitle">Our AI is adapting your poem for singing</p>
+      </div>
+    );
+  }
 
   return <LyricEditor testId="view-lyrics-editor" />;
 }
@@ -153,6 +260,8 @@ function ViewContent({
   // Poem store
   const original = usePoemStore((state) => state.original);
   const hasPoem = usePoemStore(selectHasPoem);
+  const hasVersions = usePoemStore(selectHasVersions);
+  const addVersion = usePoemStore((state) => state.addVersion);
   const currentLyrics = usePoemStore(selectCurrentLyrics);
 
   // Analysis store
@@ -192,6 +301,9 @@ function ViewContent({
   const suggestionsLoading = useSuggestionStore(selectSuggestionsLoading);
   const setSuggestions = useSuggestionStore((state) => state.setSuggestions);
   const setLoadingSuggestions = useSuggestionStore((state) => state.setLoading);
+
+  // UI store for notifications
+  const showNotification = useUIStore((state) => state.showNotification);
 
   // Track if we've generated suggestions for the current analysis
   const lastAnalysisIdRef = useRef<string | null>(null);
@@ -347,6 +459,10 @@ function ViewContent({
             hasSuggestions={hasSuggestions}
             suggestionsLoading={suggestionsLoading}
             onGenerateSuggestions={handleGenerateSuggestions}
+            originalPoem={original}
+            hasVersions={hasVersions}
+            onAddVersion={addVersion}
+            onShowNotification={showNotification}
           />
         </Suspense>
       );
